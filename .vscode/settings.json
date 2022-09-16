@@ -1,8 +1,0 @@
-{
-    "editor.codeActionsOnSave": {
-        "source.fixAll.eslint": true
-    },
-    "colorize.languages": ["javascript", "typescript", "css", "json"],
-    "editor.tabSize": 4,
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
-}
