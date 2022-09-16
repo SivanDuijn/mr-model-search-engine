@@ -2,6 +2,11 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader";
 
+export enum RenderStyle {
+    "normal",
+    "wireframe",
+}
+
 export default class ViewGL {
     scene: THREE.Scene;
     renderer: THREE.WebGLRenderer;
@@ -10,6 +15,8 @@ export default class ViewGL {
     loader = new OBJLoader();
 
     model: THREE.Group | null = null;
+
+    renderStyle: RenderStyle = RenderStyle.wireframe;
 
     constructor(canvas: HTMLCanvasElement | undefined) {
         this.scene = new THREE.Scene();
@@ -23,8 +30,8 @@ export default class ViewGL {
 
         this.renderer.setSize(600, 600);
 
-        const pointLight = new THREE.PointLight(0xffffff, 10, 100);
-        pointLight.position.set(50, 50, 50);
+        const pointLight = new THREE.PointLight(0xdedede, 6, 100);
+        pointLight.position.set(50, 10, 50);
         this.scene.add(pointLight);
 
         const ambientLight = new THREE.AmbientLight(0x404040); // soft white light
@@ -86,6 +93,33 @@ export default class ViewGL {
             () => true,
             (e) => console.error("Something went wrong when loading model!", e),
         );
+    }
+
+    setRenderStyle(renderStyle: RenderStyle) {
+        this.renderStyle = renderStyle;
+
+        // Should go over all objects in scene and change material
+        switch (this.renderStyle) {
+            case RenderStyle.wireframe: {
+                const mat = new THREE.MeshStandardMaterial({ color: 0x00ff00, wireframe: true });
+                this.model?.traverse((child) => {
+                    if (child instanceof THREE.Mesh) {
+                        child.material = mat;
+                    }
+                });
+                break;
+            }
+
+            default: {
+                const mat = new THREE.MeshStandardMaterial({ color: 0xffffff, wireframe: false });
+                this.model?.traverse((child) => {
+                    if (child instanceof THREE.Mesh) {
+                        child.material = mat;
+                    }
+                });
+                break;
+            }
+        }
     }
 
     update() {

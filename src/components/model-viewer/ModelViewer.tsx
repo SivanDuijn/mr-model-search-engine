@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import filenames from "./filename.json";
-import ViewGL from "./viewGL";
+import ViewGL, { RenderStyle } from "./viewGL";
 
 export default function ModelViewer() {
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -69,6 +69,21 @@ export default function ModelViewer() {
                         </option>
                     ))}
                 </select>
+            </div>
+            <div className="mt-3">
+                <label htmlFor="renderstyle" className="mr-2">
+                    Wireframe
+                </label>
+                <input
+                    type="checkbox"
+                    id="renderstyle"
+                    onChange={(e) =>
+                        viewGL.current?.setRenderStyle(
+                            e.currentTarget.checked ? RenderStyle.wireframe : RenderStyle.normal,
+                        )
+                    }
+                    defaultChecked
+                />
             </div>
         </div>
     );
