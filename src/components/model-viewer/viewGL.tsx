@@ -31,7 +31,7 @@ export default class ViewGL {
         this.renderer.setSize(600, 600);
 
         const pointLight = new THREE.PointLight(0xdedede, 6, 100);
-        pointLight.position.set(50, 10, 50);
+        pointLight.position.set(40, 10, 50);
         this.scene.add(pointLight);
 
         const ambientLight = new THREE.AmbientLight(0x404040); // soft white light
@@ -63,7 +63,10 @@ export default class ViewGL {
         if (this.model) this.scene.remove(this.model);
         this.model = this.model = this.loader.parse(content);
 
-        const mat = new THREE.MeshStandardMaterial({ color: 0x00ff00, wireframe: true });
+        const mat = new THREE.MeshStandardMaterial({
+            color: 0x00ff00,
+            wireframe: this.renderStyle == RenderStyle.wireframe,
+        });
         this.model.traverse((child) => {
             if (child instanceof THREE.Mesh) {
                 child.geometry.center();
@@ -78,7 +81,10 @@ export default class ViewGL {
         this.loader.load(
             url,
             (model) => {
-                const mat = new THREE.MeshStandardMaterial({ color: 0x00ff00, wireframe: true });
+                const mat = new THREE.MeshStandardMaterial({
+                    color: 0x00ff00,
+                    wireframe: this.renderStyle == RenderStyle.wireframe,
+                });
                 model.traverse((child) => {
                     if (child instanceof THREE.Mesh) {
                         child.geometry.center();
