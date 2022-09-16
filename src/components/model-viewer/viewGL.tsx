@@ -64,7 +64,7 @@ export default class ViewGL {
         this.model = this.model = this.loader.parse(content);
 
         const mat = new THREE.MeshStandardMaterial({
-            color: 0x00ff00,
+            color: this.renderStyle == RenderStyle.wireframe ? 0x00ff00 : 0xdedede,
             wireframe: this.renderStyle == RenderStyle.wireframe,
         });
         this.model.traverse((child) => {
@@ -82,7 +82,7 @@ export default class ViewGL {
             url,
             (model) => {
                 const mat = new THREE.MeshStandardMaterial({
-                    color: 0x00ff00,
+                    color: this.renderStyle == RenderStyle.wireframe ? 0x00ff00 : 0xdedede,
                     wireframe: this.renderStyle == RenderStyle.wireframe,
                 });
                 model.traverse((child) => {
@@ -117,7 +117,7 @@ export default class ViewGL {
             }
 
             default: {
-                const mat = new THREE.MeshStandardMaterial({ color: 0xffffff, wireframe: false });
+                const mat = new THREE.MeshStandardMaterial({ color: 0xdedede, wireframe: false });
                 this.model?.traverse((child) => {
                     if (child instanceof THREE.Mesh) {
                         child.material = mat;
