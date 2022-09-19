@@ -3,8 +3,8 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader";
 
 export enum RenderStyle {
-    "normal",
-    "wireframe",
+    "Shaded",
+    "Wireframe",
 }
 
 export default class ViewGL {
@@ -16,7 +16,7 @@ export default class ViewGL {
 
     model: THREE.Group | null = null;
 
-    renderStyle: RenderStyle = RenderStyle.wireframe;
+    renderStyle: RenderStyle = RenderStyle.Wireframe;
 
     constructor(canvas: HTMLCanvasElement | undefined) {
         this.scene = new THREE.Scene();
@@ -63,9 +63,9 @@ export default class ViewGL {
         if (this.model) this.scene.remove(this.model);
         this.model = this.model = this.loader.parse(content);
 
-        const mat = new THREE.MeshStandardMaterial({
-            color: this.renderStyle == RenderStyle.wireframe ? 0x00ff00 : 0xdedede,
-            wireframe: this.renderStyle == RenderStyle.wireframe,
+        const mat = new THREE.MeshPhongMaterial({
+            color: this.renderStyle == RenderStyle.Wireframe ? 0x00ff00 : 0xdedede,
+            wireframe: this.renderStyle == RenderStyle.Wireframe,
         });
         this.model.traverse((child) => {
             if (child instanceof THREE.Mesh) {
@@ -81,9 +81,9 @@ export default class ViewGL {
         this.loader.load(
             url,
             (model) => {
-                const mat = new THREE.MeshStandardMaterial({
-                    color: this.renderStyle == RenderStyle.wireframe ? 0x00ff00 : 0xdedede,
-                    wireframe: this.renderStyle == RenderStyle.wireframe,
+                const mat = new THREE.MeshPhongMaterial({
+                    color: this.renderStyle == RenderStyle.Wireframe ? 0x00ff00 : 0xdedede,
+                    wireframe: this.renderStyle == RenderStyle.Wireframe,
                 });
                 model.traverse((child) => {
                     if (child instanceof THREE.Mesh) {
@@ -106,8 +106,8 @@ export default class ViewGL {
 
         // Should go over all objects in scene and change material
         switch (this.renderStyle) {
-            case RenderStyle.wireframe: {
-                const mat = new THREE.MeshStandardMaterial({ color: 0x00ff00, wireframe: true });
+            case RenderStyle.Wireframe: {
+                const mat = new THREE.MeshPhongMaterial({ color: 0x00ff00, wireframe: true });
                 this.model?.traverse((child) => {
                     if (child instanceof THREE.Mesh) {
                         child.material = mat;
@@ -117,7 +117,7 @@ export default class ViewGL {
             }
 
             default: {
-                const mat = new THREE.MeshStandardMaterial({ color: 0xdedede, wireframe: false });
+                const mat = new THREE.MeshPhongMaterial({ color: 0xdedede, wireframe: false });
                 this.model?.traverse((child) => {
                     if (child instanceof THREE.Mesh) {
                         child.material = mat;

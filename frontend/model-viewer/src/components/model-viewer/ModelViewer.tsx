@@ -79,7 +79,7 @@ export default function ModelViewer() {
                     id="renderstyle"
                     onChange={(e) =>
                         viewGL.current?.setRenderStyle(
-                            e.currentTarget.checked ? RenderStyle.wireframe : RenderStyle.normal,
+                            e.currentTarget.checked ? RenderStyle.Wireframe : RenderStyle.Shaded,
                         )
                     }
                     defaultChecked
