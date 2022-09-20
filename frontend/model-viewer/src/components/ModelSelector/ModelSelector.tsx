@@ -21,7 +21,7 @@ export default function ModelSelector(props: ModelSelectorProps) {
 
     return (
         <div className={props.className}>
-            <p className={clsx("border-b-2", "text-center")}>Select a model</p>
+            <p className={clsx("border-b-2", "text-center", "font-bold")}>Load Model</p>
             <div className={clsx("p-2")}>
                 <div className="flex flex-col">
                     <label htmlFor="model">Load model from file</label>

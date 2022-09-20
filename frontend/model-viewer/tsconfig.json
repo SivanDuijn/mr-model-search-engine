@@ -23,7 +23,7 @@
         "strictFunctionTypes": true,
         "noUnusedParameters": true,
         "noFallthroughCasesInSwitch": true,
-        "noResolve": false
+        "noResolve": false,
     },
     "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
     "exclude": ["node_modules"]
