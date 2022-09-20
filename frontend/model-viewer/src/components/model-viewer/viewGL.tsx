@@ -7,7 +7,7 @@ export enum RenderStyle {
     "Wireframe",
 }
 
-export default class ViewGL {
+export default class ThreeJSViewGL {
     scene: THREE.Scene;
     renderer: THREE.WebGLRenderer;
     camera: THREE.PerspectiveCamera;
@@ -59,7 +59,7 @@ export default class ViewGL {
     //     this.renderer.setSize(vpW, vpH);
     // }
 
-    loadModel(content: string) {
+    loadModelByText(content: string) {
         if (this.model) this.scene.remove(this.model);
         this.model = this.model = this.loader.parse(content);
 
