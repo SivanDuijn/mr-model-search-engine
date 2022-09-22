@@ -10,7 +10,7 @@
 
 # next.js
 /.next/
-/out/
+out/
 
 # python
 venv/
@@ -20,6 +20,7 @@ __pycache__/
 /build
 build/
 *.exe
+backend/server/processors/
 
 # misc
 .DS_Store
@@ -41,5 +42,5 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-.vscode/*
+.vscode/
 .vs/

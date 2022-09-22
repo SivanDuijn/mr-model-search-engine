@@ -1,3 +1,4 @@
+from encodings import utf_8
 import subprocess
 
 def call(args):
@@ -7,7 +8,9 @@ def call(args):
     :param list args: The list of arguments
     """
 
-    args.insert(0, "multimedia_processor")
-    popen = subprocess.Popen(args, stdout=subprocess.PIPE)
+    args.insert(0, "processors/multimedia_processor")
+    popen = subprocess.Popen(args, stdout=subprocess.PIPE, encoding="utf_8")
     popen.wait()
-    print(popen.stdout.read())
+    result = popen.stdout.read()
+    print(result)
+    return result 

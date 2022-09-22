@@ -9,5 +9,5 @@ def index():
 
 @app.route("/debug")
 def debug():
-    multimedia_processor.call(["debug"])
-    return "<h1>Check the console for a message from the backend processor!</h1>"
+    result = multimedia_processor.call(["debug"])
+    return f"<h1>Check the console for a message from the backend processor!{result}</h1>"

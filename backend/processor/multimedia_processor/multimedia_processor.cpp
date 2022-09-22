@@ -17,5 +17,5 @@ int main(int argc, char* argv[])
 
 void debug()
 {
-	printf("Echoing debug call");
+	printf("Waddup ik ben een c++ skrippie");
 }
