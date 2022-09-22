@@ -12,8 +12,14 @@
 /.next/
 /out/
 
+# python
+venv/
+__pycache__/
+
 # production
 /build
+build/
+*.exe
 
 # misc
 .DS_Store
@@ -36,3 +42,4 @@ yarn-error.log*
 next-env.d.ts
 
 .vscode/*
+.vs/
