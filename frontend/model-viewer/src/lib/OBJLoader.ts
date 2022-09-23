@@ -14,7 +14,7 @@ export default function loadOBJModel(model: string): THREE.BufferGeometry {
     output.models.forEach((model) => {
         model.vertices.forEach((v) => vertices.push(v.x, v.y, v.z));
 
-        model.faces.forEach((f, j) => {
+        model.faces.forEach((f) => {
             const vi1 = f.vertices[0].vertexIndex - 1;
             let vi2 = f.vertices[1].vertexIndex - 1;
             let vi3 = f.vertices[2].vertexIndex - 1;
