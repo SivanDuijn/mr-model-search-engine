@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { VertexNormalsHelper } from "three/examples/jsm/helpers/VertexNormalsHelper";
 import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader";
+import loadOBJModel from "../../lib/OBJLoader";
 
 export interface ModelStats {
     nFaces: number;
@@ -94,48 +95,10 @@ export default class ThreeJSViewGL {
     }
 
     loadModelByText(text: string) {
-        const lines = text.split("\n");
-        const facesStartLineI = lines.findIndex((line) => line.startsWith("f "));
-        const vertices: number[][] = [];
-        for (let i = 0; i < facesStartLineI; i++) {
-            const coords = lines[i].split(" ");
-            vertices.push([parseFloat(coords[1]), parseFloat(coords[2]), parseFloat(coords[3])]);
-        }
-
-        const normals: number[] = [];
-        const faceIndices: number[] = [];
-        for (let i = facesStartLineI; i < lines.length; i++) {
-            const indices = lines[i].split(" ");
-            if (indices.length === 4) {
-                const v1 = parseInt(indices[1]) - 1;
-                const v2 = parseInt(indices[2]) - 1;
-                const v3 = parseInt(indices[3]) - 1;
-
-                const p1 = vertices[v1];
-                const p2 = vertices[v2];
-                const p3 = vertices[v3];
-                const Ax = p2[0] - p1[0];
-                const Ay = p2[1] - p1[1];
-                const Az = p2[2] - p1[2];
-                const Bx = p3[0] - p1[0];
-                const By = p3[1] - p1[1];
-                const Bz = p3[2] - p1[2];
-                normals.push(Ay * Bz - Az * By, Az * Bx - Ax * Bz, Ax * By - Ay * Bx);
-                faceIndices.push(v1, v2, v3);
-            }
-        }
-
-        const geometry = new THREE.BufferGeometry();
-        geometry.setIndex(faceIndices);
-        geometry.setAttribute("position", new THREE.Float32BufferAttribute(vertices.flat(), 3));
-        geometry.setAttribute("normal", new THREE.Float32BufferAttribute(normals, 3));
-
-        geometry.computeVertexNormals();
-        geometry.center();
-
         if (this.model) this.scene.remove(this.model);
         if (this.vertexNormalsHelper) this.scene.remove(this.vertexNormalsHelper);
 
+        const geometry = loadOBJModel(text);
         this.model = new THREE.Mesh(geometry, this.material);
 
         this.vertexNormalsHelper = new VertexNormalsHelper(this.model, 0.05, 0xff0000);
