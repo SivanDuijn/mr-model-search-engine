@@ -46,8 +46,8 @@ export default class ThreeJSViewGL {
 
         this.updateMaterial();
 
-        const pointLight = new THREE.PointLight(0xdedede, 6, 100);
-        pointLight.position.set(40, 10, 50);
+        const pointLight = new THREE.PointLight(0xffffff, 3, 100);
+        pointLight.position.set(50, 20, 40);
         this.scene.add(pointLight);
 
         const ambientLight = new THREE.AmbientLight(0x404040); // soft white light

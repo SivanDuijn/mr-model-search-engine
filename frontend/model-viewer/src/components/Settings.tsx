@@ -37,6 +37,7 @@ export default function Settings(props: SettingsProps) {
                         type="checkbox"
                         id="renderstyle"
                         onChange={(e) => props.onVertexNormalsEnable(e.currentTarget.checked)}
+                        defaultChecked={false}
                     />
                 </div>
             </div>
