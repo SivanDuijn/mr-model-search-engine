@@ -3,8 +3,13 @@
 #
 cmake_minimum_required(VERSION 3.8)
 
+# add include directories
+include_directories(${PROJECT_SOURCE_DIR}/submodules/pmp-library/src)
+include_directories(${PROJECT_SOURCE_DIR}/submodules/pmp-library/external/eigen)
+
 # Add source to this project's executable.
 add_executable(multimedia_processor "multimedia_processor.cpp" "multimedia_processor.h")
+target_link_libraries(multimedia_processor pmp)
 
 if(CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET multimedia_processor PROPERTY CXX_STANDARD 20)

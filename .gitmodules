@@ -1,0 +1,3 @@
+[submodule "backend/processor/submodules/pmp-library"]
+	path = backend/processor/submodules/pmp-library
+	url = https://github.com/pmp-library/pmp-library.git
