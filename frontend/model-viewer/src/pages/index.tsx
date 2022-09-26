@@ -24,6 +24,7 @@ export default function HomePage() {
                 />
                 <Settings
                     className={clsx("border-2", "border-slate-200", "mx-2", "mt-8")}
+                    onRenderMaterialChange={(material) => viewGL.current?.setMaterial(material)}
                     onWireframeEnable={(enabled) => viewGL.current?.showWireframe(enabled)}
                     onVertexNormalsEnable={(enabled) => viewGL.current?.showVertexNormals(enabled)}
                 />

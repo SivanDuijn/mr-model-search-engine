@@ -14,6 +14,10 @@ body {
     color: white;
 }
 
+select {
+    background-color: #2b2a33;
+}
+
 a {
     color: inherit;
     text-decoration: none;

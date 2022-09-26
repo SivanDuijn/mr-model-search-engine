@@ -9,9 +9,12 @@ export interface ModelStats {
     nVertices: number;
 }
 
-export enum Material {
-    "Phong",
-    "Hidden",
+export enum RenderMaterial {
+    Flat,
+    Phong,
+    Normals,
+    Cartoon,
+    Hidden,
 }
 
 export default class ThreeJSViewGL {
@@ -28,7 +31,7 @@ export default class ThreeJSViewGL {
     material: THREE.Material = new THREE.Material();
 
     // OPTIONS
-    renderMaterial: Material = Material.Phong;
+    renderMaterial: RenderMaterial = RenderMaterial.Flat;
     vertexNormalsEnabled = false;
     wireframeEnabled = true;
 
@@ -59,7 +62,7 @@ export default class ThreeJSViewGL {
         this.camera.position.z = 1;
         this.camera.position.y = 0.3;
 
-        this.updateMaterial();
+        this.setMaterial(this.renderMaterial);
         this.loadOBJModelByUrl("models/animal/m279.obj");
 
         // const l = new PLYLoader();
@@ -75,17 +78,6 @@ export default class ThreeJSViewGL {
         // });
 
         this.update();
-    }
-
-    private updateMaterial() {
-        this.material = new THREE.MeshPhongMaterial({
-            color: 0xdedede,
-            polygonOffset: true,
-            polygonOffsetFactor: 1,
-            polygonOffsetUnits: 1,
-        });
-
-        if (this.mesh) this.mesh.material = this.material;
     }
 
     private getModelStats() {
@@ -110,7 +102,7 @@ export default class ThreeJSViewGL {
 
         this.wireframe = new THREE.LineSegments(
             new THREE.WireframeGeometry(this.mesh.geometry),
-            new THREE.LineBasicMaterial({ color: 0x00fff0 }),
+            new THREE.LineBasicMaterial({ color: 0x000000 }),
         );
         if (!this.wireframeEnabled) this.wireframe.visible = false;
         this.mesh.add(this.wireframe);
@@ -125,10 +117,53 @@ export default class ThreeJSViewGL {
     }
 
     // SET OPTIONS FUNCTIONS
-    setRenderStyle(renderStyle: Material) {
-        this.renderMaterial = renderStyle;
+    setMaterial(renderMaterial: RenderMaterial) {
+        const options = {
+            color: 0xdedede,
+            polygonOffset: true,
+            polygonOffsetFactor: 1,
+            polygonOffsetUnits: 1,
+        };
 
-        this.updateMaterial();
+        if (this.wireframe)
+            this.wireframe.material = new THREE.LineBasicMaterial({ color: 0x000000 });
+
+        switch (renderMaterial) {
+            case RenderMaterial.Phong:
+                this.material = new THREE.MeshPhongMaterial(options);
+                break;
+
+            case RenderMaterial.Hidden:
+                this.material = new THREE.MeshBasicMaterial({ ...options, visible: false });
+                if (this.wireframe)
+                    this.wireframe.material = new THREE.LineBasicMaterial({ color: 0x00ff00 });
+                break;
+
+            case RenderMaterial.Normals:
+                this.material = new THREE.MeshNormalMaterial(options);
+                break;
+
+            case RenderMaterial.Cartoon:
+                // eslint-disable-next-line no-case-declarations
+                const colors = new Uint8Array(0 + 2);
+
+                for (let c = 0; c <= colors.length; c++) {
+                    colors[c] = (c / colors.length) * 256;
+                }
+
+                this.material = new THREE.MeshToonMaterial({
+                    ...options,
+                    color: 0x049ef4,
+                });
+                break;
+
+            default:
+                this.material = new THREE.MeshStandardMaterial({ ...options, flatShading: true });
+                break;
+        }
+
+        if (this.mesh) this.mesh.material = this.material;
+        this.renderMaterial = renderMaterial;
     }
     showVertexNormals(show: boolean) {
         if (this.vertexNormalsEnabled == show) return;
