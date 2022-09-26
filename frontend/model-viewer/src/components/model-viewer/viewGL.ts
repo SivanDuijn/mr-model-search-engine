@@ -1,7 +1,6 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { VertexNormalsHelper } from "three/examples/jsm/helpers/VertexNormalsHelper";
-import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader";
 import LoadOBJModel from "../../lib/OBJLoader";
 
 export interface ModelStats {
@@ -18,24 +17,25 @@ export enum RenderMaterial {
 }
 
 export default class ThreeJSViewGL {
-    scene: THREE.Scene;
-    renderer: THREE.WebGLRenderer;
-    camera: THREE.PerspectiveCamera;
-    controls: OrbitControls;
-    loader = new OBJLoader();
+    private scene: THREE.Scene;
+    private renderer: THREE.WebGLRenderer;
+    private camera: THREE.PerspectiveCamera;
+    private controls: OrbitControls;
 
-    mesh?: THREE.Mesh;
-    wireframe?: THREE.LineSegments;
-    vertexNormalsHelper?: VertexNormalsHelper;
+    private mesh?: THREE.Mesh;
+    private wireframe?: THREE.LineSegments;
+    private vertexNormalsHelper?: VertexNormalsHelper;
 
-    material: THREE.Material = new THREE.Material();
+    private material: THREE.Material = new THREE.Material();
 
     // OPTIONS
-    renderMaterial: RenderMaterial = RenderMaterial.Flat;
-    vertexNormalsEnabled = false;
-    wireframeEnabled = true;
+    private renderMaterial: RenderMaterial = RenderMaterial.Flat;
+    private vertexNormalsEnabled = false;
+    private wireframeEnabled = true;
 
-    onModelStatsChanged?: (stats: ModelStats) => void;
+    private rotate = true;
+
+    private onModelStatsChanged?: (stats: ModelStats) => void;
 
     constructor(canvas: HTMLCanvasElement | undefined) {
         this.scene = new THREE.Scene();
@@ -58,6 +58,7 @@ export default class ThreeJSViewGL {
         this.scene.add(ambientLight);
 
         this.controls = new OrbitControls(this.camera, canvas);
+        this.controls.enableRotate = false;
 
         this.camera.position.z = 1;
         this.camera.position.y = 0.3;
@@ -184,11 +185,24 @@ export default class ThreeJSViewGL {
     }
     // ---
 
-    update() {
+    onMouseDown() {
+        this.rotate = false;
+    }
+    onMouseUp() {
+        this.rotate = true;
+    }
+    onMouseDrag(xd: number, yd: number) {
+        if (this.mesh) {
+            this.mesh.rotation.y += xd / 125;
+            this.mesh.rotation.x += yd / 125;
+        }
+    }
+
+    private update() {
         this.renderer.render(this.scene, this.camera);
         this.controls.update();
 
-        if (this.mesh) this.mesh.rotation.y += 0.007;
+        if (this.mesh && this.rotate) this.mesh.rotation.y += 0.007;
         if (this.vertexNormalsHelper) this.vertexNormalsHelper.update();
 
         requestAnimationFrame(this.update.bind(this));
