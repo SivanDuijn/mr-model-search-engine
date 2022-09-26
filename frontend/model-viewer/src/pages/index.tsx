@@ -24,12 +24,8 @@ export default function HomePage() {
                 />
                 <Settings
                     className={clsx("border-2", "border-slate-200", "mx-2", "mt-8")}
-                    onRenderStyleChanged={(renderStyle) =>
-                        viewGL.current?.setRenderStyle(renderStyle)
-                    }
-                    onVertexNormalsEnable={(enabled) =>
-                        viewGL.current?.setVertexNormalHelper(enabled)
-                    }
+                    onWireframeEnable={(enabled) => viewGL.current?.showWireframe(enabled)}
+                    onVertexNormalsEnable={(enabled) => viewGL.current?.showVertexNormals(enabled)}
                 />
             </div>
             <MemoizedViewGLCanvas

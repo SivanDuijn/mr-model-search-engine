@@ -1,8 +1,7 @@
 import clsx from "clsx";
-import { RenderStyle } from "./model-viewer/viewGL";
 
 type SettingsProps = {
-    onRenderStyleChanged: (renderStyle: RenderStyle) => void;
+    onWireframeEnable: (enabled: boolean) => void;
     onVertexNormalsEnable: (enabled: boolean) => void;
     className?: string;
 };
@@ -19,23 +18,17 @@ export default function Settings(props: SettingsProps) {
                     <input
                         type="checkbox"
                         id="renderstyle"
-                        onChange={(e) =>
-                            props.onRenderStyleChanged(
-                                e.currentTarget.checked
-                                    ? RenderStyle.Wireframe
-                                    : RenderStyle.Shaded,
-                            )
-                        }
-                        defaultChecked
+                        onChange={(e) => props.onWireframeEnable(e.currentTarget.checked)}
+                        defaultChecked={true}
                     />
                 </div>
                 <div>
-                    <label htmlFor="renderstyle" className="mr-2">
+                    <label htmlFor="vertexNormals" className="mr-2">
                         Vertex normals
                     </label>
                     <input
                         type="checkbox"
-                        id="renderstyle"
+                        id="vertexNormals"
                         onChange={(e) => props.onVertexNormalsEnable(e.currentTarget.checked)}
                         defaultChecked={false}
                     />

@@ -1,8 +1,9 @@
 import OBJParser from "obj-file-parser-ts";
 import * as THREE from "three";
+import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader";
 
 /** Parses and loads a .obj model */
-export default function loadOBJModel(model: string): THREE.BufferGeometry {
+export default function LoadOBJModel(model: string): THREE.BufferGeometry {
     const objParser = new OBJParser(model);
 
     const output = objParser.parse();
@@ -54,4 +55,18 @@ export default function loadOBJModel(model: string): THREE.BufferGeometry {
     geometry.center();
 
     return geometry;
+}
+
+export function LoadOBJModelWithThreeJS(modelStr: string, mat: THREE.Material): THREE.Group {
+    const loader = new OBJLoader();
+    const model = loader.parse(modelStr);
+
+    model.traverse((child) => {
+        if (child instanceof THREE.Mesh) {
+            child.geometry.center();
+            child.material = mat;
+        }
+    });
+
+    return model;
 }

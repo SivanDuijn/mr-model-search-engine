@@ -2,16 +2,16 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { VertexNormalsHelper } from "three/examples/jsm/helpers/VertexNormalsHelper";
 import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader";
-import loadOBJModel from "../../lib/OBJLoader";
+import LoadOBJModel from "../../lib/OBJLoader";
 
 export interface ModelStats {
     nFaces: number;
     nVertices: number;
 }
 
-export enum RenderStyle {
-    "Shaded",
-    "Wireframe",
+export enum Material {
+    "Phong",
+    "Hidden",
 }
 
 export default class ThreeJSViewGL {
@@ -21,14 +21,16 @@ export default class ThreeJSViewGL {
     controls: OrbitControls;
     loader = new OBJLoader();
 
-    model?: THREE.Mesh;
+    mesh?: THREE.Mesh;
+    wireframe?: THREE.LineSegments;
     vertexNormalsHelper?: VertexNormalsHelper;
 
-    // OPTIONS
-    renderStyle: RenderStyle = RenderStyle.Wireframe;
-    vertexNormalHelperEnabled = false;
-
     material: THREE.Material = new THREE.Material();
+
+    // OPTIONS
+    renderMaterial: Material = Material.Phong;
+    vertexNormalsEnabled = false;
+    wireframeEnabled = true;
 
     onModelStatsChanged?: (stats: ModelStats) => void;
 
@@ -43,8 +45,7 @@ export default class ThreeJSViewGL {
         this.camera = new THREE.PerspectiveCamera(75, 1, ...clippingPlane);
 
         this.renderer.setSize(600, 600);
-
-        this.updateMaterial();
+        if (window) this.renderer.setPixelRatio(window.devicePixelRatio);
 
         const pointLight = new THREE.PointLight(0xffffff, 3, 100);
         pointLight.position.set(50, 20, 40);
@@ -58,6 +59,7 @@ export default class ThreeJSViewGL {
         this.camera.position.z = 1;
         this.camera.position.y = 0.3;
 
+        this.updateMaterial();
         this.loadOBJModelByUrl("models/animal/m279.obj");
 
         // const l = new PLYLoader();
@@ -77,17 +79,19 @@ export default class ThreeJSViewGL {
 
     private updateMaterial() {
         this.material = new THREE.MeshPhongMaterial({
-            color: this.renderStyle == RenderStyle.Wireframe ? 0x00ff00 : 0xdedede,
-            wireframe: this.renderStyle == RenderStyle.Wireframe,
+            color: 0xdedede,
+            polygonOffset: true,
+            polygonOffsetFactor: 1,
+            polygonOffsetUnits: 1,
         });
 
-        if (this.model) this.model.material = this.material;
+        if (this.mesh) this.mesh.material = this.material;
     }
 
     private getModelStats() {
-        if (!this.model) return;
-        const nVertices = this.model.geometry.getAttribute("position").count;
-        const nFaces = this.model.geometry.getAttribute("normal").count;
+        if (!this.mesh) return;
+        const nVertices = this.mesh.geometry.getAttribute("position").count;
+        const nFaces = this.mesh.geometry.getAttribute("normal").count;
         if (this.onModelStatsChanged) this.onModelStatsChanged({ nVertices, nFaces });
     }
     setOnModelStatsChanged(onModelStatsChanged: (stats: ModelStats) => void) {
@@ -95,16 +99,22 @@ export default class ThreeJSViewGL {
     }
 
     loadModelByText(text: string) {
-        if (this.model) this.scene.remove(this.model);
-        if (this.vertexNormalsHelper) this.scene.remove(this.vertexNormalsHelper);
+        if (this.mesh) this.scene.remove(this.mesh);
 
-        const geometry = loadOBJModel(text);
-        this.model = new THREE.Mesh(geometry, this.material);
+        const geometry = LoadOBJModel(text);
+        this.mesh = new THREE.Mesh(geometry, this.material);
+        this.scene.add(this.mesh);
 
-        this.vertexNormalsHelper = new VertexNormalsHelper(this.model, 0.05, 0xff0000);
-        if (this.vertexNormalHelperEnabled) this.scene.add(this.vertexNormalsHelper);
+        this.vertexNormalsHelper = new VertexNormalsHelper(this.mesh, 0.05, 0xff0000);
+        if (this.vertexNormalsEnabled) this.scene.add(this.vertexNormalsHelper);
 
-        this.scene.add(this.model);
+        this.wireframe = new THREE.LineSegments(
+            new THREE.WireframeGeometry(this.mesh.geometry),
+            new THREE.LineBasicMaterial({ color: 0x00fff0 }),
+        );
+        if (!this.wireframeEnabled) this.wireframe.visible = false;
+        this.mesh.add(this.wireframe);
+
         this.getModelStats();
     }
 
@@ -114,26 +124,36 @@ export default class ThreeJSViewGL {
             .then((text) => this.loadModelByText(text));
     }
 
-    setRenderStyle(renderStyle: RenderStyle) {
-        this.renderStyle = renderStyle;
+    // SET OPTIONS FUNCTIONS
+    setRenderStyle(renderStyle: Material) {
+        this.renderMaterial = renderStyle;
 
         this.updateMaterial();
     }
-    setVertexNormalHelper(enable: boolean) {
-        if (this.vertexNormalHelperEnabled === enable) return;
+    showVertexNormals(show: boolean) {
+        if (this.vertexNormalsEnabled == show) return;
 
-        this.vertexNormalHelperEnabled = enable;
+        this.vertexNormalsEnabled = show;
 
         if (this.vertexNormalsHelper)
-            if (this.vertexNormalHelperEnabled) this.scene.add(this.vertexNormalsHelper);
+            if (this.vertexNormalsEnabled) this.scene.add(this.vertexNormalsHelper);
             else this.scene.remove(this.vertexNormalsHelper);
     }
+    showWireframe(show: boolean) {
+        if (this.wireframeEnabled == show) return;
+
+        this.wireframeEnabled = show;
+        if (this.wireframe)
+            if (this.wireframeEnabled) this.wireframe.visible = true;
+            else this.wireframe.visible = false;
+    }
+    // ---
 
     update() {
         this.renderer.render(this.scene, this.camera);
         this.controls.update();
 
-        if (this.model) this.model.rotation.y += 0.007;
+        if (this.mesh) this.mesh.rotation.y += 0.007;
         if (this.vertexNormalsHelper) this.vertexNormalsHelper.update();
 
         requestAnimationFrame(this.update.bind(this));
