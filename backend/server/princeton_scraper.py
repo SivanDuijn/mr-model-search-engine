@@ -54,6 +54,3 @@ for model in models_list:
 csv_file = open("../database.csv", "w")
 n = csv_file.write(csv)
 csv_file.close()
-print(n)
-
-
