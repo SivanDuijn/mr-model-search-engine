@@ -14,3 +14,4 @@ add_subdirectory(submodules/pmp-library)
 
 # Include sub-projects.
 add_subdirectory("multimedia_processor")
+add_subdirectory("feature_processor")

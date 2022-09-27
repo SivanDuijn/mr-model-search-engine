@@ -51,6 +51,6 @@ for model in models_list:
         csv += ","
     csv += model[len(model) - 1] 
 
-csv_file = open("../database.csv", "w")
+csv_file = open("../database_class_data.csv", "w")
 n = csv_file.write(csv)
 csv_file.close()

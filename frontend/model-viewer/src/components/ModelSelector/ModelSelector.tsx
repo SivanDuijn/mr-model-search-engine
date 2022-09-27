@@ -57,7 +57,7 @@ export default function ModelSelector(props: ModelSelectorProps) {
                             const file = e.currentTarget.value;
 
                             if (subgroup !== undefined && file !== undefined)
-                                props.onModelSelected("models/" + subgroup + "/" + file);
+                                props.onModelSelected("models/" + file);
                         }}
                         value={subgroup ? undefined : ""}
                     >

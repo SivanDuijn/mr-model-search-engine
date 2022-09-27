@@ -3,6 +3,7 @@
 
 #include "multimedia_processor.h"
 #include <pmp/SurfaceMesh.h>
+#include <pmp/BoundingBox.h>
 
 using namespace std;
 
@@ -23,6 +24,12 @@ void debug()
 {
 	pmp::SurfaceMesh mesh;
 	mesh.read("../../frontend/model-viewer/public/models/animal/m0.obj");
+	pmp::BoundingBox aabb = mesh.bounds();
+	pmp::Point aabbMin = aabb.min();
+	pmp::Point aabbMax = aabb.max();
 
-	printf("<br> Waddup ik ben een c++ skrippie! <br> #vertices: %zu, #faces: %zu ", mesh.n_vertices(), mesh.n_faces());
+	printf("<br> Waddup ik ben een c++ skrippie! <br>\
+		#vertices: %zu, #faces: %zu <br>\
+		AABB: %.3f %.3f - %.3f %.3f", 
+		mesh.n_vertices(), mesh.n_faces(), aabbMin[0], aabbMin[1], aabbMax[0], aabbMax[1]);
 }

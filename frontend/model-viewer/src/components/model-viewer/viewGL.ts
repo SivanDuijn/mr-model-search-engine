@@ -64,7 +64,7 @@ export default class ThreeJSViewGL {
         this.camera.position.y = 0.3;
 
         this.setMaterial(this.renderMaterial);
-        this.loadOBJModelByUrl("models/animal/m279.obj");
+        this.loadOBJModelByUrl("models/m279.obj");
 
         // const l = new PLYLoader();
         // l.load("models/61.ply", (geometry) => {
