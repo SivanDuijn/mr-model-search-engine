@@ -7,6 +7,10 @@
 #include <stdio.h>
 #include <pmp/SurfaceMesh.h>
 #include <pmp/BoundingBox.h>
+#include <pmp/algorithms/Triangulation.h>
+#include <pmp/algorithms/Subdivision.h>
+#include <pmp/algorithms/Decimation.h>
 #include "../variables.h"
 
 void debug();
+void resample(const char* path = "LabeledDB_new/Armadillo/281.off");

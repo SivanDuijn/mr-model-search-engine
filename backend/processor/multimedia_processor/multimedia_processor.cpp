@@ -7,27 +7,66 @@ using namespace std;
 
 int main(int argc, char *argv[])
 {
-	if (argc < 2)
-		printf("Please supply an argument");
+	resample();
+	if (argc < 2) printf("Please supply an argument");
 	// No switch for "strings" :(
-	else if (!strcmp(argv[1], "debug"))
-		debug();
-	else
-		printf("Unknown argument");
+	else if (!strcmp(argv[1], "debug"))    debug();
+	else if (!strcmp(argv[1], "resample")) resample();
+	else printf("Unknown argument");
 
 	return 0;
 }
 
 void debug()
 {
-	pmp::SurfaceMesh mesh;
-	mesh.read(vars::GetAssetPath() + "LabeledDB_new/Armadillo/281.off");
-	pmp::BoundingBox aabb = mesh.bounds();
-	pmp::Point aabbMin = aabb.min();
-	pmp::Point aabbMax = aabb.max();
+	printf("Echoing debug call");
+}
 
-	printf("<br> Waddup ik ben een c++ skrippie! <br>\
-		#vertices: %zu, #faces: %zu <br>\
-		AABB: %.3f %.3f - %.3f %.3f", 
-		mesh.n_vertices(), mesh.n_faces(), aabbMin[0], aabbMin[1], aabbMax[0], aabbMax[1]);
+// Resample a mesh at the given path
+void resample(const char* path)
+{
+	// Get the mesh
+	printf("Loading mesh \"%s\"\n", path);
+	pmp::SurfaceMesh mesh;
+	mesh.read(vars::GetAssetPath(path));
+
+	printf("Mesh has %zu vertices\n", mesh.n_vertices());
+
+	// Triangulate it if necessary
+	if (!mesh.is_triangle_mesh())
+	{
+		printf("Triangulating mesh");
+		pmp::Triangulation tri = pmp::Triangulation(mesh);
+		tri.triangulate();
+	}
+
+	// TODO find actual desired vertex count
+	const unsigned int des = 5000;
+
+	// Subdivide or decimate depending on the vertex count
+	if (mesh.n_vertices() > des)
+	{
+		printf("Subdividing mesh");
+		pmp::Subdivision div = pmp::Subdivision(mesh);
+		div.catmull_clark();
+		printf(" to %zu vertices\n", mesh.n_vertices());
+	}
+	else if (mesh.n_vertices() < des)
+	{
+		printf("Decimating mesh");
+		pmp::Decimation dec = pmp::Decimation(mesh);
+		dec.decimate(5000);
+		printf(" to %zu vertices\n", mesh.n_vertices());
+	}
+	else
+	{
+		printf("Mesh contains exactly the right amount of vertices!\n");
+	}
+
+	// Write resampled mesh to disk
+	// TODO file name/location
+	printf("Writing mesh to disk");
+	mesh.write(vars::GetAssetPath(path) + ".res.off");
+
+	printf("Done");
 }
