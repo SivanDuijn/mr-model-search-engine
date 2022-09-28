@@ -63,6 +63,7 @@ export default class ThreeJSViewGL {
         this.camera.position.y = 0.3;
 
         this.setMaterial(this.renderMaterial);
+        this.loadModelByUrl("models/m279.obj");
 
         this.update();
     }
@@ -93,20 +94,10 @@ export default class ThreeJSViewGL {
 
         // Add unit bounding box
         this.mesh.add(CreateThreeLineBox(1, 1, 1, 0x7d7d7d));
-        const modelStats = GetModelStats(modelName);
-        if (modelStats) {
-            // Add model boundingbox
-            this.mesh.add(
-                CreateThreeLineBox(
-                    modelStats.AABB.max.x - modelStats.AABB.min.x,
-                    modelStats.AABB.max.y - modelStats.AABB.min.y,
-                    modelStats.AABB.max.z - modelStats.AABB.min.z,
-                    0xff0000,
-                ),
-            );
-        }
+        // Add model boundingbox
+        this.mesh.add(new THREE.BoxHelper(this.mesh, 0xff0000));
 
-        if (this.onModelStatsChanged) this.onModelStatsChanged(modelStats);
+        if (this.onModelStatsChanged) this.onModelStatsChanged(GetModelStats(modelName));
     }
 
     loadModelByUrl(url: string) {
