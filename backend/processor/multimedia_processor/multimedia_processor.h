@@ -5,5 +5,8 @@
 
 #include <string.h>
 #include <stdio.h>
+#include <pmp/SurfaceMesh.h>
+#include <pmp/BoundingBox.h>
+#include "../variables.h"
 
 void debug();

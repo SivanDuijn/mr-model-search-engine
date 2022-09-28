@@ -2,8 +2,6 @@
 //
 
 #include "multimedia_processor.h"
-#include <pmp/SurfaceMesh.h>
-#include <pmp/BoundingBox.h>
 
 using namespace std;
 
@@ -23,7 +21,7 @@ int main(int argc, char *argv[])
 void debug()
 {
 	pmp::SurfaceMesh mesh;
-	mesh.read("../../frontend/model-viewer/public/models/m0.obj");
+	mesh.read(vars::GetAssetPath() + "LabeledDB_new/Armadillo/281.off");
 	pmp::BoundingBox aabb = mesh.bounds();
 	pmp::Point aabbMin = aabb.min();
 	pmp::Point aabbMax = aabb.max();
