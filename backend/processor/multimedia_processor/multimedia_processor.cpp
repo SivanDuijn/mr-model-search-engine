@@ -43,15 +43,15 @@ void resample(const char* path)
 	// TODO find actual desired vertex count
 	const unsigned int des = 5000;
 
-	// Subdivide or decimate depending on the vertex count
-	if (mesh.n_vertices() > des)
+	// Subdivide and/or decimate depending on the vertex count
+	if (mesh.n_vertices() < des)
 	{
 		printf("Subdividing mesh");
 		pmp::Subdivision div = pmp::Subdivision(mesh);
 		div.catmull_clark();
 		printf(" to %zu vertices\n", mesh.n_vertices());
 	}
-	else if (mesh.n_vertices() < des)
+	if (mesh.n_vertices() > des)
 	{
 		printf("Decimating mesh");
 		pmp::Decimation dec = pmp::Decimation(mesh);
@@ -65,8 +65,8 @@ void resample(const char* path)
 
 	// Write resampled mesh to disk
 	// TODO file name/location
-	printf("Writing mesh to disk");
+	printf("Writing mesh to disk\n");
 	mesh.write(vars::GetAssetPath(path) + ".res.off");
 
-	printf("Done");
+	printf("Done\n");
 }
