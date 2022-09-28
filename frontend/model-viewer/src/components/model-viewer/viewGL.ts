@@ -34,7 +34,7 @@ export default class ThreeJSViewGL {
     private rotate = true;
 
     private onModelStatsChanged?: (stats: ModelStats | undefined) => void;
-    private modelName: string | undefined;
+    currentModel: string | undefined;
 
     constructor(canvas: HTMLCanvasElement | undefined) {
         this.scene = new THREE.Scene();
@@ -63,7 +63,6 @@ export default class ThreeJSViewGL {
         this.camera.position.y = 0.3;
 
         this.setMaterial(this.renderMaterial);
-        this.loadModelByUrl("models/m279.obj");
 
         this.update();
     }
@@ -75,6 +74,7 @@ export default class ThreeJSViewGL {
     loadModelByText(text: string, modelName: string) {
         const filetype = GetModelfiletype(modelName);
         if (filetype === null) alert("Model file type not supported!");
+        this.currentModel = modelName;
         if (this.mesh) this.scene.remove(this.mesh);
 
         const geometry = filetype == "OFF" ? LoadOFFModel(text) : LoadOBJModel(text);
@@ -105,8 +105,6 @@ export default class ThreeJSViewGL {
                 ),
             );
         }
-
-        this.modelName = modelName;
 
         if (this.onModelStatsChanged) this.onModelStatsChanged(modelStats);
     }

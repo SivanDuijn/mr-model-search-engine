@@ -27,6 +27,13 @@ export default function HomePage() {
         }
     }, [model]);
 
+    useEffect(() => {
+        setTimeout(() => {
+            if (viewGL.current && !viewGL.current.currentModel)
+                viewGL.current.loadModelByUrl("models/m279.obj");
+        }, 100);
+    }, []);
+
     return (
         <div className={clsx("grid", "lg:grid-cols-[1fr_auto_1fr]")}>
             <div>
