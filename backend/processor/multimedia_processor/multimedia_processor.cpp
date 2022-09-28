@@ -53,7 +53,7 @@ void resample(const char* path)
 	{
 		printf("Decimating mesh");
 		pmp::Decimation dec = pmp::Decimation(mesh);
-		dec.decimate(5000);
+		dec.decimate(des);
 		printf(" to %zu vertices\n", mesh.n_vertices());
 	}
 	else
