@@ -23,7 +23,7 @@ int main(int argc, char *argv[])
 void debug()
 {
 	pmp::SurfaceMesh mesh;
-	mesh.read("../../frontend/model-viewer/public/models/animal/m0.obj");
+	mesh.read("../../frontend/model-viewer/public/models/m0.obj");
 	pmp::BoundingBox aabb = mesh.bounds();
 	pmp::Point aabbMin = aabb.min();
 	pmp::Point aabbMax = aabb.max();

@@ -7,3 +7,4 @@
 #include <vector>
 #include <pmp/SurfaceMesh.h>
 #include <pmp/BoundingBox.h>
+#include "../variables.h"
