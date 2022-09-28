@@ -70,7 +70,7 @@ void resample(const char* path)
 }
 
 // Normalize a mesh according to 4 steps:
-// * Translate to barycenter
+// * Translate barycenter to origin
 // * Align with coordinate frame
 // * Flip based on moment test
 // * Scale to unit volume
@@ -82,47 +82,14 @@ void normalize(const char* path)
 	mesh.read(vars::GetAssetPath(path));
 
 	// Calculate the barycenter of the mesh
-	printf("Translating mesh to barycenter\n");
-	pmp::vec3 bcenter = vreduce
-	(
-		mesh,
-		[](pmp::Vertex v)->pmp::vec3 
-		{
-			return pmp::vec3(0); 
-		},
-		[](pmp::vec3 a, pmp::vec3 b)-> pmp::vec3
-		{ 
-			return a + b;
-		},
-		pmp::vec3(0)
-	);
-	map
-	(
-		mesh,
-		[](pmp::Vertex) { }
-	);
+	printf("Translating barycenter to origin");
+	pmp::VertexProperty points = mesh.get_vertex_property<pmp::Point>("v:point");
+	pmp::Point bcenter(0);
+	for (auto v : mesh.vertices()) bcenter += points[v];
+	bcenter /= mesh.n_vertices();
+	for (auto v : mesh.vertices()) points[v] -= bcenter;
+	printf(" (-[%f, %f, %f])", bcenter.data()[0], bcenter.data()[1], bcenter.data()[2]);
 
-	printf("Center at [%f, %f, %f]", bcenter.data()[0], bcenter.data()[1], bcenter.data()[2]);
+	// TODO
 	throw exception("Not yet implemented");
-}
-
-// Apply a function to all vertices of a mesh
-void map(pmp::SurfaceMesh &mesh, void (*fnc) (pmp::Vertex))
-{
-	pmp::SurfaceMesh::VertexIterator i;
-	for (i = mesh.vertices_begin(); i != mesh.vertices_end(); i++)
-	{
-		fnc(*i);
-	}
-}
-
-// Reduce all vertices of a mesh to a vector
-pmp::vec3 vreduce(pmp::SurfaceMesh& mesh, pmp::vec3(*cnv) (pmp::Vertex), pmp::vec3(*red) (pmp::vec3, pmp::vec3), pmp::vec3 bse)
-{
-	pmp::SurfaceMesh::VertexIterator i;
-	for (i = mesh.vertices_begin(); i != mesh.vertices_end(); i++)
-	{
-		bse = red(bse, cnv(*i));
-	}
-	return bse;
 }

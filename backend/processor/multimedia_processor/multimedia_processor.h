@@ -16,6 +16,3 @@
 void debug();
 void resample(const char* path = "LabeledDB_new/Armadillo/281.off");
 void normalize(const char* path = "LabeledDB_new/Armadillo/281.off");
-
-void map(pmp::SurfaceMesh& mesh, void (*func) (pmp::Vertex));
-pmp::vec3 vreduce(pmp::SurfaceMesh& mesh, pmp::vec3(*cnv) (pmp::Vertex), pmp::vec3(*red) (pmp::vec3, pmp::vec3), pmp::vec3 bse);
