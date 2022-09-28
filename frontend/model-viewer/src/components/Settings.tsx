@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import { useEffect } from "react";
 import { RenderMaterial } from "./model-viewer/viewGL";
 
 type SettingsProps = {
@@ -9,6 +10,13 @@ type SettingsProps = {
 };
 
 export default function Settings(props: SettingsProps) {
+    // Really weird fix for local development
+    useEffect(() => {
+        setTimeout(() => {
+            props.onWireframeEnable(true);
+        }, 100);
+    }, []);
+
     return (
         <div className={props.className}>
             <p className={clsx("border-b-2", "text-center", "font-bold")}>Settings</p>

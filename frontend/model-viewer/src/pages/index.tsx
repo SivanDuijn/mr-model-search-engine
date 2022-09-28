@@ -19,7 +19,9 @@ export default function HomePage() {
             <div>
                 <ModelSelector
                     className={clsx("border-2", "border-slate-200", "mx-2", "mt-4")}
-                    onFileSelected={(textContent) => viewGL.current?.loadModelByText(textContent)}
+                    onFileSelected={(textContent, filetype) =>
+                        viewGL.current?.loadModelByText(textContent, filetype)
+                    }
                     onModelSelected={(url) => viewGL.current?.loadOBJModelByUrl(url)}
                 />
                 <Settings

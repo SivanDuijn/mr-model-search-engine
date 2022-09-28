@@ -1,10 +1,12 @@
 import clsx from "clsx";
 import { useState, useMemo } from "react";
-import filenames from "./filenames.json";
+import GetModelfiletype from "src/lib/utils";
+// import filenames from "./princeton-filenames.json";
+import filenames from "./psb-filenames.json";
 
 type ModelSelectorProps = {
     onModelSelected: (url: string) => void;
-    onFileSelected: (textContent: string) => void;
+    onFileSelected: (textContent: string, filetype: "OFF" | "OBJ" | null) => void;
     className?: string;
 };
 
@@ -28,12 +30,14 @@ export default function ModelSelector(props: ModelSelectorProps) {
                     <input
                         id="model"
                         type="file"
-                        accept=".obj"
+                        accept=".obj,.off"
                         onChange={(e) => {
-                            if (e.currentTarget.files)
-                                e.currentTarget.files[0]
-                                    .text()
-                                    .then((text) => props.onFileSelected(text));
+                            if (!e.currentTarget.files) return;
+                            const file = e.currentTarget.files[0];
+                            if (file)
+                                file.text().then((text) =>
+                                    props.onFileSelected(text, GetModelfiletype(file.name)),
+                                );
                             setSubgroup(undefined);
                         }}
                     />
@@ -57,7 +61,7 @@ export default function ModelSelector(props: ModelSelectorProps) {
                             const file = e.currentTarget.value;
 
                             if (subgroup !== undefined && file !== undefined)
-                                props.onModelSelected("models/" + file);
+                                props.onModelSelected("LabeledDB_new/" + subgroup + "/" + file);
                         }}
                         value={subgroup ? undefined : ""}
                     >

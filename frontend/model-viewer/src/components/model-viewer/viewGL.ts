@@ -1,6 +1,8 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { VertexNormalsHelper } from "three/examples/jsm/helpers/VertexNormalsHelper";
+import LoadOFFModel from "src/lib/OFFLoader";
+import GetModelfiletype from "src/lib/utils";
 import LoadOBJModel from "../../lib/OBJLoader";
 
 export interface ModelStats {
@@ -31,7 +33,7 @@ export default class ThreeJSViewGL {
     // OPTIONS
     private renderMaterial: RenderMaterial = RenderMaterial.Flat;
     private vertexNormalsEnabled = false;
-    private wireframeEnabled = true;
+    private wireframeEnabled = false;
 
     private rotate = true;
 
@@ -91,10 +93,11 @@ export default class ThreeJSViewGL {
         this.onModelStatsChanged = onModelStatsChanged;
     }
 
-    loadModelByText(text: string) {
+    loadModelByText(text: string, filetype: "OFF" | "OBJ" | null) {
+        if (filetype === null) alert("Model file type not supported!");
         if (this.mesh) this.scene.remove(this.mesh);
 
-        const geometry = LoadOBJModel(text);
+        const geometry = filetype == "OFF" ? LoadOFFModel(text) : LoadOBJModel(text);
         this.mesh = new THREE.Mesh(geometry, this.material);
         this.scene.add(this.mesh);
 
@@ -114,7 +117,7 @@ export default class ThreeJSViewGL {
     loadOBJModelByUrl(url: string) {
         fetch(url)
             .then((response) => response.text())
-            .then((text) => this.loadModelByText(text));
+            .then((text) => this.loadModelByText(text, GetModelfiletype(url)));
     }
 
     // SET OPTIONS FUNCTIONS
