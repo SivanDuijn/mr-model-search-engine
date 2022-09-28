@@ -1,7 +1,4 @@
-﻿// multimedia_processor.cpp : Defines the entry point for the application.
-//
-
-#include "multimedia_processor.h"
+﻿#include "multimedia_processor.h"
 
 using namespace std;
 
@@ -10,8 +7,9 @@ int main(int argc, char *argv[])
 	resample();
 	if (argc < 2) printf("Please supply an argument");
 	// No switch for "strings" :(
-	else if (!strcmp(argv[1], "debug"))    debug();
-	else if (!strcmp(argv[1], "resample")) resample();
+	else if (!strcmp(argv[1], "debug"))     debug();
+	else if (!strcmp(argv[1], "resample"))  resample();
+	else if (!strcmp(argv[1], "normalize")) normalize();
 	else printf("Unknown argument");
 
 	return 0;
@@ -69,4 +67,14 @@ void resample(const char* path)
 	mesh.write(vars::GetAssetPath(path) + ".res.off");
 
 	printf("Done\n");
+}
+
+// Normalize a mesh according to 4 steps:
+// * Translate to barycenter
+// * Align with coordinate frame
+// * Flip based on moment test
+// * Scale to unit volume
+void normalize(const char* path)
+{
+	throw exception("Not yet implemented");
 }

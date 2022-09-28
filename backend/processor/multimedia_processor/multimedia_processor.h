@@ -14,3 +14,4 @@
 
 void debug();
 void resample(const char* path = "LabeledDB_new/Armadillo/281.off");
+void normalize(const char* path = "LabeledDB_new/Armadillo/281.off");
