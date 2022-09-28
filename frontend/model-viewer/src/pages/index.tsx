@@ -31,7 +31,7 @@ export default function HomePage() {
         setTimeout(() => {
             if (viewGL.current && !viewGL.current.currentModel)
                 viewGL.current.loadModelByUrl("models/m279.obj");
-        }, 100);
+        }, 200);
     }, []);
 
     return (
