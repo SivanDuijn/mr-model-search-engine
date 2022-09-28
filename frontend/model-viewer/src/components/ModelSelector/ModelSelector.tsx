@@ -1,12 +1,11 @@
 import clsx from "clsx";
 import { useState, useMemo } from "react";
-import GetModelfiletype from "src/lib/utils";
 // import filenames from "./princeton-filenames.json";
 import filenames from "./psb-filenames.json";
 
 type ModelSelectorProps = {
     onModelSelected: (url: string) => void;
-    onFileSelected: (textContent: string, filetype: "OFF" | "OBJ" | null) => void;
+    onFileSelected: (textContent: string, fileName: string) => void;
     className?: string;
 };
 
@@ -35,9 +34,10 @@ export default function ModelSelector(props: ModelSelectorProps) {
                             if (!e.currentTarget.files) return;
                             const file = e.currentTarget.files[0];
                             if (file)
-                                file.text().then((text) =>
-                                    props.onFileSelected(text, GetModelfiletype(file.name)),
-                                );
+                                file.text().then((text) => {
+                                    const m = file.name.split("/");
+                                    props.onFileSelected(text, m[m.length - 1]);
+                                });
                             setSubgroup(undefined);
                         }}
                     />

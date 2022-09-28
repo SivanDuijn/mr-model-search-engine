@@ -1,14 +1,10 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { VertexNormalsHelper } from "three/examples/jsm/helpers/VertexNormalsHelper";
+import GetModelStats, { ModelStats } from "src/lib/getModelStats";
 import LoadOFFModel from "src/lib/OFFLoader";
-import GetModelfiletype from "src/lib/utils";
+import { CreateThreeLineBox, GetModelfiletype } from "src/lib/utils";
 import LoadOBJModel from "../../lib/OBJLoader";
-
-export interface ModelStats {
-    nFaces: number;
-    nVertices: number;
-}
 
 export enum RenderMaterial {
     Flat,
@@ -37,7 +33,8 @@ export default class ThreeJSViewGL {
 
     private rotate = true;
 
-    private onModelStatsChanged?: (stats: ModelStats) => void;
+    private onModelStatsChanged?: (stats: ModelStats | undefined) => void;
+    private modelName: string | undefined;
 
     constructor(canvas: HTMLCanvasElement | undefined) {
         this.scene = new THREE.Scene();
@@ -66,34 +63,17 @@ export default class ThreeJSViewGL {
         this.camera.position.y = 0.3;
 
         this.setMaterial(this.renderMaterial);
-        this.loadOBJModelByUrl("models/m279.obj");
-
-        // const l = new PLYLoader();
-        // l.load("models/61.ply", (geometry) => {
-        //     geometry.computeVertexNormals();
-        //     const mat = new THREE.MeshPhongMaterial({
-        //         color: this.renderStyle == RenderStyle.Wireframe ? 0x00ff00 : 0xdedede,
-        //         wireframe: this.renderStyle == RenderStyle.Wireframe,
-        //     });
-
-        //     this.scene.add(new THREE.Mesh(geometry, mat));
-        //     console.log(geometry);
-        // });
+        this.loadModelByUrl("models/m279.obj");
 
         this.update();
     }
 
-    private getModelStats() {
-        if (!this.mesh) return;
-        const nVertices = this.mesh.geometry.getAttribute("position").count;
-        const nFaces = this.mesh.geometry.getAttribute("normal").count;
-        if (this.onModelStatsChanged) this.onModelStatsChanged({ nVertices, nFaces });
-    }
-    setOnModelStatsChanged(onModelStatsChanged: (stats: ModelStats) => void) {
+    setOnModelStatsChanged(onModelStatsChanged: (stats: ModelStats | undefined) => void) {
         this.onModelStatsChanged = onModelStatsChanged;
     }
 
-    loadModelByText(text: string, filetype: "OFF" | "OBJ" | null) {
+    loadModelByText(text: string, modelName: string) {
+        const filetype = GetModelfiletype(modelName);
         if (filetype === null) alert("Model file type not supported!");
         if (this.mesh) this.scene.remove(this.mesh);
 
@@ -111,13 +91,33 @@ export default class ThreeJSViewGL {
         if (!this.wireframeEnabled) this.wireframe.visible = false;
         this.mesh.add(this.wireframe);
 
-        this.getModelStats();
+        // Add unit bounding box
+        this.mesh.add(CreateThreeLineBox(1, 1, 1, 0x7d7d7d));
+        const modelStats = GetModelStats(modelName);
+        if (modelStats) {
+            // Add model boundingbox
+            this.mesh.add(
+                CreateThreeLineBox(
+                    modelStats.AABB.max.x - modelStats.AABB.min.x,
+                    modelStats.AABB.max.y - modelStats.AABB.min.y,
+                    modelStats.AABB.max.z - modelStats.AABB.min.z,
+                    0xff0000,
+                ),
+            );
+        }
+
+        this.modelName = modelName;
+
+        if (this.onModelStatsChanged) this.onModelStatsChanged(modelStats);
     }
 
-    loadOBJModelByUrl(url: string) {
+    loadModelByUrl(url: string) {
         fetch(url)
             .then((response) => response.text())
-            .then((text) => this.loadModelByText(text, GetModelfiletype(url)));
+            .then((text) => {
+                const m = url.split("/");
+                this.loadModelByText(text, m[m.length - 1]);
+            });
     }
 
     // SET OPTIONS FUNCTIONS

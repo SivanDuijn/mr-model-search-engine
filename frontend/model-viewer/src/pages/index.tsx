@@ -1,11 +1,15 @@
 import clsx from "clsx";
-import { useCallback, useRef, useState } from "react";
+import { useRouter } from "next/router";
+import { useCallback, useEffect, useRef, useState } from "react";
+import GetModelStats, { ModelStats } from "src/lib/getModelStats";
 import { MemoizedViewGLCanvas } from "../components/model-viewer/ModelViewer";
-import ThreeJSViewGL, { ModelStats } from "../components/model-viewer/viewGL";
+import ThreeJSViewGL from "../components/model-viewer/viewGL";
 import ModelSelector from "../components/ModelSelector/ModelSelector";
 import Settings from "../components/Settings";
 
 export default function HomePage() {
+    const router = useRouter();
+    const model = router.query["m"];
     const [modelStats, setModelStats] = useState<ModelStats>();
 
     const viewGL = useRef<ThreeJSViewGL>();
@@ -13,6 +17,15 @@ export default function HomePage() {
         viewGL.current = viewGLFromCanvas;
         viewGL.current.setOnModelStatsChanged((stats) => setModelStats(stats));
     }, []);
+
+    useEffect(() => {
+        if (model && !Array.isArray(model)) {
+            const stats = GetModelStats(model);
+            if (stats) {
+                viewGL.current?.loadModelByUrl("LabeledDB_new/" + stats.className + "/" + model);
+            }
+        }
+    }, [model]);
 
     return (
         <div className={clsx("grid", "lg:grid-cols-[1fr_auto_1fr]")}>
@@ -22,7 +35,7 @@ export default function HomePage() {
                     onFileSelected={(textContent, filetype) =>
                         viewGL.current?.loadModelByText(textContent, filetype)
                     }
-                    onModelSelected={(url) => viewGL.current?.loadOBJModelByUrl(url)}
+                    onModelSelected={(url) => viewGL.current?.loadModelByUrl(url)}
                 />
                 <Settings
                     className={clsx("border-2", "border-slate-200", "mx-2", "mt-8")}
@@ -38,6 +51,10 @@ export default function HomePage() {
             <div className={clsx("border-2", "border-slate-200", "mx-2", "mt-4")}>
                 <p className={clsx("border-b-2", "text-center", "font-bold")}>Model Information</p>
                 <div className={clsx("p-2")}>
+                    <p>
+                        class: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                        <span className="text-green-500">{modelStats?.className}</span>
+                    </p>
                     <p>
                         # vertices: <span className="text-green-500">{modelStats?.nVertices}</span>
                     </p>
