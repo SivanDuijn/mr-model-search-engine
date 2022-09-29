@@ -11,6 +11,7 @@
 #include <pmp/algorithms/Triangulation.h>
 #include <pmp/algorithms/Subdivision.h>
 #include <pmp/algorithms/Decimation.h>
+#include "pmp/algorithms/DifferentialGeometry.h"
 #include "../variables.h"
 
 void debug();

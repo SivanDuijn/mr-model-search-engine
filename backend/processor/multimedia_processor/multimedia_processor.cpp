@@ -38,8 +38,8 @@ void resample(const char* path)
 		tri.triangulate();
 	}
 
-	// TODO find actual desired vertex count
-	const unsigned int des = 5000;
+	// Example desired vertex count mentioned in technical tips
+	const unsigned int des = 1000;
 
 	// Subdivide and/or decimate depending on the vertex count
 	if (mesh.n_vertices() < des)
@@ -81,14 +81,12 @@ void normalize(const char* path)
 	pmp::SurfaceMesh mesh;
 	mesh.read(vars::GetAssetPath(path));
 
-	// Calculate the barycenter of the mesh
+	// Translate barycenter to origin
 	printf("Translating barycenter to origin");
 	pmp::VertexProperty points = mesh.get_vertex_property<pmp::Point>("v:point");
-	pmp::Point bcenter(0);
-	for (auto v : mesh.vertices()) bcenter += points[v];
-	bcenter /= mesh.n_vertices();
+	pmp::Point bcenter = pmp::centroid(mesh);
 	for (auto v : mesh.vertices()) points[v] -= bcenter;
-	printf(" (-[%f, %f, %f])", bcenter.data()[0], bcenter.data()[1], bcenter.data()[2]);
+	printf(" (-[%f, %f, %f])\n", bcenter.data()[0], bcenter.data()[1], bcenter.data()[2]);
 
 	// TODO
 	throw exception("Not yet implemented");
