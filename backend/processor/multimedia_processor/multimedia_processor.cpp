@@ -88,6 +88,14 @@ void normalize(const char* path)
 	for (auto v : mesh.vertices()) points[v] -= bcenter;
 	printf(" (-[%f, %f, %f])\n", bcenter.data()[0], bcenter.data()[1], bcenter.data()[2]);
 
+	// Align with coordinate frame
+	printf("Aligning with coordinate frame");
+	pmp::mat3 test = pmp::mat3(pmp::vec3(134, -18, -116), pmp::vec3(-18, 36, -18), pmp::vec3(-116, -18, 134));
+	Eigen::EigenSolver<Eigen::MatrixXf> eigen;
+	eigen.compute((Eigen::Matrix3f) test);
+	Eigen::MatrixXf eigen_vectors = eigen.eigenvectors().real();
+	printf(" ([%f, %f, %f] / [%f, %f, %f])\n", eigen_vectors(0, 0), eigen_vectors(0, 1), eigen_vectors(0, 2), eigen_vectors(1, 0), eigen_vectors(1, 1), eigen_vectors(1, 2));
+
 	// TODO
 	throw exception("Not yet implemented");
 }
