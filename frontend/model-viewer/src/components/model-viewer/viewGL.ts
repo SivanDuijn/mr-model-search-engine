@@ -81,6 +81,7 @@ export default class ThreeJSViewGL {
         const geometry = filetype == "OFF" ? LoadOFFModel(text) : LoadOBJModel(text);
         this.mesh = new THREE.Mesh(geometry, this.material);
         this.scene.add(this.mesh);
+        if (this.onModelStatsChanged) this.onModelStatsChanged(GetModelStats(modelName, this.mesh));
 
         this.vertexNormalsHelper = new VertexNormalsHelper(this.mesh, 0.05, 0xff0000);
         if (this.vertexNormalsEnabled) this.scene.add(this.vertexNormalsHelper);
@@ -96,8 +97,6 @@ export default class ThreeJSViewGL {
         this.mesh.add(CreateThreeLineBox(1, 1, 1, 0x7d7d7d));
         // Add model boundingbox
         this.mesh.add(new THREE.BoxHelper(this.mesh, 0xff0000));
-
-        if (this.onModelStatsChanged) this.onModelStatsChanged(GetModelStats(modelName));
     }
 
     loadModelByUrl(url: string) {

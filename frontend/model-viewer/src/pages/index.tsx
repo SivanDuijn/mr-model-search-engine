@@ -1,7 +1,8 @@
 import clsx from "clsx";
 import { useRouter } from "next/router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import GetModelStats, { ModelStats } from "src/lib/getModelStats";
+import ModelInformation from "src/components/ModelInformation";
+import { GetModelClass, ModelStats } from "src/lib/getModelStats";
 import { MemoizedViewGLCanvas } from "../components/model-viewer/ModelViewer";
 import ThreeJSViewGL from "../components/model-viewer/viewGL";
 import ModelSelector from "../components/ModelSelector/ModelSelector";
@@ -20,9 +21,9 @@ export default function HomePage() {
 
     useEffect(() => {
         if (model && !Array.isArray(model)) {
-            const stats = GetModelStats(model);
-            if (stats) {
-                viewGL.current?.loadModelByUrl("LabeledDB_new/" + stats.className + "/" + model);
+            const classn = GetModelClass(model);
+            if (classn) {
+                viewGL.current?.loadModelByUrl("LabeledDB_new/" + classn + "/" + model);
             }
         }
     }, [model]);
@@ -48,22 +49,7 @@ export default function HomePage() {
                 className={clsx("border-2", "border-slate-200", "mx-2", "mt-4")}
                 onMounted={onCanvasMounted}
             />
-            <div className={clsx("border-2", "border-slate-200", "mx-2", "mt-4")}>
-                <p className={clsx("border-b-2", "text-center", "font-bold")}>Model Information</p>
-                <div className={clsx("p-2")}>
-                    <p>
-                        class: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                        <span className="text-green-500">{modelStats?.className}</span>
-                    </p>
-                    <p>
-                        # vertices: <span className="text-green-500">{modelStats?.nVertices}</span>
-                    </p>
-                    <p>
-                        # faces: &nbsp;&nbsp;&nbsp;
-                        <span className="text-green-500">{modelStats?.nFaces}</span>
-                    </p>
-                </div>
-            </div>
+            <ModelInformation stats={modelStats} />
         </div>
     );
 }
