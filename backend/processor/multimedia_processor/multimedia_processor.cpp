@@ -33,13 +33,13 @@ void resample(const char* path)
 	// Triangulate it if necessary
 	if (!mesh.is_triangle_mesh())
 	{
-		printf("Triangulating mesh");
+		printf("Triangulating mesh\n");
 		pmp::Triangulation tri = pmp::Triangulation(mesh);
 		tri.triangulate();
 	}
 
 	// Example desired vertex count mentioned in technical tips
-	const unsigned int des = 1000;
+	const unsigned int des = 2500;
 
 	// Subdivide and/or decimate depending on the vertex count
 	if (mesh.n_vertices() < des)
@@ -80,21 +80,28 @@ void normalize(const char* path)
 	printf("Loading mesh \"%s\"\n", path);
 	pmp::SurfaceMesh mesh;
 	mesh.read(vars::GetAssetPath(path));
+	pmp::VertexProperty points = mesh.get_vertex_property<pmp::Point>("v:point");
 
 	// Translate barycenter to origin
 	printf("Translating barycenter to origin");
-	pmp::VertexProperty points = mesh.get_vertex_property<pmp::Point>("v:point");
 	pmp::Point bcenter = pmp::centroid(mesh);
 	for (auto v : mesh.vertices()) points[v] -= bcenter;
 	printf(" (-[%f, %f, %f])\n", bcenter.data()[0], bcenter.data()[1], bcenter.data()[2]);
 
 	// Align with coordinate frame
 	printf("Aligning with coordinate frame");
-	pmp::mat3 test = pmp::mat3(pmp::vec3(134, -18, -116), pmp::vec3(-18, 36, -18), pmp::vec3(-116, -18, 134));
+	// Map the point list (aka array of Eigen::Matrix3f) to a single Eigen::MatrixXd
+	Eigen::Map<Eigen::MatrixXf> map((float*)(points.data()), mesh.n_vertices(), 3);
+	// Compute the covariance matrix
+	// https://stackoverflow.com/a/15142446
+	Eigen::MatrixXf centered = map.rowwise() - map.colwise().mean();
+	Eigen::MatrixXf cov = (centered.adjoint() * centered) / float(map.rows() - 1);
+	// Get the eigenvectors
 	Eigen::EigenSolver<Eigen::MatrixXf> eigen;
-	eigen.compute((Eigen::Matrix3f) test);
-	Eigen::MatrixXf eigen_vectors = eigen.eigenvectors().real();
-	printf(" ([%f, %f, %f] / [%f, %f, %f])\n", eigen_vectors(0, 0), eigen_vectors(0, 1), eigen_vectors(0, 2), eigen_vectors(1, 0), eigen_vectors(1, 1), eigen_vectors(1, 2));
+	eigen.compute((Eigen::Matrix3f) cov);
+
+	//Eigen::MatrixXf eigen_vectors = eigen.eigenvectors().real();
+	//printf(" ([%f, %f, %f] / [%f, %f, %f])\n", eigen_vectors(0, 0), eigen_vectors(0, 1), eigen_vectors(0, 2), eigen_vectors(1, 0), eigen_vectors(1, 1), eigen_vectors(1, 2));
 
 	// TODO
 	throw exception("Not yet implemented");
