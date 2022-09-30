@@ -89,7 +89,7 @@ void normalize(const char* path)
 	printf(" (-[%f, %f, %f])\n", bcenter.data()[0], bcenter.data()[1], bcenter.data()[2]);
 
 	// Align with coordinate frame
-	printf("Aligning with coordinate frame\n");
+	printf("Aligning with coordinate frame");
 	// Map the point list (aka array of Eigen::Matrix3f) to a single Eigen::MatrixXd
 	Eigen::Map<Eigen::MatrixXf> map((float*)(points.data()), 3, mesh.n_vertices());
 	// Compute the covariance matrix
@@ -101,9 +101,15 @@ void normalize(const char* path)
 	solver.compute(cov);
 	Eigen::MatrixXf eigen = solver.eigenvectors().real();
 	// Rotate the model
-	// TODO
-	printf(" ([%f, %f, %f] / [%f, %f, %f])\n", eigen(0, 0), eigen(0, 1), eigen(0, 2), eigen(1, 0), eigen(1, 1), eigen(1, 2));
+	// TODO optimize code
+	Eigen::Vector3f major = eigen.row(0);
+	Eigen::Vector3f minor = eigen.row(1);
+	Eigen::Vector3f cross = major.cross(minor);
+	Eigen::Matrix3f rot; rot << major, minor, cross;
+	for (auto v : mesh.vertices()) points[v] = rot * (Eigen::Vector3f)(points[v]);
+	printf(" ([%f, %f, %f] / [%f, %f, %f] / [%f, %f, %f])\n", major(0), major(1), major(2), minor(0), minor(1), minor(2), cross(0), cross(1), cross(2));
 
+	// Flip based on moment test
 	// TODO
 	throw exception("Not yet implemented");
 }
