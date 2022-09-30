@@ -14,8 +14,8 @@ export default function HomePage() {
     const model = router.query["m"];
     const defaults = {
         material: getRenderMaterial(router.query["mat"] as string),
-        showWireframe: router.query["wireframe"] === "1" ? true : false,
-        showVertextNormals: router.query["vertexnormals"] === "1" ? true : false,
+        showWireframe: router.query["wireframe"],
+        showVertextNormals: router.query["vertexnormals"],
     };
     const [modelStats, setModelStats] = useState<ModelStats>();
 
@@ -36,9 +36,9 @@ export default function HomePage() {
     useEffect(() => {
         if (defaults.material != undefined) viewGL.current?.setMaterial(defaults.material);
         if (defaults.showVertextNormals != undefined)
-            viewGL.current?.showVertexNormals(defaults.showVertextNormals);
+            viewGL.current?.showVertexNormals(defaults.showVertextNormals === "1" ? true : false);
         if (defaults.showWireframe != undefined)
-            viewGL.current?.showWireframe(defaults.showWireframe);
+            viewGL.current?.showWireframe(defaults.showWireframe === "1" ? true : false);
     }, [defaults]);
 
     return (

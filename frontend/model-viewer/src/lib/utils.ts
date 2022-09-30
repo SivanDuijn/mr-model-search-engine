@@ -15,7 +15,7 @@ export function CreateThreeLineBox(width: number, height: number, depth: number,
     return new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color }));
 }
 
-export function getRenderMaterial(material?: string): RenderMaterial {
+export function getRenderMaterial(material?: string): RenderMaterial | undefined {
     switch (material) {
         case "flat":
             return RenderMaterial.Flat;
@@ -30,6 +30,6 @@ export function getRenderMaterial(material?: string): RenderMaterial {
         case "wireframe":
             return RenderMaterial.WireframeOnly;
         default:
-            return RenderMaterial.Flat;
+            return undefined;
     }
 }
