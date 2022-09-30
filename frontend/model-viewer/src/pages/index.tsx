@@ -24,7 +24,7 @@ export default function HomePage() {
             showWireframe: getURLVariableBool(router.query["wireframe"]),
             showVertextNormals: getURLVariableBool(router.query["vnormals"]),
         }),
-        [router],
+        [router.query["mat"], router.query["wireframe"], router.query["vnormals"]],
     );
     const [modelStats, setModelStats] = useState<ModelStats>();
 
