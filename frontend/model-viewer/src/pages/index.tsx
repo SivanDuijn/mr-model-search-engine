@@ -1,22 +1,31 @@
 import clsx from "clsx";
 import { useRouter } from "next/router";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ModelInformation from "src/components/ModelInformation";
 import { GetModelClass, ModelStats } from "src/lib/getModelStats";
-import { getRenderMaterial } from "src/lib/utils";
+import { getRenderMaterial, getURLVariableBool } from "src/lib/utils";
 import { MemoizedViewGLCanvas } from "../components/model-viewer/ModelViewer";
-import ThreeJSViewGL from "../components/model-viewer/viewGL";
+import ThreeJSViewGL, { RenderMaterial } from "../components/model-viewer/viewGL";
 import ModelSelector from "../components/ModelSelector/ModelSelector";
 import Settings from "../components/Settings";
+
+export const defaultSettings = {
+    material: RenderMaterial.Flat,
+    showWireframe: true,
+    showVertexNormals: false,
+};
 
 export default function HomePage() {
     const router = useRouter();
     const model = router.query["m"];
-    const defaults = {
-        material: getRenderMaterial(router.query["mat"] as string),
-        showWireframe: router.query["wireframe"],
-        showVertextNormals: router.query["vnormals"],
-    };
+    const settingsFromURL = useMemo(
+        () => ({
+            material: getRenderMaterial(router.query["mat"] as string),
+            showWireframe: getURLVariableBool(router.query["wireframe"]),
+            showVertextNormals: getURLVariableBool(router.query["vnormals"]),
+        }),
+        [router],
+    );
     const [modelStats, setModelStats] = useState<ModelStats>();
 
     const viewGL = useRef<ThreeJSViewGL>();
@@ -33,13 +42,15 @@ export default function HomePage() {
             }
         }
     }, [model]);
+
     useEffect(() => {
-        if (defaults.material != undefined) viewGL.current?.setMaterial(defaults.material);
-        if (defaults.showVertextNormals != undefined)
-            viewGL.current?.showVertexNormals(defaults.showVertextNormals === "1" ? true : false);
-        if (defaults.showWireframe != undefined)
-            viewGL.current?.showWireframe(defaults.showWireframe === "1" ? true : false);
-    }, [defaults]);
+        if (settingsFromURL.material != undefined)
+            viewGL.current?.setMaterial(settingsFromURL.material);
+        if (settingsFromURL.showVertextNormals != undefined)
+            viewGL.current?.showVertexNormals(settingsFromURL.showVertextNormals);
+        if (settingsFromURL.showWireframe != undefined)
+            viewGL.current?.showWireframe(settingsFromURL.showWireframe);
+    }, [settingsFromURL]);
 
     return (
         <div className={clsx("grid", "lg:grid-cols-[1fr_auto_1fr]")}>
@@ -53,6 +64,13 @@ export default function HomePage() {
                 />
                 <Settings
                     className={clsx("border-2", "border-slate-200", "mx-2", "mt-8")}
+                    defaultMaterial={settingsFromURL.material ?? defaultSettings.material}
+                    defaultWireframeEnabled={
+                        settingsFromURL.showWireframe ?? defaultSettings.showWireframe
+                    }
+                    defaultVertexNormalsEnabled={
+                        settingsFromURL.showVertextNormals ?? defaultSettings.showVertexNormals
+                    }
                     onRenderMaterialChange={(material) => viewGL.current?.setMaterial(material)}
                     onWireframeEnable={(enabled) => viewGL.current?.showWireframe(enabled)}
                     onVertexNormalsEnable={(enabled) => viewGL.current?.showVertexNormals(enabled)}

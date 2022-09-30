@@ -4,6 +4,7 @@ import { VertexNormalsHelper } from "three/examples/jsm/helpers/VertexNormalsHel
 import GetModelStats, { ModelStats } from "src/lib/getModelStats";
 import LoadOFFModel from "src/lib/OFFLoader";
 import { CreateThreeLineBox, GetModelfiletype } from "src/lib/utils";
+import { defaultSettings } from "src/pages";
 import LoadOBJModel from "../../lib/OBJLoader";
 
 export const PI2 = Math.PI * 2;
@@ -50,9 +51,10 @@ export default class ThreeJSViewGL {
             wireframeEnabled?: boolean;
         },
     ) {
-        this.renderMaterial = options?.renderMaterial ?? RenderMaterial.Flat;
-        this.vertexNormalsEnabled = options?.vertexNormalsEnabled ?? false;
-        this.wireframeEnabled = options?.wireframeEnabled ?? true;
+        this.renderMaterial = options?.renderMaterial ?? defaultSettings.material;
+        this.vertexNormalsEnabled =
+            options?.vertexNormalsEnabled ?? defaultSettings.showVertexNormals;
+        this.wireframeEnabled = options?.wireframeEnabled ?? defaultSettings.showWireframe;
 
         this.scene = new THREE.Scene();
         this.renderer = new THREE.WebGLRenderer({

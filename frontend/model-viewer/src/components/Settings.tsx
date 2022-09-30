@@ -3,6 +3,9 @@ import { useEffect } from "react";
 import { RenderMaterial } from "./model-viewer/viewGL";
 
 type SettingsProps = {
+    defaultMaterial: RenderMaterial;
+    defaultWireframeEnabled: boolean;
+    defaultVertexNormalsEnabled: boolean;
     onRenderMaterialChange: (material: RenderMaterial) => void;
     onWireframeEnable: (enabled: boolean) => void;
     onVertexNormalsEnable: (enabled: boolean) => void;
@@ -27,7 +30,7 @@ export default function Settings(props: SettingsProps) {
                     </label>
                     <select
                         id="renderMaterial"
-                        defaultValue={RenderMaterial.Flat}
+                        defaultValue={props.defaultMaterial}
                         onChange={(e) =>
                             props.onRenderMaterialChange(
                                 parseInt(e.currentTarget.value) as unknown as RenderMaterial,
@@ -50,7 +53,7 @@ export default function Settings(props: SettingsProps) {
                         type="checkbox"
                         id="wireframe"
                         onChange={(e) => props.onWireframeEnable(e.currentTarget.checked)}
-                        defaultChecked={true}
+                        defaultChecked={props.defaultWireframeEnabled}
                     />
                 </div>
                 <div>
@@ -61,7 +64,7 @@ export default function Settings(props: SettingsProps) {
                         type="checkbox"
                         id="vertexNormals"
                         onChange={(e) => props.onVertexNormalsEnable(e.currentTarget.checked)}
-                        defaultChecked={false}
+                        defaultChecked={props.defaultVertexNormalsEnabled}
                     />
                 </div>
             </div>

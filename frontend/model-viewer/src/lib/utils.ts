@@ -33,3 +33,7 @@ export function getRenderMaterial(material?: string): RenderMaterial | undefined
             return undefined;
     }
 }
+
+export function getURLVariableBool(v: string | string[] | undefined): boolean | undefined {
+    return v === undefined ? undefined : v === "1" ? true : false;
+}
