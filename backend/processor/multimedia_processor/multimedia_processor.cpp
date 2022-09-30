@@ -105,7 +105,7 @@ void normalize(const char* path)
 	Eigen::Vector3f major = eigen.row(0);
 	Eigen::Vector3f minor = eigen.row(1);
 	Eigen::Vector3f cross = major.cross(minor);
-	Eigen::Matrix3f rot; rot << major, minor, cross;
+	Eigen::Matrix3f rot; rot << -major, -minor, -cross;
 	for (auto v : mesh.vertices()) points[v] = rot * (Eigen::Vector3f)(points[v]);
 	printf(" ([%f, %f, %f] / [%f, %f, %f] / [%f, %f, %f])\n", major(0), major(1), major(2), minor(0), minor(1), minor(2), cross(0), cross(1), cross(2));
 
