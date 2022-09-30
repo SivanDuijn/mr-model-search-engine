@@ -13,8 +13,7 @@
 #include <pmp/algorithms/Decimation.h>
 #include "pmp/algorithms/DifferentialGeometry.h"
 #include "../variables.h"
-#include "pmp_ext.h"
 
 void debug();
-void resample(const char* path = "LabeledDB_new/tcube.off");
-void normalize(const char* path = "LabeledDB_new/tcube.off");
+void resample(const char* path = "LabeledDB_new/tcube_long.off");
+void normalize(const char* path = "LabeledDB_new/tcube_long.off");

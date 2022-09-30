@@ -89,19 +89,20 @@ void normalize(const char* path)
 	printf(" (-[%f, %f, %f])\n", bcenter.data()[0], bcenter.data()[1], bcenter.data()[2]);
 
 	// Align with coordinate frame
-	printf("Aligning with coordinate frame");
+	printf("Aligning with coordinate frame\n");
 	// Map the point list (aka array of Eigen::Matrix3f) to a single Eigen::MatrixXd
-	Eigen::Map<Eigen::MatrixXf> map((float*)(points.data()), mesh.n_vertices(), 3);
+	Eigen::Map<Eigen::MatrixXf> map((float*)(points.data()), 3, mesh.n_vertices());
 	// Compute the covariance matrix
 	// https://stackoverflow.com/a/15142446
-	Eigen::MatrixXf centered = map.rowwise() - map.colwise().mean();
-	Eigen::MatrixXf cov = (centered.adjoint() * centered) / float(map.rows() - 1);
+	// We don't have to center the sample matrix because we just centered the samples :)
+	Eigen::Matrix3f cov = (map * map.adjoint()) / float(map.cols() - 1);
 	// Get the eigenvectors
-	Eigen::EigenSolver<Eigen::MatrixXf> eigen;
-	eigen.compute((Eigen::Matrix3f) cov);
-
-	//Eigen::MatrixXf eigen_vectors = eigen.eigenvectors().real();
-	//printf(" ([%f, %f, %f] / [%f, %f, %f])\n", eigen_vectors(0, 0), eigen_vectors(0, 1), eigen_vectors(0, 2), eigen_vectors(1, 0), eigen_vectors(1, 1), eigen_vectors(1, 2));
+	Eigen::EigenSolver<Eigen::MatrixXf> solver;
+	solver.compute(cov);
+	Eigen::MatrixXf eigen = solver.eigenvectors().real();
+	// Rotate the model
+	// TODO
+	printf(" ([%f, %f, %f] / [%f, %f, %f])\n", eigen(0, 0), eigen(0, 1), eigen(0, 2), eigen(1, 0), eigen(1, 1), eigen(1, 2));
 
 	// TODO
 	throw exception("Not yet implemented");
