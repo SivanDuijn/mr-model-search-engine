@@ -111,5 +111,18 @@ void normalize(const char* path)
 
 	// Flip based on moment test
 	// TODO
-	throw exception("Not yet implemented");
+
+	// Scale to unit volume
+	printf("Scaling to unit volume");
+	pmp::Point max = mesh.bounds().max();
+	float scale = 1.f / (max[0] > max[1] ? max[0] : max[1] > max[2] ? max[1] : max[2]);
+	for (auto v : mesh.vertices()) points[v] *= scale;
+	printf(" (%f)\n", scale);
+
+	// Write resampled mesh to disk
+	// TODO file name/location
+	printf("Writing mesh to disk\n");
+	mesh.write(vars::GetAssetPath(path) + ".res.off");
+
+	printf("Done\n");
 }
