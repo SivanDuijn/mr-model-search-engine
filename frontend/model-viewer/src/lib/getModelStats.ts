@@ -17,10 +17,12 @@ export default function GetModelStats(
         className: info ? info[0] : undefined,
         nVertices: mesh.geometry.getAttribute("position").count,
         nFaces: mesh.geometry.index ? mesh.geometry.index.count / 3 : undefined,
-        AABB: {
-            min: { x: info[3], y: info[4], z: info[5] },
-            max: { x: info[6], y: info[7], z: info[8] },
-        },
+        AABB: info
+            ? {
+                  min: { x: info[3], y: info[4], z: info[5] },
+                  max: { x: info[6], y: info[7], z: info[8] },
+              }
+            : undefined,
     };
 }
 

@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { RenderMaterial } from "src/components/model-viewer/viewGL";
 
 export function GetModelfiletype(file: string): "OFF" | "OBJ" | null {
     const words = file.split(".");
@@ -12,4 +13,23 @@ export function CreateThreeLineBox(width: number, height: number, depth: number,
     const geometry = new THREE.BoxGeometry(width, height, depth);
     const edges = new THREE.EdgesGeometry(geometry);
     return new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color }));
+}
+
+export function getRenderMaterial(material?: string): RenderMaterial {
+    switch (material) {
+        case "flat":
+            return RenderMaterial.Flat;
+        case "phong":
+            return RenderMaterial.Phong;
+        case "normals":
+            return RenderMaterial.Normals;
+        case "cartoon":
+            return RenderMaterial.Cartoon;
+        case "pointcloud":
+            return RenderMaterial.PointCloud;
+        case "wireframe":
+            return RenderMaterial.WireframeOnly;
+        default:
+            return RenderMaterial.Flat;
+    }
 }

@@ -37,8 +37,9 @@ export default function Settings(props: SettingsProps) {
                         <option value={RenderMaterial.Flat} label={"Flat"} />
                         <option value={RenderMaterial.Phong} label={"Phong"} />
                         <option value={RenderMaterial.Normals} label={"Normals"} />
+                        <option value={RenderMaterial.PointCloud} label={"Point cloud"} />
+                        <option value={RenderMaterial.WireframeOnly} label={"Wireframe only"} />
                         <option value={RenderMaterial.Cartoon} label={"Cartoon"} />
-                        <option value={RenderMaterial.Hidden} label={"Hidden"} />
                     </select>
                 </div>
                 <div>

@@ -3,6 +3,7 @@ import { useRouter } from "next/router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import ModelInformation from "src/components/ModelInformation";
 import { GetModelClass, ModelStats } from "src/lib/getModelStats";
+import { getRenderMaterial } from "src/lib/utils";
 import { MemoizedViewGLCanvas } from "../components/model-viewer/ModelViewer";
 import ThreeJSViewGL from "../components/model-viewer/viewGL";
 import ModelSelector from "../components/ModelSelector/ModelSelector";
@@ -11,6 +12,11 @@ import Settings from "../components/Settings";
 export default function HomePage() {
     const router = useRouter();
     const model = router.query["m"];
+    const defaults = {
+        material: getRenderMaterial(router.query["mat"] as string),
+        showWireframe: router.query["wireframe"] === "1" ? true : false,
+        showVertextNormals: router.query["vertexnormals"] === "1" ? true : false,
+    };
     const [modelStats, setModelStats] = useState<ModelStats>();
 
     const viewGL = useRef<ThreeJSViewGL>();
@@ -27,6 +33,13 @@ export default function HomePage() {
             }
         }
     }, [model]);
+    useEffect(() => {
+        if (defaults.material != undefined) viewGL.current?.setMaterial(defaults.material);
+        if (defaults.showVertextNormals != undefined)
+            viewGL.current?.showVertexNormals(defaults.showVertextNormals);
+        if (defaults.showWireframe != undefined)
+            viewGL.current?.showWireframe(defaults.showWireframe);
+    }, [defaults]);
 
     return (
         <div className={clsx("grid", "lg:grid-cols-[1fr_auto_1fr]")}>
