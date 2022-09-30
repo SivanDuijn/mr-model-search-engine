@@ -15,7 +15,7 @@ export default function HomePage() {
     const defaults = {
         material: getRenderMaterial(router.query["mat"] as string),
         showWireframe: router.query["wireframe"],
-        showVertextNormals: router.query["vertexnormals"],
+        showVertextNormals: router.query["vnormals"],
     };
     const [modelStats, setModelStats] = useState<ModelStats>();
 
