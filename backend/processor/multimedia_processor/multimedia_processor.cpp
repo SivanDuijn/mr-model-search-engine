@@ -102,7 +102,7 @@ void normalize(const char* path)
 	Eigen::MatrixXf eigen = solver.eigenvectors().real();
 	// Rotate the model
 	// TODO optimize code
-	Eigen::Vector3f	 major = eigen.row(0);
+	Eigen::Vector3f	major = eigen.row(0);
 	Eigen::Vector3f minor = eigen.row(1);
 	Eigen::Vector3f cross = major.cross(minor);
 	Eigen::Matrix3f rot; rot << -major, -minor, -cross;
@@ -116,16 +116,12 @@ void normalize(const char* path)
 	for (auto v : mesh.vertices()) points[v] = ((Eigen::Vector3f)points[v]).cwiseProduct(flip); // TODO Eigen calculations
 	printf(" [%f, %f, %f]\n", flip(0), flip(1), flip(2));
 
-	cout << map.cwiseSign() << endl;
-
 	// Scale to unit volume
 	printf("Scaling to unit volume");
 	pmp::Point max = mesh.bounds().max();
 	float scale = 1.f / (max[0] > max[1] ? max[0] : max[1] > max[2] ? max[1] : max[2]);
 	map *= scale;
 	printf(" ([%f, %f, %f] -> %f)\n", max[0], max[1], max[2], scale);
-
-	cout << map << endl;
 
 	// Write resampled mesh to disk
 	// TODO file name/location
