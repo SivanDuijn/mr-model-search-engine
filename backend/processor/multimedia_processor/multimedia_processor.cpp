@@ -81,14 +81,13 @@ void normalize(const char* path)
 	pmp::SurfaceMesh mesh;
 	mesh.read(vars::GetAssetPath(path));
 	// Map the point list (aka array of Eigen::Matrix3f) to a single Eigen::MatrixXd
-	// TODO utilize more
 	pmp::VertexProperty points = mesh.get_vertex_property<pmp::Point>("v:point");
 	Eigen::Map<Eigen::MatrixXf> map((float*)(points.data()), 3, mesh.n_vertices());
 
 	// Translate barycenter to origin
 	printf("Translating barycenter to origin");
 	pmp::Point bcenter = pmp::centroid(mesh);
-	for (auto v : mesh.vertices()) points[v] -= bcenter;
+	map.colwise() -= (Eigen::Vector3f)bcenter;
 	printf(" (-[%f, %f, %f])\n", bcenter.data()[0], bcenter.data()[1], bcenter.data()[2]);
 
 	// Align with coordinate frame
@@ -107,14 +106,14 @@ void normalize(const char* path)
 	Eigen::Vector3f minor = eigen.row(1);
 	Eigen::Vector3f cross = major.cross(minor);
 	Eigen::Matrix3f rot; rot << -major, -minor, -cross;
-	for (auto v : mesh.vertices()) points[v] = rot * (Eigen::Vector3f)(points[v]);
+	for (auto v : mesh.vertices()) points[v] = rot * (Eigen::Vector3f)(points[v]); // TODO Eigen calculations
 	printf(" ([%f, %f, %f] / [%f, %f, %f] / [%f, %f, %f])\n", major(0), major(1), major(2), minor(0), minor(1), minor(2), cross(0), cross(1), cross(2));
 
 	// Flip based on moment tests
 	printf("Flipping based on moment test");
 	Eigen::Vector3f flip = map.cwiseSign().cwiseProduct(map.cwiseProduct(map)).rowwise().sum().cwiseSign()
 		.unaryExpr([](float e) -> float { return e == 0.f ? 1.f : e; }); // Change all 0s to 1s
-	for (auto v : mesh.vertices()) points[v] = ((Eigen::Vector3f)points[v]).cwiseProduct(flip);
+	for (auto v : mesh.vertices()) points[v] = ((Eigen::Vector3f)points[v]).cwiseProduct(flip); // TODO Eigen calculations
 	printf(" [%f, %f, %f]\n", flip(0), flip(1), flip(2));
 
 	cout << map.cwiseSign() << endl;
@@ -123,7 +122,7 @@ void normalize(const char* path)
 	printf("Scaling to unit volume");
 	pmp::Point max = mesh.bounds().max();
 	float scale = 1.f / (max[0] > max[1] ? max[0] : max[1] > max[2] ? max[1] : max[2]);
-	for (auto v : mesh.vertices()) points[v] *= scale;
+	map *= scale;
 	printf(" ([%f, %f, %f] -> %f)\n", max[0], max[1], max[2], scale);
 
 	cout << map << endl;
