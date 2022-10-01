@@ -110,18 +110,23 @@ void normalize(const char* path)
 	for (auto v : mesh.vertices()) points[v] = rot * (Eigen::Vector3f)(points[v]);
 	printf(" ([%f, %f, %f] / [%f, %f, %f] / [%f, %f, %f])\n", major(0), major(1), major(2), minor(0), minor(1), minor(2), cross(0), cross(1), cross(2));
 
-	// Flip based on moment test
+	// Flip based on moment tests
 	printf("Flipping based on moment test");
-	Eigen::Vector3f flip = map.cwiseSign().cwiseProduct(map.cwiseProduct(map)).rowwise().sum().cwiseSign();
-	for (auto v : mesh.vertices()) points[v] = flip.cwiseProduct((Eigen::Vector3f)points[v]);
+	Eigen::Vector3f flip = map.cwiseSign().cwiseProduct(map.cwiseProduct(map)).rowwise().sum().cwiseSign()
+		.unaryExpr([](float e) -> float { return e == 0.f ? 1.f : e; }); // Change all 0s to 1s
+	for (auto v : mesh.vertices()) points[v] = ((Eigen::Vector3f)points[v]).cwiseProduct(flip);
 	printf(" [%f, %f, %f]\n", flip(0), flip(1), flip(2));
+
+	cout << map.cwiseSign() << endl;
 
 	// Scale to unit volume
 	printf("Scaling to unit volume");
 	pmp::Point max = mesh.bounds().max();
 	float scale = 1.f / (max[0] > max[1] ? max[0] : max[1] > max[2] ? max[1] : max[2]);
 	for (auto v : mesh.vertices()) points[v] *= scale;
-	printf(" (%f)\n", scale);
+	printf(" ([%f, %f, %f] -> %f)\n", max[0], max[1], max[2], scale);
+
+	cout << map << endl;
 
 	// Write resampled mesh to disk
 	// TODO file name/location
