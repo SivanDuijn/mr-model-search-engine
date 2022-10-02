@@ -14,8 +14,9 @@
 #include "pmp/algorithms/DifferentialGeometry.h"
 //#include "pmp/visualization/MeshViewer.h"
 #include "../variables.h"
+#include "model_statistics.h"
 
-void preprocess(const char* in = "PSBModels/242.off", const char* out = "PSBModels/242_processed.off");
+void preprocess(const char* in = "PSBModels/125.off", const char* out = "PSBModels/125_processed.off", const bool enableCalcNormalizationStats = false );
 void debug();
 void resample(pmp::SurfaceMesh &mesh);
 void normalize(pmp::SurfaceMesh &mesh);

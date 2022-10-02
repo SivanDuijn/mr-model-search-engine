@@ -1,19 +1,23 @@
 #pragma once
 
 #include <pmp/SurfaceMesh.h>
+#include "pmp/algorithms/DifferentialGeometry.h"
+#include <cmath>
 
-struct ModelStatistics
+struct NormalizationStatistics
 {
-    float nVertices;
-    float nFaces;
+    // number of sampling points
+    int nVertices;
+    int nFaces;
+    // size of bounding box, computed via its diagonal
+    float boundingBoxSize;
+    // positionof bounding box
     float distBarycenterToOrigin;
-    float boundingBoxVolume;
-    float xRotation; // Rotations needed to rotate the model so the local axis align with the world axis
-    float yRotation;
-    float zRotation;
-;}
+    // pose
+    float xRotation; // absolute value of cosine of angle between major eigenvector and the X axis
+    float yRotation; // absolute value of cosine of angle between minor eigenvector and the Y axis
+    float zRotation; // absolute value of cosine of angle between cross(major and minor eigenvector) and the Z axis
+};
 
-class StatisticsCalculator
-{
-    static int Calculate(pmp::SurfaceMesh &mesh);
-}
+
+NormalizationStatistics CalculateNormalizationStats(pmp::SurfaceMesh &mesh);

@@ -23,16 +23,23 @@ void debug()
 	printf("Echoing debug call\n");
 }
 
-void preprocess(const char* in, const char* out)
+void preprocess(const char* in, const char* out, const bool enableCalcNormalizationStats)
 {
 	// Get the mesh
 	printf("Loading mesh \"%s\"\n", in);
 	pmp::SurfaceMesh mesh;
 	mesh.read(vars::GetAssetPath(in));
 
+	auto stats = CalculateNormalizationStats(mesh);
+	printf("stats before: [#vertices: %i, #faces: %i, #volume: %f, #center: %f, #xRot: %f]\n", stats.nVertices, stats.nFaces, stats.boundingBoxSize, stats.distBarycenterToOrigin, stats.xRotation);
+
 	// Preprocess the mesh
 	//resample(mesh);
 	normalize(mesh);
+
+	stats = CalculateNormalizationStats(mesh);
+	printf("stats after: [#vertices: %i, #faces: %i, #volume: %f, #center: %f, #xRot: %f]\n", stats.nVertices, stats.nFaces, stats.boundingBoxSize, stats.distBarycenterToOrigin, stats.xRotation);
+
 
 	// Write resampled mesh to disk
 	// TODO file name/location

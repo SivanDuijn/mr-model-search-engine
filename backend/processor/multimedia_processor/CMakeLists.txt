@@ -8,7 +8,8 @@ include_directories(${PROJECT_SOURCE_DIR}/submodules/pmp-library/src)
 include_directories(${PROJECT_SOURCE_DIR}/submodules/pmp-library/external/eigen)
 
 # Add source to this project's executable.
-add_executable(multimedia_processor "multimedia_processor.cpp" "multimedia_processor.h"  )
+file(GLOB_RECURSE sources *.cpp *.h)
+add_executable(multimedia_processor ${sources})
 target_link_libraries(multimedia_processor pmp)
 
 if(CMAKE_VERSION VERSION_GREATER 3.12)
