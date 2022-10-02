@@ -4,7 +4,7 @@ using namespace std;
 
 int main(int argc, char *argv[])
 {
-    ifstream ifs(vars::GetAssetPath() + "classes.csv");
+    ifstream ifs(vars::GetAssetPath("classes.csv"));
     string row;
     string modelname;
     string classname;
@@ -21,7 +21,7 @@ int main(int argc, char *argv[])
         istringstream iss(row);
         if (getline(iss, modelname, ',') && getline(iss, classname, ',')) {
             pmp::SurfaceMesh mesh;
-            mesh.read(vars::GetAssetPath() + "LabeledDB_new/" + classname + "/" + modelname);
+            mesh.read(vars::GetAssetPath("PSBModels/") + modelname);
             pmp::BoundingBox aabb = mesh.bounds();
             pmp::Point min = aabb.min();
             pmp::Point max = aabb.max();
@@ -38,7 +38,7 @@ int main(int argc, char *argv[])
 
     cout << newCSV << endl;
 
-    ofstream out(vars::GetAssetPath() + "classes_info.csv");
+    ofstream out(vars::GetAssetPath("classes_info.csv"));
     out << newCSV;
     out.close();
 

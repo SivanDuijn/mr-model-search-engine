@@ -2,7 +2,7 @@ import clsx from "clsx";
 import { useRouter } from "next/router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ModelInformation from "src/components/ModelInformation";
-import { GetModelClass, ModelStats } from "src/lib/getModelStats";
+import { ModelStats } from "src/lib/getModelStats";
 import { getRenderMaterial, getURLVariableBool } from "src/lib/utils";
 import { MemoizedViewGLCanvas } from "../components/model-viewer/ModelViewer";
 import ThreeJSViewGL, { RenderMaterial } from "../components/model-viewer/viewGL";
@@ -36,10 +36,7 @@ export default function HomePage() {
 
     useEffect(() => {
         if (model && !Array.isArray(model)) {
-            const classn = GetModelClass(model);
-            if (classn) {
-                viewGL.current?.loadModelByUrl("LabeledDB_new/" + classn + "/" + model);
-            }
+            viewGL.current?.loadModelByUrl("PSBModels/" + model);
         }
     }, [model]);
 

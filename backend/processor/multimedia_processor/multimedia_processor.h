@@ -15,8 +15,7 @@
 //#include "pmp/visualization/MeshViewer.h"
 #include "../variables.h"
 
-// const char* path = "LabeledDB_new/tcube_long.off"
-void preprocess(const char* in = "LabeledDB_new/tcube_long.off", const char* out = "LabeledDB_new/tcube_long_processed.off");
+void preprocess(const char* in = "PSBModels/242.off", const char* out = "PSBModels/242_processed.off");
 void debug();
 void resample(pmp::SurfaceMesh &mesh);
 void normalize(pmp::SurfaceMesh &mesh);
