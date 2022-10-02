@@ -12,8 +12,11 @@
 #include <pmp/algorithms/Subdivision.h>
 #include <pmp/algorithms/Decimation.h>
 #include "pmp/algorithms/DifferentialGeometry.h"
+//#include "pmp/visualization/MeshViewer.h"
 #include "../variables.h"
 
+// const char* path = "LabeledDB_new/tcube_long.off"
+void preprocess(const char* in = "LabeledDB_new/tcube_long.off", const char* out = "LabeledDB_new/tcube_long_processed.off");
 void debug();
-void resample(const char* path = "LabeledDB_new/tcube_long.off");
-void normalize(const char* path = "LabeledDB_new/tcube_long.off");
+void resample(pmp::SurfaceMesh &mesh);
+void normalize(pmp::SurfaceMesh &mesh);

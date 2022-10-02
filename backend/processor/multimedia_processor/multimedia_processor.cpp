@@ -2,14 +2,17 @@
 
 using namespace std;
 
+//pmp::MeshViewer window("MeshProcessingViewer", 800, 600);
+
 int main(int argc, char *argv[])
 {
-	normalize();
+	preprocess();
 	if (argc < 2) printf("Please supply an argument");
 	// No switch for "strings" :(
-	else if (!strcmp(argv[1], "debug"))     debug();
-	else if (!strcmp(argv[1], "resample"))  resample();
-	else if (!strcmp(argv[1], "normalize")) normalize();
+	else if (!strcmp(argv[1], "debug"))       debug();
+	else if (!strcmp(argv[1], "preprocess"))  preprocess();
+	//else if (!strcmp(argv[1], "resample"))  resample();
+	//else if (!strcmp(argv[1], "normalize")) normalize();
 	else printf("Unknown argument");
 
 	return 0;
@@ -20,14 +23,26 @@ void debug()
 	printf("Echoing debug call\n");
 }
 
-// Resample a mesh at the given path
-void resample(const char* path)
+void preprocess(const char* in, const char* out)
 {
 	// Get the mesh
-	printf("Loading mesh \"%s\"\n", path);
+	printf("Loading mesh \"%s\"\n", in);
 	pmp::SurfaceMesh mesh;
-	mesh.read(vars::GetAssetPath(path));
+	mesh.read(vars::GetAssetPath(in));
 
+	// Preprocess the mesh
+	resample(mesh);
+	normalize(mesh);
+
+	// Write resampled mesh to disk
+	// TODO file name/location
+	printf("Writing mesh to disk\n");
+	mesh.write(vars::GetAssetPath(out));
+}
+
+// Resample a mesh at the given path
+void resample(pmp::SurfaceMesh &mesh)
+{
 	printf("Mesh has %zu vertices\n", mesh.n_vertices());
 
 	// Triangulate it if necessary
@@ -42,11 +57,11 @@ void resample(const char* path)
 	const unsigned int des = 2500;
 
 	// Subdivide and/or decimate depending on the vertex count
-	if (mesh.n_vertices() < des)
+	while (mesh.n_vertices() < des)
 	{
 		printf("Subdividing mesh");
 		pmp::Subdivision div = pmp::Subdivision(mesh);
-		div.catmull_clark();
+		div.loop();
 		printf(" to %zu vertices\n", mesh.n_vertices());
 	}
 	if (mesh.n_vertices() > des)
@@ -61,11 +76,6 @@ void resample(const char* path)
 		printf("Mesh contains exactly the right amount of vertices!\n");
 	}
 
-	// Write resampled mesh to disk
-	// TODO file name/location
-	printf("Writing mesh to disk\n");
-	mesh.write(vars::GetAssetPath(path) + "_resampled.off");
-
 	printf("Done\n");
 }
 
@@ -74,12 +84,8 @@ void resample(const char* path)
 // * Align with coordinate frame
 // * Flip based on moment test
 // * Scale to unit volume
-void normalize(const char* path)
+void normalize(pmp::SurfaceMesh &mesh)
 {
-	// Get the mesh
-	printf("Loading mesh \"%s\"\n", path);
-	pmp::SurfaceMesh mesh;
-	mesh.read(vars::GetAssetPath(path));
 	// Map the point list (aka array of Eigen::Matrix3f) to a single Eigen::MatrixXd
 	pmp::VertexProperty points = mesh.get_vertex_property<pmp::Point>("v:point");
 	Eigen::Map<Eigen::MatrixXf> map((float*)(points.data()), 3, mesh.n_vertices());
@@ -122,11 +128,6 @@ void normalize(const char* path)
 	float scale = 1.f / (max[0] > max[1] ? max[0] : max[1] > max[2] ? max[1] : max[2]);
 	map *= scale;
 	printf(" ([%f, %f, %f] -> %f)\n", max[0], max[1], max[2], scale);
-
-	// Write resampled mesh to disk
-	// TODO file name/location
-	printf("Writing mesh to disk\n");
-	mesh.write(vars::GetAssetPath(path) + "_normalized.off");
 
 	printf("Done\n");
 }
