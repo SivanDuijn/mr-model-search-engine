@@ -1,6 +1,6 @@
 #include "model_statistics.h"
 
-NormalizationStatistics CalculateNormalizationStats(pmp::SurfaceMesh &mesh)
+NormalizationStatistics CalculateNormalizationStats(pmp::SurfaceMesh mesh)
 {
     const int nVertices = mesh.n_vertices();
     const int nFaces = mesh.n_faces();
@@ -9,12 +9,14 @@ NormalizationStatistics CalculateNormalizationStats(pmp::SurfaceMesh &mesh)
     
     const float boundingBoxSize = mesh.bounds().size();
 
-    // const pmp::Point barycenter = ((Eigen::Vector3f)pmp::centroid(mesh)).norm();
-    const float distBarycenterToOrigin = ((Eigen::Vector3f)pmp::centroid(mesh)).norm();
+    pmp::Point bcenter = pmp::centroid(mesh);
+    const float distBarycenterToOrigin = ((Eigen::Vector3f)bcenter).norm();
 
 	pmp::VertexProperty points = mesh.get_vertex_property<pmp::Point>("v:point");
 	Eigen::Map<Eigen::MatrixXf> map((float*)(points.data()), 3, mesh.n_vertices());
 
+    // center mesh
+    map.colwise() -= (Eigen::Vector3f)bcenter;
 	Eigen::Matrix3f cov = (map * map.adjoint()) / float(map.cols() - 1);
 	// Get the eigenvectors
 	Eigen::EigenSolver<Eigen::MatrixXf> solver;

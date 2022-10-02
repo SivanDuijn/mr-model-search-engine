@@ -20,4 +20,4 @@ struct NormalizationStatistics
 };
 
 
-NormalizationStatistics CalculateNormalizationStats(pmp::SurfaceMesh &mesh);
+NormalizationStatistics CalculateNormalizationStats(pmp::SurfaceMesh mesh);
