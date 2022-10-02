@@ -39,7 +39,6 @@ export default function LoadOFFModel(modelStr: string) {
     geometry.setAttribute("position", new THREE.Float32BufferAttribute(vertices, 3));
 
     geometry.computeVertexNormals();
-    geometry.center();
 
     return geometry;
 }
