@@ -213,7 +213,7 @@ export default class ThreeJSViewGL {
 
         this.vertexNormalsEnabled = show;
 
-        if (this.vertexNormalsHelper && this.renderMaterial != RenderMaterial.WireframeOnly)
+        if (this.vertexNormalsHelper)
             if (this.vertexNormalsEnabled) this.vertexNormalsHelper.visible = true;
             else this.vertexNormalsHelper.visible = false;
     }
