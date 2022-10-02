@@ -64,7 +64,7 @@ void resample(const char* path)
 	// Write resampled mesh to disk
 	// TODO file name/location
 	printf("Writing mesh to disk\n");
-	mesh.write(vars::GetAssetPath(path) + ".res.off");
+	mesh.write(vars::GetAssetPath(path) + "_resampled.off");
 
 	printf("Done\n");
 }
@@ -126,7 +126,7 @@ void normalize(const char* path)
 	// Write resampled mesh to disk
 	// TODO file name/location
 	printf("Writing mesh to disk\n");
-	mesh.write(vars::GetAssetPath(path) + ".res.off");
+	mesh.write(vars::GetAssetPath(path) + "_normalized.off");
 
 	printf("Done\n");
 }
