@@ -31,7 +31,7 @@ void preprocess(const char* in, const char* out)
 	mesh.read(vars::GetAssetPath(in));
 
 	// Preprocess the mesh
-	resample(mesh);
+	//resample(mesh);
 	normalize(mesh);
 
 	// Write resampled mesh to disk
@@ -125,7 +125,7 @@ void normalize(pmp::SurfaceMesh &mesh)
 	// Scale to unit volume
 	printf("Scaling to unit volume");
 	pmp::Point max = mesh.bounds().max();
-	float scale = 1.f / (max[0] > max[1] ? max[0] : max[1] > max[2] ? max[1] : max[2]);
+	float scale = 0.5f / abs(max[0] > max[1] ? max[0] : max[1] > max[2] ? max[1] : max[2]);
 	map *= scale;
 	printf(" ([%f, %f, %f] -> %f)\n", max[0], max[1], max[2], scale);
 
