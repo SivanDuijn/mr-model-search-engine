@@ -4,14 +4,14 @@
         "nFaces": 2682,
         "nVertices": 1343,
         "position": 0.1706402450799942,
-        "xRotation": 2.416426420211792
+        "xRotation": 2.416426658630371
     },
     "125_processed.off": {
-        "aabbSize": 1.6414321660995483,
+        "aabbSize": 1.3074651956558228,
         "nFaces": 2682,
         "nVertices": 1343,
-        "position": 2.8307420052442467e-07,
-        "xRotation": 2.386044979095459
+        "position": 2.0519166810117895e-07,
+        "xRotation": 0.8515443801879883
     },
     "181.off": {
         "aabbSize": 2.241534471511841,
