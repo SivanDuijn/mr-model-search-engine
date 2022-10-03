@@ -6,7 +6,7 @@
 
 namespace vars 
 {
-    inline std::string GetAssetPath(const char* asset)
+    inline std::string GetAssetPath(const std::string asset)
     {
         std::string root(V_ROOT_PATH);
         return root + "/../../frontend/model-viewer/public/" + asset;

@@ -21,7 +21,7 @@ int main(int argc, char *argv[])
         istringstream iss(row);
         if (getline(iss, modelname, ',') && getline(iss, classname, ',')) {
             pmp::SurfaceMesh mesh;
-            mesh.read(vars::GetAssetPath("PSBModels/") + modelname);
+            mesh.read(vars::GetAssetPath("PSBDatabase/models/") + modelname);
             pmp::BoundingBox aabb = mesh.bounds();
             pmp::Point min = aabb.min();
             pmp::Point max = aabb.max();

@@ -61,7 +61,7 @@ export default function ModelSelector(props: ModelSelectorProps) {
                             const file = e.currentTarget.value;
 
                             if (subgroup !== undefined && file !== undefined)
-                                props.onModelSelected("PSBModels/" + file);
+                                props.onModelSelected("PSBDatabase/models/" + file);
                         }}
                         value={subgroup ? undefined : ""}
                     >

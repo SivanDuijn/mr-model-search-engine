@@ -84,7 +84,7 @@ export default class ThreeJSViewGL {
         this.camera.position.y = 0.3;
 
         this.setMaterial(this.renderMaterial);
-        this.loadModelByUrl("models/m279.obj");
+        this.loadModelByUrl("PSBDatabase/models/125.off");
 
         requestAnimationFrame(this.update.bind(this));
     }

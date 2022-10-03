@@ -1,7 +1,5 @@
 ﻿#include "multimedia_processor.h"
 
-using namespace std;
-
 //pmp::MeshViewer window("MeshProcessingViewer", 800, 600);
 
 int main(int argc, char *argv[])
@@ -23,28 +21,45 @@ void debug()
 	printf("Echoing debug call\n");
 }
 
-void preprocess(const char* in, const char* out, const bool enableCalcNormalizationStats)
+void preprocess(const string database, const string in, const string out, const bool enableCalcNormalizationStats)
 {
 	// Get the mesh
-	printf("Loading mesh \"%s\"\n", in);
+	printf("Loading mesh \"%s\" from %s\n ", in.c_str(), database.c_str());
 	pmp::SurfaceMesh mesh;
-	mesh.read(vars::GetAssetPath(in));
+	mesh.read(vars::GetAssetPath(database + "/models/" + in));
 
-	auto stats = CalculateNormalizationStats(mesh);
-	printf("stats before: [#vertices: %i, #faces: %i, #volume: %f, #center: %f, #xRot: %f]\n", stats.nVertices, stats.nFaces, stats.boundingBoxSize, stats.distBarycenterToOrigin, stats.xRotation);
+	NormalizationStatistics beforeStats = CalculateNormalizationStats(mesh);
 
 	// Preprocess the mesh
 	//resample(mesh);
 	normalize(mesh);
 
-	stats = CalculateNormalizationStats(mesh);
-	printf("stats after: [#vertices: %i, #faces: %i, #volume: %f, #center: %f, #xRot: %f]\n", stats.nVertices, stats.nFaces, stats.boundingBoxSize, stats.distBarycenterToOrigin, stats.xRotation);
-
+	NormalizationStatistics afterStats = CalculateNormalizationStats(mesh);
 
 	// Write resampled mesh to disk
 	// TODO file name/location
 	printf("Writing mesh to disk\n");
-	mesh.write(vars::GetAssetPath(out));
+	mesh.write(vars::GetAssetPath(database + "/models/" + out));
+
+	// Write the normalizationStats to json
+	ifstream ifs(vars::GetAssetPath(database + "/normalizationStats.json"));
+	nlohmann::json normStats = nlohmann::json::parse(ifs);
+	normStats[in] = { 
+		{"nVertices", beforeStats.nVertices}, 
+		{"nFaces", beforeStats.nFaces},
+		{"aabbSize", beforeStats.boundingBoxSize},
+		{"position", beforeStats.distBarycenterToOrigin},
+		{"xRotation", beforeStats.xRotation}
+	};
+	normStats[out] = { 
+		{"nVertices", afterStats.nVertices}, 
+		{"nFaces", afterStats.nFaces},
+		{"aabbSize", afterStats.boundingBoxSize},
+		{"position", afterStats.distBarycenterToOrigin},
+		{"xRotation", afterStats.xRotation}
+	};
+	ofstream ofs(vars::GetAssetPath(database + "/normalizationStats.json"));
+	ofs << setw(4) << normStats << endl;
 }
 
 // Resample a mesh at the given path
@@ -131,8 +146,9 @@ void normalize(pmp::SurfaceMesh &mesh)
 
 	// Scale to unit volume
 	printf("Scaling to unit volume");
-	pmp::Point max = mesh.bounds().max();
-	float scale = 0.5f / abs(max[0] > max[1] ? max[0] : max[1] > max[2] ? max[1] : max[2]);
+	pmp::Point max = mesh.bounds().max() - mesh.bounds().min();
+	// TODO: can be improved
+	float scale = 1.0f / abs(max[0] > max[1] && max[0] > max[2] ? max[0] : max[1] > max[0] && max[1] > max[2] ? max[1] : max[2]);
 	map *= scale;
 	printf(" ([%f, %f, %f] -> %f)\n", max[0], max[1], max[2], scale);
 

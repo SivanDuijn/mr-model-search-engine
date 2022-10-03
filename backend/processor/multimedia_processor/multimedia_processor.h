@@ -5,6 +5,7 @@
 
 #include <string.h>
 #include <stdio.h>
+#include <fstream>
 #include <functional>
 #include <pmp/SurfaceMesh.h>
 #include <pmp/BoundingBox.h>
@@ -15,8 +16,11 @@
 //#include "pmp/visualization/MeshViewer.h"
 #include "../variables.h"
 #include "model_statistics.h"
+#include "../lib/nlohmann-json/json.hpp"
 
-void preprocess(const char* in = "PSBModels/125.off", const char* out = "PSBModels/125_processed.off", const bool enableCalcNormalizationStats = false );
+using namespace std;
+
+void preprocess(const string database = "PSBDatabase", const string in = "125.off", const string out = "125_processed.off", const bool enableCalcNormalizationStats = false );
 void debug();
 void resample(pmp::SurfaceMesh &mesh);
 void normalize(pmp::SurfaceMesh &mesh);

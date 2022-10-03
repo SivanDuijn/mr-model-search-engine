@@ -36,7 +36,7 @@ export default function HomePage() {
 
     useEffect(() => {
         if (model && !Array.isArray(model)) {
-            viewGL.current?.loadModelByUrl("PSBModels/" + model);
+            viewGL.current?.loadModelByUrl("PSBDatabase/models/" + model);
         }
     }, [model]);
 
