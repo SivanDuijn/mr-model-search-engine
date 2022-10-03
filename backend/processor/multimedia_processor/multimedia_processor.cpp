@@ -146,11 +146,11 @@ void normalize(pmp::SurfaceMesh &mesh)
 
 	// Scale to unit volume
 	printf("Scaling to unit volume");
-	pmp::Point max = mesh.bounds().max() - mesh.bounds().min();
+	pmp::Point diff = mesh.bounds().max() - mesh.bounds().min();
 	// TODO: can be improved
-	float scale = 1.0f / abs(max[0] > max[1] && max[0] > max[2] ? max[0] : max[1] > max[0] && max[1] > max[2] ? max[1] : max[2]);
+	float scale = 1.0f / ((Eigen::Vector3f)diff).maxCoeff();
 	map *= scale;
-	printf(" ([%f, %f, %f] -> %f)\n", max[0], max[1], max[2], scale);
+	printf(" ([%f, %f, %f] -> %f)\n", diff[0], diff[1], diff[2], scale);
 
 	printf("Done\n");
 }
