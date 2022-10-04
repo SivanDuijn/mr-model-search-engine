@@ -49,14 +49,18 @@ void preprocess(const string database, const string in, const string out, const 
 		{"nFaces", beforeStats.nFaces},
 		{"aabbSize", beforeStats.boundingBoxSize},
 		{"position", beforeStats.distBarycenterToOrigin},
-		{"xRotation", beforeStats.xRotation}
+		{"angleX", beforeStats.angleX},
+		{"angleY", beforeStats.angleY},
+		{"angleZ", beforeStats.angleZ}
 	};
 	normStats[out] = { 
 		{"nVertices", afterStats.nVertices}, 
 		{"nFaces", afterStats.nFaces},
 		{"aabbSize", afterStats.boundingBoxSize},
 		{"position", afterStats.distBarycenterToOrigin},
-		{"xRotation", afterStats.xRotation}
+		{"angleX", afterStats.angleX},
+		{"angleY", afterStats.angleY},
+		{"angleZ", afterStats.angleZ}
 	};
 	ofstream ofs(vars::GetAssetPath(database + "/normalizationStats.json"));
 	ofs << setw(4) << normStats << endl;
@@ -129,13 +133,7 @@ void normalize(pmp::SurfaceMesh &mesh)
 	solver.compute(cov);
 	Eigen::MatrixXf eigen = solver.eigenvectors().real();
 	// Rotate the model
-	// TODO optimize code
-	Eigen::Vector3f	major = eigen.row(0);
-	Eigen::Vector3f minor = eigen.row(1);
-	Eigen::Vector3f cross = major.cross(minor);
-	Eigen::Matrix3f rot; rot << -major, -minor, -cross;
-	for (auto v : mesh.vertices()) points[v] = rot * (Eigen::Vector3f)(points[v]); // TODO Eigen calculations
-	printf(" ([%f, %f, %f] / [%f, %f, %f] / [%f, %f, %f])\n", major(0), major(1), major(2), minor(0), minor(1), minor(2), cross(0), cross(1), cross(2));
+	for (auto v : mesh.vertices()) points[v] = eigen.inverse() * (Eigen::Vector3f)(points[v]); // TODO Eigen calculations
 
 	// Flip based on moment tests
 	printf("Flipping based on moment test");
