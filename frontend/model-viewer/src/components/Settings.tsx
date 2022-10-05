@@ -5,9 +5,11 @@ type SettingsProps = {
     defaultMaterial: RenderMaterial;
     defaultWireframeEnabled: boolean;
     defaultVertexNormalsEnabled: boolean;
+    defaultAutoRotateEnabled: boolean;
     onRenderMaterialChange: (material: RenderMaterial) => void;
     onWireframeEnable: (enabled: boolean) => void;
     onVertexNormalsEnable: (enabled: boolean) => void;
+    onAutoRotateEnable: (enabled: boolean) => void;
     className?: string;
 };
 
@@ -44,7 +46,7 @@ export default function Settings(props: SettingsProps) {
                     <input
                         type="checkbox"
                         id="wireframe"
-                        onChange={(e) => props.onWireframeEnable(e.currentTarget.checked)}
+                        onClick={(e) => props.onWireframeEnable(e.currentTarget.checked)}
                         defaultChecked={props.defaultWireframeEnabled}
                     />
                 </div>
@@ -55,8 +57,19 @@ export default function Settings(props: SettingsProps) {
                     <input
                         type="checkbox"
                         id="vertexNormals"
-                        onChange={(e) => props.onVertexNormalsEnable(e.currentTarget.checked)}
+                        onClick={(e) => props.onVertexNormalsEnable(e.currentTarget.checked)}
                         defaultChecked={props.defaultVertexNormalsEnabled}
+                    />
+                </div>
+                <div>
+                    <label htmlFor="rotate" className="mr-2">
+                        Rotate
+                    </label>
+                    <input
+                        type="checkbox"
+                        id="rotate"
+                        onClick={(e) => props.onAutoRotateEnable(e.currentTarget.checked)}
+                        defaultChecked={props.defaultAutoRotateEnabled}
                     />
                 </div>
             </div>

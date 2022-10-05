@@ -13,6 +13,7 @@ export const defaultSettings = {
     material: RenderMaterial.Flat,
     showWireframe: true,
     showVertexNormals: false,
+    autoRotateEnabled: true,
 };
 
 export default function HomePage() {
@@ -23,6 +24,7 @@ export default function HomePage() {
             material: getRenderMaterial(router.query["mat"] as string),
             showWireframe: getURLVariableBool(router.query["wireframe"]),
             showVertextNormals: getURLVariableBool(router.query["vnormals"]),
+            autoRotateEnabled: getURLVariableBool(router.query["rotate"]),
         }),
         [router],
     );
@@ -47,6 +49,8 @@ export default function HomePage() {
             viewGL.current?.showVertexNormals(settingsFromURL.showVertextNormals);
         if (settingsFromURL.showWireframe != undefined)
             viewGL.current?.showWireframe(settingsFromURL.showWireframe);
+        if (settingsFromURL.autoRotateEnabled != undefined)
+            viewGL.current?.setAutoRotateEnabled(settingsFromURL.autoRotateEnabled);
     }, [settingsFromURL]);
 
     return (
@@ -68,9 +72,13 @@ export default function HomePage() {
                     defaultVertexNormalsEnabled={
                         settingsFromURL.showVertextNormals ?? defaultSettings.showVertexNormals
                     }
+                    defaultAutoRotateEnabled={
+                        settingsFromURL.autoRotateEnabled ?? defaultSettings.autoRotateEnabled
+                    }
                     onRenderMaterialChange={(material) => viewGL.current?.setMaterial(material)}
                     onWireframeEnable={(enabled) => viewGL.current?.showWireframe(enabled)}
                     onVertexNormalsEnable={(enabled) => viewGL.current?.showVertexNormals(enabled)}
+                    onAutoRotateEnable={(enabled) => viewGL.current?.setAutoRotateEnabled(enabled)}
                 />
             </div>
             <MemoizedViewGLCanvas

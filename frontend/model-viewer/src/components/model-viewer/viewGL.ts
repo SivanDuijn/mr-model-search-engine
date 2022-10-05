@@ -38,7 +38,9 @@ export default class ThreeJSViewGL {
     private renderMaterial: RenderMaterial;
     private vertexNormalsEnabled: boolean;
     private wireframeEnabled: boolean;
-    private rotate = true;
+    private autoRotateEnabled: boolean;
+
+    private mouseIsDown = true;
 
     private onModelStatsChanged?: (stats: ModelStats | undefined) => void;
     currentModel: string | undefined;
@@ -49,12 +51,14 @@ export default class ThreeJSViewGL {
             renderMaterial?: RenderMaterial;
             vertexNormalsEnabled?: boolean;
             wireframeEnabled?: boolean;
+            autoRotateEnabled?: boolean;
         },
     ) {
         this.renderMaterial = options?.renderMaterial ?? defaultSettings.material;
         this.vertexNormalsEnabled =
             options?.vertexNormalsEnabled ?? defaultSettings.showVertexNormals;
         this.wireframeEnabled = options?.wireframeEnabled ?? defaultSettings.showWireframe;
+        this.autoRotateEnabled = options?.autoRotateEnabled ?? defaultSettings.autoRotateEnabled;
 
         this.scene = new THREE.Scene();
         this.renderer = new THREE.WebGLRenderer({
@@ -80,8 +84,10 @@ export default class ThreeJSViewGL {
         this.controls = new OrbitControls(this.camera, canvas);
         this.controls.enableRotate = false;
 
-        this.camera.position.z = 1;
-        this.camera.position.y = 0.3;
+        this.camera.position.z = 1.2;
+        this.camera.position.y = 0.6;
+        this.camera.position.x = 0.7;
+        this.camera.lookAt(new THREE.Vector3(0, 0, 0));
 
         this.setMaterial(this.renderMaterial);
         this.loadModelByUrl("PSBDatabase/models/125.off");
@@ -225,13 +231,16 @@ export default class ThreeJSViewGL {
             if (this.wireframeEnabled) this.wireframe.visible = true;
             else this.wireframe.visible = false;
     }
+    setAutoRotateEnabled(enabled: boolean) {
+        this.autoRotateEnabled = enabled;
+    }
     // ---
 
     onMouseDown() {
-        this.rotate = false;
+        this.mouseIsDown = false;
     }
     onMouseUp() {
-        this.rotate = true;
+        this.mouseIsDown = true;
     }
     onMouseDrag(xd: number, yd: number) {
         if (this.mesh) {
@@ -248,7 +257,8 @@ export default class ThreeJSViewGL {
         this.renderer.render(this.scene, this.camera);
         this.controls.update();
 
-        if (this.mesh && this.rotate) this.group.rotation.y += PI2 * 0.15 * deltaTime; // 0.15 revolutions per second
+        if (this.mesh && this.mouseIsDown && this.autoRotateEnabled)
+            this.group.rotation.y += PI2 * 0.15 * deltaTime; // 0.15 revolutions per second
         // this.vertexNormalsHelper?.update();
 
         requestAnimationFrame(this.update.bind(this));
