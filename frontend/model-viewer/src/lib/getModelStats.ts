@@ -1,10 +1,17 @@
-import ModelInfo from "../data/model-info.json";
+import modelClasses from "public/PSBDatabase/classes.json";
+import modelNormStats from "public/PSBDatabase/normalizationStats.json";
 
 export interface ModelStats {
     className?: string;
     nFaces?: number;
     nVertices?: number;
-    AABB?: { min: { x: number; y: number; z: number }; max: { x: number; y: number; z: number } };
+    boundingBoxSize?: number;
+    distBarycenterToOrigin?: number;
+    angleX?: number;
+    angleY?: number;
+    angleZ?: number;
+    totalAngle?: number;
+    totalFlip?: number;
 }
 
 export default function GetModelStats(
@@ -12,23 +19,24 @@ export default function GetModelStats(
     mesh: THREE.Mesh,
 ): ModelStats | undefined {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const info = (ModelInfo as any)[modelFileName];
+    const normStats = (modelNormStats as any)[modelFileName];
+    modelFileName = modelFileName.replace("_processed", "");
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const modelClass = (modelClasses as any)[modelFileName];
     return {
-        className: info ? info[0] : undefined,
+        className: modelClass ? modelClass : undefined,
         nVertices: mesh.geometry.getAttribute("position").count,
         nFaces: mesh.geometry.index ? mesh.geometry.index.count / 3 : undefined,
-        AABB: info
+        ...(normStats
             ? {
-                  min: { x: info[3], y: info[4], z: info[5] },
-                  max: { x: info[6], y: info[7], z: info[8] },
+                  distBarycenterToOrigin: normStats.position,
+                  boundingBoxSize: normStats.aabbSize,
+                  angleX: normStats.angleX,
+                  angleY: normStats.angleY,
+                  angleZ: normStats.angleZ,
+                  totalAngle: normStats.totalAngle,
+                  totalFlip: normStats.totalFlip,
               }
-            : undefined,
+            : {}),
     };
-}
-
-export function GetModelClass(modelFileName: string): string | undefined {
-    if (!(modelFileName in ModelInfo)) return undefined;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const info = (ModelInfo as any)[modelFileName];
-    return info[0];
 }

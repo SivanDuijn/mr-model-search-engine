@@ -6,6 +6,13 @@ export default function ModelInformation(props: { stats?: ModelStats }) {
         { label: "class", value: props.stats?.className },
         { label: "# vertices", value: props.stats?.nVertices },
         { label: "# faces", value: props.stats?.nFaces },
+        { label: "dist to center", value: Number(props.stats?.distBarycenterToOrigin?.toFixed(5)) },
+        { label: "AABB size", value: Number(props.stats?.boundingBoxSize?.toFixed(5)) },
+        { label: "angle x-axis", value: Number(props.stats?.angleX?.toFixed(5)) },
+        { label: "angle y-axis", value: Number(props.stats?.angleY?.toFixed(5)) },
+        { label: "angle z-axis", value: Number(props.stats?.angleZ?.toFixed(5)) },
+        { label: "total angle", value: Number(props.stats?.totalAngle?.toFixed(5)) },
+        { label: "total flip", value: Number(props.stats?.totalFlip?.toFixed(5)) },
     ];
 
     return (

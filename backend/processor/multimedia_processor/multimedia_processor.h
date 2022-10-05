@@ -8,6 +8,7 @@
 #include <fstream>
 #include <functional>
 #include <pmp/SurfaceMesh.h>
+#include <pmp/SurfaceMeshIO.h>
 #include <pmp/BoundingBox.h>
 #include <pmp/algorithms/Triangulation.h>
 #include <pmp/algorithms/Subdivision.h>
@@ -20,7 +21,8 @@
 
 using namespace std;
 
-void preprocess(const string database = "PSBDatabase", const string in = "125.off", const string out = "125_processed.off", const bool enableCalcNormalizationStats = false );
+void preprocess(const string database = "PSBDatabase", const string in = "125.off", const string out = "125_processed.off", const bool debug = true );
+void preprocessAll(const string database = "PSBDatabase");
 void debug();
-void resample(pmp::SurfaceMesh &mesh);
-void normalize(pmp::SurfaceMesh &mesh);
+void resample(pmp::SurfaceMesh &mesh, const bool debug = true);
+void normalize(pmp::SurfaceMesh &mesh, const bool debug = true);

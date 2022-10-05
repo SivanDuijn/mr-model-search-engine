@@ -1,7 +1,8 @@
 import clsx from "clsx";
-import { useState, useMemo } from "react";
-// import filenames from "./princeton-filenames.json";
-import filenames from "./psb-filenames.json";
+import { useState, useMemo, useRef } from "react";
+import filenames from "public/PSBDatabase/files.json";
+
+const database = "PSBDatabase";
 
 type ModelSelectorProps = {
     onModelSelected: (url: string) => void;
@@ -11,6 +12,8 @@ type ModelSelectorProps = {
 
 export default function ModelSelector(props: ModelSelectorProps) {
     const [subgroup, setSubgroup] = useState<string>();
+    const usePreprocessed = useRef(true);
+    const currentModel = useRef("");
 
     const subgroupfiles = useMemo(() => {
         if (subgroup) {
@@ -43,7 +46,7 @@ export default function ModelSelector(props: ModelSelectorProps) {
                     />
                 </div>
                 <p className="mt-5">Select file from database</p>
-                <div>
+                <div className="flex flex-row">
                     <select
                         onChange={(e) => setSubgroup(e.currentTarget.value)}
                         value={subgroup ? undefined : ""}
@@ -60,8 +63,17 @@ export default function ModelSelector(props: ModelSelectorProps) {
                         onChange={(e) => {
                             const file = e.currentTarget.value;
 
-                            if (subgroup !== undefined && file !== undefined)
-                                props.onModelSelected("PSBDatabase/models/" + file);
+                            if (subgroup !== undefined && file !== undefined) {
+                                currentModel.current = file;
+                                const ws = file.split(".");
+                                props.onModelSelected(
+                                    database +
+                                        "/models/" +
+                                        ws[0] +
+                                        `${usePreprocessed.current ? "_processed" : ""}.` +
+                                        ws[1],
+                                );
+                            }
                         }}
                         value={subgroup ? undefined : ""}
                     >
@@ -72,6 +84,30 @@ export default function ModelSelector(props: ModelSelectorProps) {
                             </option>
                         ))}
                     </select>
+                    <div className="flex flex-row">
+                        <input
+                            id="preprocessed"
+                            title="preprocessed"
+                            className="ml-2"
+                            type="checkbox"
+                            defaultChecked={true}
+                            onChange={(e) => {
+                                if (e.currentTarget.checked != usePreprocessed.current) {
+                                    usePreprocessed.current = e.currentTarget.checked;
+                                    if (currentModel.current != "") {
+                                        const ws = currentModel.current.split(".");
+                                        props.onModelSelected(
+                                            database +
+                                                "/models/" +
+                                                ws[0] +
+                                                `${usePreprocessed.current ? "_processed" : ""}.` +
+                                                ws[1],
+                                        );
+                                    }
+                                }
+                            }}
+                        />
+                    </div>
                 </div>
             </div>
         </div>

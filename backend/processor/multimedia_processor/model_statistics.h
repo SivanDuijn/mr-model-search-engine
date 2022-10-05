@@ -17,6 +17,9 @@ struct NormalizationStatistics
     float angleX; // absolute value of cosine of angle between major eigenvector and the X axis
     float angleY; // absolute value of cosine of angle between minor eigenvector and the Y axis
     float angleZ; // absolute value of cosine of angle between cross(major and minor eigenvector) and the Z axis
+    float totalAngle;
+    // mirrored?
+    float totalFlip; // The summed up flip coefficients (which are between either -1 or 1) 
 };
 
 

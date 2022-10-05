@@ -2,10 +2,10 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { VertexNormalsHelper } from "three/examples/jsm/helpers/VertexNormalsHelper";
 import GetModelStats, { ModelStats } from "src/lib/getModelStats";
+import LoadOBJModel from "src/lib/OBJLoader";
 import LoadOFFModel from "src/lib/OFFLoader";
 import { CreateThreeLineBox, GetModelfiletype } from "src/lib/utils";
 import { defaultSettings } from "src/pages";
-import LoadOBJModel from "../../lib/OBJLoader";
 
 export const PI2 = Math.PI * 2;
 
