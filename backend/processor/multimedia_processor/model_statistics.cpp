@@ -24,11 +24,43 @@ NormalizationStatistics CalculateNormalizationStats(pmp::SurfaceMesh mesh)
 	// Get the eigenvectors
 	Eigen::EigenSolver<Eigen::MatrixXf> solver;
 	solver.compute(cov);
+	auto v = solver.eigenvalues().real();
+	int majorI = 0; 
+	int minorI = 0;
+	if (v[0] > v[1])
+		if (v[0] > v[2])
+		{
+			majorI = 0;
+			if (v[1] > v[2])
+				minorI = 1;
+			else 
+				minorI = 2;
+		}
+		else
+		{
+			majorI = 2;
+			minorI = 0;
+			// 2 > 0 > 1
+		} 
+	else if (v[1] > v[2])
+	{
+		// 1 > 0, 1 > 2
+		majorI = 1;
+		if (v[0] > v[2])
+			minorI = 0;
+		else 
+			minorI = 2;
+	}
+	else 
+	{
+		majorI = 2;
+		minorI = 1;
+		// 2 > 1 > 0
+	}
+
 	Eigen::MatrixXf eigen = solver.eigenvectors().real();
-	// Rotate the model
-	// TODO optimize code
-	Eigen::Vector3f	major = eigen.row(0);
-	Eigen::Vector3f minor = eigen.row(1);
+	Eigen::Vector3f	major = eigen.col(majorI);
+	Eigen::Vector3f minor = eigen.col(minorI);
 	Eigen::Vector3f cross = major.cross(minor);
 
     float angleX = pmp::angle(major, pmp::Point(1,0,0));

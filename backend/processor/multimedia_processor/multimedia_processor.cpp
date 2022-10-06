@@ -171,9 +171,61 @@ void normalize(pmp::SurfaceMesh &mesh, const bool debug)
 	// Get the eigenvectors
 	Eigen::EigenSolver<Eigen::MatrixXf> solver;
 	solver.compute(cov);
+	
+	auto v = solver.eigenvalues().real();
+	int majorI = 0; 
+	int minorI = 0;
+	if (v[0] > v[1])
+		if (v[0] > v[2])
+		{
+			majorI = 0;
+			if (v[1] > v[2])
+				minorI = 1;
+			else 
+				minorI = 2;
+		}
+		else
+		{
+			majorI = 2;
+			minorI = 0;
+			// 2 > 0 > 1
+		} 
+	else if (v[1] > v[2])
+	{
+		// 1 > 0, 1 > 2
+		majorI = 1;
+		if (v[0] > v[2])
+			minorI = 0;
+		else 
+			minorI = 2;
+	}
+	else 
+	{
+		majorI = 2;
+		minorI = 1;
+		// 2 > 1 > 0
+	}
+
 	Eigen::MatrixXf eigen = solver.eigenvectors().real();
+	Eigen::Vector3f	major = eigen.col(majorI);
+	Eigen::Vector3f minor = eigen.col(minorI);
+	Eigen::Vector3f cross = major.cross(minor);
+
+	// Create the inverse rotation matrix by transposing the eigenvectors to it
+	Eigen::Matrix3f rot {
+		{major(0), major(1), major(2)},
+		{minor(0), minor(1), minor(2)},
+		{cross(0), cross(1), cross(2)},
+	};
+
+	// cout << solver.eigenvalues().real() << endl;
+	// cout << "all: " << eigen << endl;
+	// cout << "rot: " << rot << endl;
+	// cout << "norms: " << eigen.col(0).norm() << " " << eigen.col(1).norm() << " " << eigen.col(2).norm() << endl;
+	// cout << "norms: " << eigen.row(0).norm() << " " << eigen.row(1).norm() << " " << eigen.row(2).norm() << endl;
+
 	// Rotate the model
-	for (auto v : mesh.vertices()) points[v] = eigen.inverse() * (Eigen::Vector3f)(points[v]); // TODO Eigen calculations
+	for (auto v : mesh.vertices()) points[v] = rot * (Eigen::Vector3f)(points[v]); // TODO Eigen calculations
 
 	// Flip based on moment tests
 	if (debug) printf("Flipping based on moment test");
