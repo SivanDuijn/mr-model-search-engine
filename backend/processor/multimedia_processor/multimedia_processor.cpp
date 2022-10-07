@@ -13,10 +13,10 @@ int main(int argc, char *argv[])
 			size_t pos = s.find('.');
 			string name = s.substr(0, pos);
 			string ext = s.substr(pos + 1);
-			preprocess(argv[2], s, name + "_processed." + ext);
+			preprocess(argv[2], s, name + "_processed." + ext, true);
 		}
 		else if (argc == 5)
-			preprocess(argv[2], argv[3], argv[4]);
+			preprocess(argv[2], argv[3], argv[4], true);
 		else
 			preprocess();
 	}
@@ -49,7 +49,7 @@ void preprocessAll(const string database)
 		size_t pos = file.find('.');
 		string name = file.substr(0, pos);
 		string ext = file.substr(pos + 1);
-		preprocess(database, file, name + "_processed." + ext, false);
+		preprocess(database, file, name + "_processed." + ext);
 	}
 }
 
@@ -60,13 +60,12 @@ void preprocess(const string database, const string in, const string out, const 
 	pmp::SurfaceMesh mesh;
 	mesh.read(vars::GetAssetPath(database + "/models/" + in));
 
-	NormalizationStatistics beforeStats = CalculateNormalizationStats(mesh);
+	NormalizationStatistics beforeStats;
+	NormalizationStatistics afterStats;
 
 	// Preprocess the mesh
-	resample(mesh, debug);
-	normalize(mesh, debug);
-
-	NormalizationStatistics afterStats = CalculateNormalizationStats(mesh);
+	resample(mesh, beforeStats, afterStats, debug);
+	normalize(mesh, beforeStats, afterStats, debug);
 
 	// Write resampled mesh to disk
 	// TODO file name/location
@@ -105,9 +104,13 @@ void preprocess(const string database, const string in, const string out, const 
 }
 
 // Resample a mesh at the given path
-void resample(pmp::SurfaceMesh &mesh, const bool debug)
+void resample(pmp::SurfaceMesh &mesh, NormalizationStatistics &beforeStats, NormalizationStatistics &afterStats, const bool debug)
 {
 	if (debug) printf("Mesh has %zu vertices\n", mesh.n_vertices());
+
+	// Store stats before resampling
+	beforeStats.nVertices = mesh.n_vertices();
+	beforeStats.nFaces = mesh.n_faces();
 
 	// Triangulate it if necessary
 	if (!mesh.is_triangle_mesh())
@@ -140,6 +143,10 @@ void resample(pmp::SurfaceMesh &mesh, const bool debug)
 		if (debug) printf("Mesh contains exactly the right amount of vertices!\n");
 	}
 
+	// Store stats after resampling
+	afterStats.nVertices = mesh.n_vertices();
+	afterStats.nFaces = mesh.n_faces();
+
 	if (debug) printf("Done\n");
 }
 
@@ -148,93 +155,68 @@ void resample(pmp::SurfaceMesh &mesh, const bool debug)
 // * Align with coordinate frame
 // * Flip based on moment test
 // * Scale to unit volume
-void normalize(pmp::SurfaceMesh &mesh, const bool debug)
+void normalize(pmp::SurfaceMesh &mesh, NormalizationStatistics &beforeStats, NormalizationStatistics &afterStats, const bool debug)
 {
 	// Map the point list (aka array of Eigen::Matrix3f) to a single Eigen::MatrixXd
 	pmp::VertexProperty points = mesh.get_vertex_property<pmp::Point>("v:point");
 	Eigen::Map<Eigen::MatrixXf> map((float*)(points.data()), 3, mesh.n_vertices());
 
-	auto f = mesh.faces();
-
 	// Translate barycenter to origin
+	beforeStats.distBarycenterToOrigin = ((Eigen::Vector3f)pmp::centroid(mesh)).norm();
 	if (debug) printf("Translating barycenter to origin");
 	pmp::Point bcenter = pmp::centroid(mesh);
 	map.colwise() -= (Eigen::Vector3f)bcenter;
 	if (debug) printf(" (-[%f, %f, %f])\n", bcenter.data()[0], bcenter.data()[1], bcenter.data()[2]);
+	afterStats.distBarycenterToOrigin = ((Eigen::Vector3f)pmp::centroid(mesh)).norm();
+
 
 	// Align with coordinate frame
 	if (debug) printf("Aligning with coordinate frame\n");
 	// Compute the covariance matrix
 	// https://stackoverflow.com/a/15142446
 	// We don't have to center the sample matrix because we just centered the samples :)
-	Eigen::Matrix3f cov = (map * map.adjoint()) / float(map.cols() - 1);
 	// Get the eigenvectors
-	Eigen::EigenSolver<Eigen::MatrixXf> solver;
-	solver.compute(cov);
-	
-	auto v = solver.eigenvalues().real();
-	int majorI = 0; 
-	int minorI = 0;
-	if (v[0] > v[1])
-		if (v[0] > v[2])
-		{
-			majorI = 0;
-			if (v[1] > v[2])
-				minorI = 1;
-			else 
-				minorI = 2;
-		}
-		else
-		{
-			majorI = 2;
-			minorI = 0;
-			// 2 > 0 > 1
-		} 
-	else if (v[1] > v[2])
-	{
-		// 1 > 0, 1 > 2
-		majorI = 1;
-		if (v[0] > v[2])
-			minorI = 0;
-		else 
-			minorI = 2;
-	}
-	else 
-	{
-		majorI = 2;
-		minorI = 1;
-		// 2 > 1 > 0
-	}
-
-	Eigen::MatrixXf eigen = solver.eigenvectors().real();
-	Eigen::Vector3f	major = eigen.col(majorI);
-	Eigen::Vector3f minor = eigen.col(minorI);
-	Eigen::Vector3f cross = major.cross(minor);
-
+	Eigen::Matrix3f cov = (map * map.adjoint()) / float(map.cols() - 1);
+	auto eigenVs = utils::GetMajorMinorEigenVectors(cov);
+	Eigen::Vector3f	major = get<0>(eigenVs);
+	Eigen::Vector3f minor = get<1>(eigenVs);
+	Eigen::Vector3f cross = get<2>(eigenVs);
 	// Create the inverse rotation matrix by transposing the eigenvectors to it
 	Eigen::Matrix3f rot {
 		{major(0), major(1), major(2)},
 		{minor(0), minor(1), minor(2)},
 		{cross(0), cross(1), cross(2)},
 	};
-
-	// cout << solver.eigenvalues().real() << endl;
-	// cout << "all: " << eigen << endl;
-	// cout << "rot: " << rot << endl;
-	// cout << "norms: " << eigen.col(0).norm() << " " << eigen.col(1).norm() << " " << eigen.col(2).norm() << endl;
-	// cout << "norms: " << eigen.row(0).norm() << " " << eigen.row(1).norm() << " " << eigen.row(2).norm() << endl;
-
+	// Store stats before rotating
+	beforeStats.angleX = pmp::angle(major, pmp::Point(1,0,0));
+	beforeStats.angleY = pmp::angle(minor, pmp::Point(0,1,0));
+	beforeStats.angleZ = pmp::angle(cross, pmp::Point(0,0,1));
+	beforeStats.totalAngle = beforeStats.angleX + beforeStats.angleY + beforeStats.angleZ;
 	// Rotate the model
-	for (auto v : mesh.vertices()) points[v] = rot * (Eigen::Vector3f)(points[v]); // TODO Eigen calculations
+	for (auto v : mesh.vertices()) points[v] = rot * (Eigen::Vector3f)(points[v]);
+	// and store stats after rotating
+	cov = (map * map.adjoint()) / float(map.cols() - 1);
+	eigenVs = utils::GetMajorMinorEigenVectors(cov);
+	afterStats.angleX = pmp::angle(get<0>(eigenVs), pmp::Point(1,0,0));
+	afterStats.angleY = pmp::angle(get<1>(eigenVs), pmp::Point(0,1,0));
+	afterStats.angleZ = pmp::angle(get<2>(eigenVs), pmp::Point(0,0,1));
+	afterStats.totalAngle = afterStats.angleX + afterStats.angleY + afterStats.angleZ;
 
 	// Flip based on moment tests
 	if (debug) printf("Flipping based on moment test");
 	Eigen::Vector3f flip = map.cwiseSign().cwiseProduct(map.cwiseProduct(map)).rowwise().sum().cwiseSign()
 		.unaryExpr([](float e) -> float { return e == 0.f ? 1.f : e; }); // Change all 0s to 1s
-	for (auto v : mesh.vertices()) points[v] = ((Eigen::Vector3f)points[v]).cwiseProduct(flip); // TODO Eigen calculations
+	// Store before stats
+	beforeStats.totalFlip = flip.sum();
 	if (debug) printf(" [%f, %f, %f]\n", flip(0), flip(1), flip(2));
+	for (auto v : mesh.vertices()) points[v] = ((Eigen::Vector3f)points[v]).cwiseProduct(flip); // TODO Eigen calculations
+	// Store after stats
+	Eigen::Vector3f afterFlip = map.cwiseSign().cwiseProduct(map.cwiseProduct(map)).rowwise().sum().cwiseSign()
+		.unaryExpr([](float e) -> float { return e == 0.f ? 1.f : e; });
+	afterStats.totalFlip = afterFlip.sum();
 
 	// Scale to unit volume
+	beforeStats.boundingBoxSize = mesh.bounds().size();
 	if (debug) printf("Scaling to unit volume");
 	Eigen::MatrixXf bounds = Eigen::MatrixXf(3, 2);
 	bounds << (Eigen::Vector3f)(mesh.bounds().min()), (Eigen::Vector3f)(mesh.bounds().max());
@@ -242,6 +224,26 @@ void normalize(pmp::SurfaceMesh &mesh, const bool debug)
 	float scale = 0.5f / max;
 	map *= scale;
 	if (debug) printf(" (%f => *%f)\n", max, scale);
+	afterStats.boundingBoxSize = mesh.bounds().size();
+
+	// If the mesh was flipped once or thrice we need to invert the normals
+	int flipSum = flip.sum();
+	if (flipSum == 1 || flipSum == -3)
+	{
+		pmp::SurfaceMesh newMesh;
+		for (auto v : mesh.vertices())
+			newMesh.add_vertex(mesh.position(v));
+		for (auto f : mesh.faces())
+		{
+			vector<pmp::Vertex> vertices;
+			for (auto v : mesh.vertices(f))
+				vertices.push_back(v);
+			reverse(vertices.begin(), vertices.end());
+			newMesh.add_face(vertices);
+		}
+		mesh = newMesh;
+	}
+	
 
 	if (debug) printf("Done\n");
 }

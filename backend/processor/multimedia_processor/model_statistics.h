@@ -1,9 +1,5 @@
 #pragma once
 
-#include <pmp/SurfaceMesh.h>
-#include "pmp/algorithms/DifferentialGeometry.h"
-#include <cmath>
-
 struct NormalizationStatistics
 {
     // number of sampling points
@@ -19,8 +15,5 @@ struct NormalizationStatistics
     float angleZ; // absolute value of cosine of angle between cross(major and minor eigenvector) and the Z axis
     float totalAngle;
     // mirrored?
-    float totalFlip; // The summed up flip coefficients (which are between either -1 or 1) 
+    int totalFlip; // The summed up flip coefficients (which are between either -1 or 1) 
 };
-
-
-NormalizationStatistics CalculateNormalizationStats(pmp::SurfaceMesh mesh);
