@@ -72,7 +72,7 @@ export default class ThreeJSViewGL {
         this.renderer.setSize(600, 600);
         if (window) this.renderer.setPixelRatio(window.devicePixelRatio);
 
-        const pointLight = new THREE.PointLight(0xffffff, 3, 100);
+        const pointLight = new THREE.PointLight(0xffffff, 2.4, 100);
         pointLight.position.set(50, 20, 40);
         this.scene.add(pointLight);
 
@@ -84,9 +84,9 @@ export default class ThreeJSViewGL {
         this.controls = new OrbitControls(this.camera, canvas);
         this.controls.enableRotate = false;
 
-        this.camera.position.z = 1.2;
-        this.camera.position.y = 0.6;
-        this.camera.position.x = 0.7;
+        this.camera.position.z = 1.4;
+        // this.camera.position.y = 0.6;
+        // this.camera.position.x = 0.7;
         this.camera.lookAt(new THREE.Vector3(0, 0, 0));
 
         this.setMaterial(this.renderMaterial);
