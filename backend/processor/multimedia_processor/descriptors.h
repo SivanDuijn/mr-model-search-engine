@@ -7,5 +7,5 @@
 
 namespace descriptors
 {
-    Eigen::VectorXf D1(pmp::SurfaceMesh &mesh, int bins)
+    Eigen::VectorXi D1(pmp::SurfaceMesh &mesh, int bins);
 }
