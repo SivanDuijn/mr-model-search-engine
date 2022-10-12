@@ -13,7 +13,7 @@ namespace global_descriptors
             for (pmp::Vertex v : mesh.vertices(f))
                 tPts.push_back(Eigen::Vector3f(points[v]));
             if (tPts.size() >= 3)
-                area += (tPts[1] - tPts[0]).cross(tPts[2] - tPts[1]).norm() / 2;
+                area += (tPts[1] - tPts[0]).cross(tPts[2] - tPts[0]).norm() / 2;
         }
 
         return area;
