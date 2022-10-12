@@ -85,8 +85,6 @@ export default class ThreeJSViewGL {
         this.controls.enableRotate = false;
 
         this.camera.position.z = 1.4;
-        // this.camera.position.y = 0.6;
-        // this.camera.position.x = 0.7;
         this.camera.lookAt(new THREE.Vector3(0, 0, 0));
 
         this.setMaterial(this.renderMaterial);
@@ -103,6 +101,8 @@ export default class ThreeJSViewGL {
         const filetype = GetModelfiletype(modelName);
         if (filetype === null) alert("Model file type not supported!");
         this.currentModel = modelName;
+
+        const oldRotation = this.group.rotation;
 
         // Remove group and create new to reset rotations
         this.group.clear();
@@ -142,6 +142,10 @@ export default class ThreeJSViewGL {
         this.scene.add(this.group);
 
         this.group.add(this.vertexNormalsHelper);
+
+        this.group.rotation.x = oldRotation.x;
+        this.group.rotation.y = oldRotation.y;
+        this.group.rotation.z = oldRotation.z;
     }
 
     loadModelByUrl(url: string) {
