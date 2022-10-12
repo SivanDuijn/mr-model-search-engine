@@ -56,9 +56,8 @@ namespace preprocessor
     // * Scale to unit volume
     void normalize(pmp::SurfaceMesh &mesh, modelstats::NormalizationStatistics &beforeStats, modelstats::NormalizationStatistics &afterStats)
     {
-        // Map the point list (aka array of Eigen::Matrix3f) to a single Eigen::MatrixXd
-        pmp::VertexProperty points = mesh.get_vertex_property<pmp::Point>("v:point");
-        Eigen::Map<Eigen::MatrixXf> map((float*)(points.data()), 3, mesh.n_vertices());
+        // Get the vertices as an Eigen map
+        Eigen::Map<Eigen::MatrixXf> map = utils::GetVertexMap(mesh);
 
         // Store barycenter distance to origin before translation
         beforeStats.distBarycenterToOrigin = ((Eigen::Vector3f)pmp::centroid(mesh)).norm();
@@ -73,7 +72,7 @@ namespace preprocessor
         afterStats.distBarycenterToOrigin = ((Eigen::Vector3f)pmp::centroid(mesh)).norm();
 
         // Align with coordinate frame
-        printf_debug("Aligning with coordinate frame\n");
+        printf_debug("Aligning with coordinate frame");
         // Compute the covariance matrix
         // https://stackoverflow.com/a/15142446
         // We don't have to center the sample matrix because we just centered the samples :)
