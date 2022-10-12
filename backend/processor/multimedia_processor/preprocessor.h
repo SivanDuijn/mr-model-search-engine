@@ -8,7 +8,7 @@
 #include <pmp/algorithms/Decimation.h>
 #include <pmp/algorithms/DifferentialGeometry.h>
 #include "model_statistics.h"
-#include "utils.h"
+#include "eigen_vectors.h"
 
 
 namespace preprocessor

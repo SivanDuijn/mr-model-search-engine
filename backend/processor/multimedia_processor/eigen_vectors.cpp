@@ -1,4 +1,4 @@
-#include "utils.h"
+#include "eigen_vectors.h"
 
 namespace utils 
 {
@@ -48,7 +48,14 @@ namespace utils
         return std::make_tuple(majorI, minorI);
     }
 
-    std::tuple<Eigen::Vector3f, Eigen::Vector3f, Eigen::Vector3f> GetMajorMinorEigenVectors(Eigen::Matrix3f cov)
+    std::tuple<Eigen::Vector3f, Eigen::Vector3f, Eigen::Vector3f> GetMajorMinorEigenVectors(pmp::SurfaceMesh &mesh) 
+    {
+        Eigen::Map<Eigen::MatrixXf> map = GetVertexMap(mesh);
+        Eigen::Matrix3f cov = (map * map.transpose()) / float(map.cols() - 1);
+        return GetMajorMinorEigenVectors(cov);
+    }
+    
+    std::tuple<Eigen::Vector3f, Eigen::Vector3f, Eigen::Vector3f> GetMajorMinorEigenVectors(Eigen::Matrix3f &cov)
     {
         Eigen::EigenSolver<Eigen::MatrixXf> solver;
         solver.compute(cov);

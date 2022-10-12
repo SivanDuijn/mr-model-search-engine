@@ -5,7 +5,7 @@
 #include "eigen_vectors.h"
 
 
-namespace descriptors
+namespace global_descriptors
 {
-    Eigen::VectorXf D1(pmp::SurfaceMesh &mesh, int bins);
+
 }
