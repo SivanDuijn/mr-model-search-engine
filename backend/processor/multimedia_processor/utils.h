@@ -3,10 +3,10 @@
 #include <string>
 #include <Eigen/Dense>
 
-#ifdef DEBUG
+#if 1
     #define printf_debug printf
 #else
-    #define printf_debug __noop
+    #define printf_debug 0 && printf
 #endif
 
 namespace utils 

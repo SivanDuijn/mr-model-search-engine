@@ -2,8 +2,6 @@
 
 int main(int argc, char *argv[])
 {
-	preprocess();
-
 	if (argc < 2) printf("Please supply an argument");
 	// No switch for "strings" :(
 	else if (!strcmp(argv[1], "debug"))       debug();
