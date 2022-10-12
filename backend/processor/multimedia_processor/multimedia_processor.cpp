@@ -6,6 +6,8 @@ int main(int argc, char *argv[])
 
 	else if (!strcmp(argv[1], "debug")) debug();
 
+	else if (!strcmp(argv[1], "preprocess-all")) preprocessAll();
+
 	else if (!strcmp(argv[1], "preprocess"))  
 	{
 		if (argc == 4) 
@@ -22,7 +24,7 @@ int main(int argc, char *argv[])
 			preprocess();
 	}
 
-	else if (!strcmp(argv[1], "preprocess-all")) preprocessAll();
+	else if (!strcmp(argv[1], "extract")) extract();
 
 	else printf("Unknown argument");
 
@@ -77,4 +79,14 @@ void preprocess(const string database, const string in, const string out)
 	modelstats::WriteNormalizationStatistics(database, in, out, beforeStats, afterStats);
 
 	printf("Preprocessed mesh \"%s\" from %s successfully, output: %s\n", in.c_str(), database.c_str(), out.c_str());
+}
+
+void extract(const string database, const string in, const string out)
+{
+	// Get the mesh
+	printf_debug("Loading mesh \"%s\" from %s\n", in.c_str(), database.c_str());
+	pmp::SurfaceMesh mesh;
+	mesh.read(vars::GetAssetPath(database + "/models/" + in));
+
+	cout << '\n' << descriptors::D1(mesh, 10) << endl;
 }

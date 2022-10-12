@@ -11,9 +11,11 @@
 #include "../lib/nlohmann-json/json.hpp"
 #include "preprocessor.h"
 #include "model_statistics.h"
+#include "descriptors.h"
 
 using namespace std;
 
 void debug();
 void preprocess(const string database = "PSBDatabase", const string in = "69.off", const string out = "69_processed.off");
 void preprocessAll(const string database = "PSBDatabase");
+void extract(const string database = "PSBDatabase", const string in = "69.off", const string out = "69_processed.off");
