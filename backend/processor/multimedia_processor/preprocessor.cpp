@@ -77,7 +77,7 @@ namespace preprocessor
         // https://stackoverflow.com/a/15142446
         // We don't have to center the sample matrix because we just centered the samples :)
         // Get the eigenvectors
-        Eigen::Matrix3f cov = (map * map.adjoint()) / float(map.cols() - 1);
+        Eigen::Matrix3f cov = (map * map.transpose()) / float(map.cols() - 1);
         auto eigenVs = utils::GetMajorMinorEigenVectors(cov);
         Eigen::Vector3f	major = get<0>(eigenVs);
         Eigen::Vector3f middl = get<1>(eigenVs);
