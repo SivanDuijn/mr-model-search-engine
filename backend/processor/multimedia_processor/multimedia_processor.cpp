@@ -2,6 +2,8 @@
 
 int main(int argc, char *argv[])
 {
+	preprocess();
+
 	if (argc < 2) printf("Please supply an argument");
 	// No switch for "strings" :(
 	else if (!strcmp(argv[1], "debug"))       debug();
@@ -13,10 +15,10 @@ int main(int argc, char *argv[])
 			size_t pos = s.find('.');
 			string name = s.substr(0, pos);
 			string ext = s.substr(pos + 1);
-			preprocess(argv[2], s, name + "_processed." + ext, true);
+			preprocess(argv[2], s, name + "_processed." + ext);
 		}
 		else if (argc == 5)
-			preprocess(argv[2], argv[3], argv[4], true);
+			preprocess(argv[2], argv[3], argv[4]);
 		else
 			preprocess();
 	}
@@ -53,10 +55,10 @@ void preprocessAll(const string database)
 	}
 }
 
-void preprocess(const string database, const string in, const string out, const bool debug)
+void preprocess(const string database, const string in, const string out)
 {
 	// Get the mesh
-	if (debug) printf("Loading mesh \"%s\" from %s\n", in.c_str(), database.c_str());
+	printf_debug("Loading mesh \"%s\" from %s\n", in.c_str(), database.c_str());
 	pmp::SurfaceMesh mesh;
 	mesh.read(vars::GetAssetPath(database + "/models/" + in));
 
@@ -64,11 +66,11 @@ void preprocess(const string database, const string in, const string out, const 
 	modelstats::NormalizationStatistics afterStats;
 
 	// Preprocess the mesh
-	preprocessor::resample(mesh, beforeStats, afterStats, debug);
-	preprocessor::normalize(mesh, beforeStats, afterStats, debug);
+	preprocessor::resample(mesh, beforeStats, afterStats);
+	preprocessor::normalize(mesh, beforeStats, afterStats);
 
 	// Write resampled mesh to disk
-	if (debug) printf("Writing mesh to disk\n");
+	printf_debug("Writing mesh to disk\n");
 	mesh.write(vars::GetAssetPath(database + "/models/" + out));
 
 	// Write the normalizationStats to json

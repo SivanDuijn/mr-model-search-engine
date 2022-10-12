@@ -5,9 +5,9 @@ using namespace std;
 namespace preprocessor
 {
     // Resample a mesh at the given path
-    void resample(pmp::SurfaceMesh &mesh, modelstats::NormalizationStatistics &beforeStats, modelstats::NormalizationStatistics &afterStats, const bool debug)
+    void resample(pmp::SurfaceMesh &mesh, modelstats::NormalizationStatistics &beforeStats, modelstats::NormalizationStatistics &afterStats)
     {
-        if (debug) printf("Mesh has %zu vertices\n", mesh.n_vertices());
+        printf_debug("Mesh has %zu vertices\n", mesh.n_vertices());
 
         // Store stats before resampling
         beforeStats.nVertices = mesh.n_vertices();
@@ -16,39 +16,37 @@ namespace preprocessor
         // Triangulate it if necessary
         if (!mesh.is_triangle_mesh())
         {
-            if (debug) printf("Triangulating mesh\n");
+            printf_debug("Triangulating mesh\n");
             pmp::Triangulation tri = pmp::Triangulation(mesh);
             tri.triangulate();
         }
 
-        // Example desired vertex count mentioned in technical tips
-        const unsigned int des = 2500;
-
         // Subdivide and/or decimate depending on the vertex count
+        const unsigned int des = 2500; // example desired vertex count mentioned in technical tips
         while (mesh.n_vertices() < des)
         {
-            if (debug) printf("Subdividing mesh");
+            printf_debug("Subdividing mesh");
             pmp::Subdivision div = pmp::Subdivision(mesh);
             div.loop();
-            if (debug) printf(" to %zu vertices\n", mesh.n_vertices());
+            printf_debug(" to %zu vertices\n", mesh.n_vertices());
         }
         if (mesh.n_vertices() > des)
         {
-            if (debug) printf("Decimating mesh");
+            printf_debug("Decimating mesh");
             pmp::Decimation dec = pmp::Decimation(mesh);
             dec.decimate(des);
-            if (debug) printf(" to %zu vertices\n", mesh.n_vertices());
+            printf_debug(" to %zu vertices\n", mesh.n_vertices());
         }
         else
         {
-            if (debug) printf("Mesh contains exactly the right amount of vertices!\n");
+            printf_debug("Mesh contains exactly the right amount of vertices!\n");
         }
 
         // Store stats after resampling
         afterStats.nVertices = mesh.n_vertices();
         afterStats.nFaces = mesh.n_faces();
 
-        if (debug) printf("Done\n");
+        printf_debug("Done\n");
     }
 
     // Normalize a mesh according to 4 steps:
@@ -56,7 +54,7 @@ namespace preprocessor
     // * Align with coordinate frame
     // * Flip based on moment test
     // * Scale to unit volume
-    void normalize(pmp::SurfaceMesh &mesh, modelstats::NormalizationStatistics &beforeStats, modelstats::NormalizationStatistics &afterStats, const bool debug)
+    void normalize(pmp::SurfaceMesh &mesh, modelstats::NormalizationStatistics &beforeStats, modelstats::NormalizationStatistics &afterStats)
     {
         // Map the point list (aka array of Eigen::Matrix3f) to a single Eigen::MatrixXd
         pmp::VertexProperty points = mesh.get_vertex_property<pmp::Point>("v:point");
@@ -64,15 +62,15 @@ namespace preprocessor
 
         // Translate barycenter to origin
         beforeStats.distBarycenterToOrigin = ((Eigen::Vector3f)pmp::centroid(mesh)).norm();
-        if (debug) printf("Translating barycenter to origin");
+        printf_debug("Translating barycenter to origin");
         pmp::Point bcenter = pmp::centroid(mesh);
         map.colwise() -= (Eigen::Vector3f)bcenter;
-        if (debug) printf(" (-[%f, %f, %f])\n", bcenter.data()[0], bcenter.data()[1], bcenter.data()[2]);
+        printf_debug(" (-[%f, %f, %f])\n", bcenter.data()[0], bcenter.data()[1], bcenter.data()[2]);
         afterStats.distBarycenterToOrigin = ((Eigen::Vector3f)pmp::centroid(mesh)).norm();
 
 
         // Align with coordinate frame
-        if (debug) printf("Aligning with coordinate frame\n");
+        printf_debug("Aligning with coordinate frame\n");
         // Compute the covariance matrix
         // https://stackoverflow.com/a/15142446
         // We don't have to center the sample matrix because we just centered the samples :)
@@ -104,12 +102,12 @@ namespace preprocessor
         afterStats.totalAngle = afterStats.angleX + afterStats.angleY + afterStats.angleZ;
 
         // Flip based on moment tests
-        if (debug) printf("Flipping based on moment test");
+        printf_debug("Flipping based on moment test");
         Eigen::Vector3f flip = map.cwiseSign().cwiseProduct(map.cwiseProduct(map)).rowwise().sum().cwiseSign()
             .unaryExpr([](float e) -> float { return e == 0.f ? 1.f : e; }); // Change all 0s to 1s
         // Store before stats
         beforeStats.totalFlip = flip.sum();
-        if (debug) printf(" [%f, %f, %f]\n", flip(0), flip(1), flip(2));
+        printf_debug(" [%f, %f, %f]\n", flip(0), flip(1), flip(2));
         for (auto v : mesh.vertices()) points[v] = ((Eigen::Vector3f)points[v]).cwiseProduct(flip); // TODO Eigen calculations
         // Store after stats
         Eigen::Vector3f afterFlip = map.cwiseSign().cwiseProduct(map.cwiseProduct(map)).rowwise().sum().cwiseSign()
@@ -118,13 +116,13 @@ namespace preprocessor
 
         // Scale to unit volume
         beforeStats.boundingBoxSize = mesh.bounds().size();
-        if (debug) printf("Scaling to unit volume");
+        printf_debug("Scaling to unit volume");
         Eigen::MatrixXf bounds = Eigen::MatrixXf(3, 2);
         bounds << (Eigen::Vector3f)(mesh.bounds().min()), (Eigen::Vector3f)(mesh.bounds().max());
         float max = bounds.cwiseAbs().maxCoeff();
         float scale = 0.5f / max;
         map *= scale;
-        if (debug) printf(" (%f => *%f)\n", max, scale);
+        printf_debug(" (%f => *%f)\n", max, scale);
         afterStats.boundingBoxSize = mesh.bounds().size();
 
         // If the mesh was flipped once or thrice we need to invert the normals
@@ -145,8 +143,7 @@ namespace preprocessor
             mesh = flippedMesh;
         }
         
-
-        if (debug) printf("Done\n");
+        printf_debug("Done\n");
     }
 
 }

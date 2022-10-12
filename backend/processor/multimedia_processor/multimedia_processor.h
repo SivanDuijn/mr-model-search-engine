@@ -15,5 +15,5 @@
 using namespace std;
 
 void debug();
-void preprocess(const string database = "PSBDatabase", const string in = "246.off", const string out = "246_processed.off", const bool debug = false );
+void preprocess(const string database = "PSBDatabase", const string in = "246.off", const string out = "246_processed.off");
 void preprocessAll(const string database = "PSBDatabase");
