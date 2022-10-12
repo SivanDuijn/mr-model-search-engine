@@ -117,7 +117,6 @@ namespace preprocessor
 
         // Flip the model
         map.array().colwise() *= flip.array();
-        //for (auto v : mesh.vertices()) points[v] = ((Eigen::Vector3f)points[v]).cwiseProduct(flip); // TODO Eigen calculations
         printf_debug(" ([%f, %f, %f])\n", flip(0), flip(1), flip(2));
 
         // Store flip after flipping
