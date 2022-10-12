@@ -97,7 +97,7 @@ namespace preprocessor
         beforeStats.totalAngle = beforeStats.angleX + beforeStats.angleY + beforeStats.angleZ;
 
         // Rotate the model
-        for (auto v : mesh.vertices()) points[v] = rot * (Eigen::Vector3f)(points[v]);
+        map = rot * map;
         printf_debug(" ([%f, %f, %f])\n", -beforeStats.angleX, -beforeStats.angleY, -beforeStats.angleZ);
 
         // Store rotation after rotating
@@ -117,7 +117,8 @@ namespace preprocessor
         beforeStats.totalFlip = flip.sum();
 
         // Flip the model
-        for (auto v : mesh.vertices()) points[v] = ((Eigen::Vector3f)points[v]).cwiseProduct(flip); // TODO Eigen calculations
+        map.array().colwise() *= flip.array();
+        //for (auto v : mesh.vertices()) points[v] = ((Eigen::Vector3f)points[v]).cwiseProduct(flip); // TODO Eigen calculations
         printf_debug(" ([%f, %f, %f])\n", flip(0), flip(1), flip(2));
 
         // Store flip after flipping
