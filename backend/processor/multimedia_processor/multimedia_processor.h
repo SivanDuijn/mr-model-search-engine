@@ -3,16 +3,6 @@
 
 #pragma once
 
-#include <string.h>
-#include <stdio.h>
-#include <fstream>
-#include <pmp/SurfaceMesh.h>
-#include "../variables.h"
-#include "../lib/nlohmann-json/json.hpp"
-#include "preprocessor.h"
-#include "model_statistics.h"
-#include "descriptors.h"
-
 using namespace std;
 
 void debug();
