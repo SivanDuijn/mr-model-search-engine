@@ -45,9 +45,9 @@ histogramsP = {
     "nFaces":     { "min": sys.float_info.max, "max": sys.float_info.min, "binSize": 2000,         "bins": []},
     "position":   { "min": sys.float_info.max, "max": sys.float_info.min, "binSize": 0.02,         "bins": []},
     "aabbSize":   { "min": sys.float_info.max, "max": sys.float_info.min, "binSize": 0.15,         "bins": []},
-    "angleX":     { "min": sys.float_info.max, "max": sys.float_info.min, "binSize": math.pi / 16, "bins": []},
-    "angleY":     { "min": sys.float_info.max, "max": sys.float_info.min, "binSize": math.pi / 16, "bins": []},
-    "angleZ":     { "min": sys.float_info.max, "max": sys.float_info.min, "binSize": math.pi / 16, "bins": []},
+    "angleX":     { "min": sys.float_info.max, "max": sys.float_info.min, "binSize": math.pi / 32, "bins": []},
+    "angleY":     { "min": sys.float_info.max, "max": sys.float_info.min, "binSize": math.pi / 32, "bins": []},
+    "angleZ":     { "min": sys.float_info.max, "max": sys.float_info.min, "binSize": math.pi / 32, "bins": []},
     "totalAngle": { "min": sys.float_info.max, "max": sys.float_info.min, "binSize": math.pi / 4,  "bins": []},
     "totalFlip":  { "min": sys.float_info.max, "max": sys.float_info.min, "binSize": 1,            "bins": []},
 }
@@ -106,34 +106,90 @@ for key in histogramsP:
     histogramsUnpCoords[key] = values
 
 # Create histogram CSVs
-histogramPCSV = ""
-histogramUnpCSV = ""
-for key in histogramsP:
-    histogramPCSV += key + "-x," + key + "-y,"
-histogramPCSV = histogramPCSV[:-1] + "\n"
-histogramUnpCSV = histogramPCSV
+# histogramPCSV = ""
+# histogramUnpCSV = ""
+# for key in histogramsP:
+#     histogramPCSV += key + "-x," + key + "-y,"
+# histogramPCSV = histogramPCSV[:-1] + "\n"
+# histogramUnpCSV = histogramPCSV
 
 
-for i in range(0, maxLenHist):
-    for key in histogramsPCoords:
-        coordsP = histogramsPCoords[key]
-        coordsUnp = histogramsUnpCoords[key]
-        if i < len(coordsP):
-            histogramPCSV += str(round(coordsP[i]["x"] + min(0, histogramsP[key]["min"]),2)) + "," + str(coordsP[i]["y"]) + ","
-            histogramUnpCSV += str(round(coordsUnp[i]["x"] + min(0, histogramsP[key]["min"]),2)) + "," + str(coordsUnp[i]["y"]) + ","
-        elif i == len(coordsP):
-            histogramPCSV += str(round(coordsP[i-1]["x"] + min(0, histogramsP[key]["min"]) + histogramsP[key]["binSize"],2)) + ",0,"
-            histogramUnpCSV += str(round(coordsUnp[i-1]["x"] + min(0, histogramsP[key]["min"]) + histogramsP[key]["binSize"],2)) + ",0,"
-        else:
-            histogramPCSV += ",,"
-            histogramUnpCSV += ",,"
+# for i in range(0, maxLenHist):
+#     for key in histogramsPCoords:
+#         coordsP = histogramsPCoords[key]
+#         coordsUnp = histogramsUnpCoords[key]
+#         if i < len(coordsP):
+#             histogramPCSV += str(round(coordsP[i]["x"] + min(0, histogramsP[key]["min"]),2)) + "," + str(coordsP[i]["y"]) + ","
+#             histogramUnpCSV += str(round(coordsUnp[i]["x"] + min(0, histogramsP[key]["min"]),2)) + "," + str(coordsUnp[i]["y"]) + ","
+#         elif i == len(coordsP):
+#             histogramPCSV += str(round(coordsP[i-1]["x"] + min(0, histogramsP[key]["min"]) + histogramsP[key]["binSize"],2)) + ",0,"
+#             histogramUnpCSV += str(round(coordsUnp[i-1]["x"] + min(0, histogramsP[key]["min"]) + histogramsP[key]["binSize"],2)) + ",0,"
+#         else:
+#             histogramPCSV += ",,"
+#             histogramUnpCSV += ",,"
             
-    histogramPCSV = histogramPCSV[:-1] + "\n"
-    histogramUnpCSV = histogramUnpCSV[:-1] + "\n"
+#     histogramPCSV = histogramPCSV[:-1] + "\n"
+#     histogramUnpCSV = histogramUnpCSV[:-1] + "\n"
 
-output = open("histogramNormStatsP.csv", "w")
-output.write(histogramPCSV)
-output.close()
-output = open("histogramNormStatsUnp.csv", "w")
-output.write(histogramUnpCSV)
+# output = open("histogramNormStatsP.csv", "w")
+# output.write(histogramPCSV)
+# output.close()
+# output = open("histogramNormStatsUnp.csv", "w")
+# output.write(histogramUnpCSV)
+# output.close()
+
+out = ""
+out += "UNPROCESSED:\n"
+for key in histogramsPCoords:
+    coords = histogramsUnpCoords[key]
+    out += key + ": "
+    for i in range(0, len(histogramsP[key]["bins"])):
+        out += "(" + str(round(coords[i]["x"] + min(0, histogramsP[key]["min"]),2)) + "," + str(coords[i]["y"]) + ") "
+    out += "(" + str(round(coords[i]["x"] + min(0, histogramsP[key]["min"]) + histogramsP[key]["binSize"],2)) + ",0)\n"
+    out += key + "-ticks: "
+    for i in range(0, len(histogramsP[key]["bins"])):
+        out += str(round(coords[i]["x"] + min(0, histogramsP[key]["min"]),2)) + ","
+    out += str(round(coords[i]["x"] + min(0, histogramsP[key]["min"]) + histogramsP[key]["binSize"],2)) + "\n"
+
+angles = ["angleX", "angleY", "angleZ"]
+for i in range(0, len(angles)):
+    angle = angles[i]
+    coords = histogramsUnpCoords[angle]
+    out += angle + "-combined: "
+    for j in range(0, len(coords)):
+        out += "(" + str(round(i*histogramsP[angle]["binSize"]/3 + coords[j]["x"] + min(0, histogramsP[angle]["min"]),2)) + "," + str(coords[j]["y"]) + ") "
+        out += "(" + str(round(i*histogramsP[angle]["binSize"]/3 + histogramsP[angle]["binSize"]/3 + coords[j]["x"] + min(0, histogramsP[angle]["min"]),2)) + ",0) " 
+    out += "(" + str(round(coords[j]["x"] + min(0, histogramsP[angle]["min"]) + histogramsP[angle]["binSize"],2)) + ",0)\n"
+    out += angle + "-ticks: "
+    for j in range(0, len(coords)):
+        out += str(round(coords[j]["x"] + min(0, histogramsP[angle]["min"]),2)) + ","
+    out += str(round(coords[j]["x"] + min(0, histogramsP[angle]["min"]) + histogramsP[angle]["binSize"],2)) + "\n"
+
+out += "\nPROCESSED:\n"
+for key in histogramsPCoords:
+    coords = histogramsPCoords[key]
+    out += key + ": "
+    for i in range(0, len(histogramsP[key]["bins"])):
+        out += "(" + str(round(coords[i]["x"] + min(0, histogramsP[key]["min"]),2)) + "," + str(coords[i]["y"]) + ") "
+    out += "(" + str(round(coords[i]["x"] + min(0, histogramsP[key]["min"]) + histogramsP[key]["binSize"],2)) + ",0)\n"
+    out += key + "-ticks: "
+    for i in range(0, len(histogramsP[key]["bins"])):
+        out += str(round(coords[i]["x"] + min(0, histogramsP[key]["min"]),2)) + ","
+    out += str(round(coords[i]["x"] + min(0, histogramsP[key]["min"]) + histogramsP[key]["binSize"],2)) + "\n"
+
+for i in range(0, len(angles)):
+    angle = angles[i]
+    coords = histogramsPCoords[angle]
+    out += angle + "-combined: "
+    for j in range(0, len(coords)):
+        out += "(" + str(round(i*histogramsP[angle]["binSize"]/3 + coords[j]["x"] + min(0, histogramsP[angle]["min"]),2)) + "," + str(coords[j]["y"]) + ") "
+        out += "(" + str(round(i*histogramsP[angle]["binSize"]/3 + histogramsP[angle]["binSize"]/3 + coords[j]["x"] + min(0, histogramsP[angle]["min"]),2)) + ",0) " 
+    out += "(" + str(round(coords[j]["x"] + min(0, histogramsP[angle]["min"]) + histogramsP[angle]["binSize"],2)) + ",0)\n"
+    out += angle + "-ticks: "
+    for j in range(0, len(coords)):
+        out += str(round(coords[j]["x"] + min(0, histogramsP[angle]["min"]),2)) + ","
+    out += str(round(coords[j]["x"] + min(0, histogramsP[angle]["min"]) + histogramsP[angle]["binSize"],2)) + "\n"
+
+output = open("histogramNormStats.txt", "w")
+output.write(out)
 output.close()
