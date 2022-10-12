@@ -3,8 +3,9 @@
 int main(int argc, char *argv[])
 {
 	if (argc < 2) printf("Please supply an argument");
-	// No switch for "strings" :(
-	else if (!strcmp(argv[1], "debug"))       debug();
+
+	else if (!strcmp(argv[1], "debug")) debug();
+
 	else if (!strcmp(argv[1], "preprocess"))  
 	{
 		if (argc == 4) 
@@ -20,9 +21,9 @@ int main(int argc, char *argv[])
 		else
 			preprocess();
 	}
+
 	else if (!strcmp(argv[1], "preprocess-all")) preprocessAll();
-	//else if (!strcmp(argv[1], "resample"))  resample();
-	//else if (!strcmp(argv[1], "normalize")) normalize();
+
 	else printf("Unknown argument");
 
 	return 0;
@@ -44,6 +45,7 @@ void preprocessAll(const string database)
 		for (nlohmann::json::iterator it2 = it.value().begin(); it2 != it.value().end(); ++it2) 
 			filenames.push_back(*it2);
 
+	// Process every file in the database
 	for (string file : filenames)
 	{
 		size_t pos = file.find('.');
