@@ -1,6 +1,6 @@
 #include "headers.h"
 
-namespace utils 
+namespace eigen_vectors 
 {
     // Map the mesh's point list (aka array of Eigen::Matrix3f) to a single Eigen::MatrixXd
     Eigen::Map<Eigen::MatrixXf> GetVertexMap(pmp::SurfaceMesh &mesh)

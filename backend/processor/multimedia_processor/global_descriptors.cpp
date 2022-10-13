@@ -18,4 +18,26 @@ namespace global_descriptors
 
         return area;
     }
+
+    float CalcAABBVolume(pmp::SurfaceMesh &mesh)
+    {
+        pmp::BoundingBox bounds = mesh.bounds();
+
+        pmp::Point diff = bounds.max() - bounds.min();
+
+        return diff[0] * diff[1] * diff[2];
+    }
+
+    float CalcEccentricity(pmp::SurfaceMesh &mesh)
+    {
+        Eigen::Map<Eigen::MatrixXf> map = eigen_vectors::GetVertexMap(mesh);
+        Eigen::Matrix3f cov = (map * map.transpose()) / float(map.cols() - 1);
+        Eigen::EigenSolver<Eigen::MatrixXf> solver;
+        solver.compute(cov);
+
+        Eigen::Vector3f eigenValues = solver.eigenvalues().real();
+        std::tuple<int,int> indices = eigen_vectors::GetMajorMinorIndexEigenValues(eigenValues);
+        
+        return eigenValues[std::get<0>(indices)] / eigenValues[std::get<1>(indices)];
+    }
 }

@@ -21,7 +21,7 @@ namespace descriptors
     Eigen::VectorXi D1(pmp::SurfaceMesh &mesh, int bins)
     {
         // Get the vertices as an Eigen map
-        Eigen::Map<Eigen::MatrixXf> map = utils::GetVertexMap(mesh);
+        Eigen::Map<Eigen::MatrixXf> map = eigen_vectors::GetVertexMap(mesh);
 
         // Get all the distances to the baricenter
         Eigen::Vector3f bcenter = (Eigen::Vector3f)pmp::centroid(mesh);

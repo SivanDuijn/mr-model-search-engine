@@ -1,6 +1,6 @@
 #pragma once
 
-namespace utils 
+namespace eigen_vectors 
 {
     Eigen::Map<Eigen::MatrixXf> GetVertexMap(pmp::SurfaceMesh &mesh);
 
