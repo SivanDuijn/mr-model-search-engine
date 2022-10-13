@@ -8,4 +8,4 @@ using namespace std;
 void debug();
 void preprocess(const string database = "PSBDatabase", const string in = "69.off", const string out = "69_processed.off");
 void preprocessAll(const string database = "PSBDatabase");
-void extract(const string database = "PSBDatabase", const string in = "69.off", const string out = "69_processed.off");
+void extract(const string database = "PSBDatabase", const string in = "tcube_long.off");

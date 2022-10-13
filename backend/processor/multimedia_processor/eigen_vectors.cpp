@@ -1,8 +1,20 @@
 #include "headers.h"
 
+static unsigned int seed = 0x12345678;
+
 namespace utils 
 {
-    // Map the mesh's point list (aka array of Eigen::Matrix3f) to a single Eigen::MatrixXd
+    // Get a random uint
+    // (Marsaglia's xor32)
+    unsigned int RandomUInt()
+    {
+    	seed ^= seed << 13;
+    	seed ^= seed >> 17;
+    	seed ^= seed << 5;
+    	return seed;
+    }
+
+    // Map a mesh's point list (aka array of Eigen::Matrix3f) to a single Eigen::MatrixXd
     Eigen::Map<Eigen::MatrixXf> GetVertexMap(pmp::SurfaceMesh &mesh)
     {
         pmp::VertexProperty points = mesh.get_vertex_property<pmp::Point>("v:point");

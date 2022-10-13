@@ -81,12 +81,12 @@ void preprocess(const string database, const string in, const string out)
 	printf("Preprocessed mesh \"%s\" from %s successfully, output: %s\n", in.c_str(), database.c_str(), out.c_str());
 }
 
-void extract(const string database, const string in, const string out)
+void extract(const string database, const string in)
 {
 	// Get the mesh
 	printf_debug("Loading mesh \"%s\" from %s\n", in.c_str(), database.c_str());
 	pmp::SurfaceMesh mesh;
 	mesh.read(vars::GetAssetPath(database + "/models/" + in));
 
-	cout << '\n' << descriptors::D1(mesh, 10) << endl;
+	cout << "D1:\n" << descriptors::D1(mesh, 10) << endl;
 }

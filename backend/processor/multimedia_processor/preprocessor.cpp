@@ -22,7 +22,7 @@ namespace preprocessor
         }
 
         // Subdivide and/or decimate depending on the vertex count
-        const unsigned int des = 2500; // example desired vertex count mentioned in technical tips
+        const unsigned int des = 2048; // example desired vertex count mentioned in technical tips
         while (mesh.n_vertices() < des)
         {
             printf_debug("Subdividing mesh");

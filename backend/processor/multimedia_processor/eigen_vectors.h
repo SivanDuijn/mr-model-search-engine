@@ -2,6 +2,8 @@
 
 namespace utils 
 {
+    unsigned int RandomUInt();
+
     Eigen::Map<Eigen::MatrixXf> GetVertexMap(pmp::SurfaceMesh &mesh);
 
     std::tuple<Eigen::Vector3f, Eigen::Vector3f, Eigen::Vector3f> GetMajorMinorEigenVectors(Eigen::Matrix3f &cov);
