@@ -1,5 +1,26 @@
 ﻿#include "headers.h"
 
+// TODO move to seperate file
+// I hate header files :(
+namespace database 
+{
+    // Read a mesh from a database
+    pmp::SurfaceMesh read_mesh(const string database, const string file)
+    {
+	    printf_debug("Loading mesh \"%s\" from %s\n", file.c_str(), database.c_str());
+	    pmp::SurfaceMesh mesh;
+	    mesh.read(vars::GetAssetPath(database + "/models/" + file));
+        return mesh;
+    }
+
+    // Write a mesh to a database
+    void write_mesh(pmp::SurfaceMesh &mesh, const string database, const string file)
+    {
+	    printf_debug("Writing mesh \"%s\" to disk\n", file.c_str());
+	    mesh.write(vars::GetAssetPath(database + "/models/" + file));
+    }
+}
+
 int main(int argc, char *argv[])
 {
 	if (argc < 2) printf("Please supply an argument");
@@ -60,20 +81,16 @@ void preprocessAll(const string database)
 void preprocess(const string database, const string in, const string out)
 {
 	// Get the mesh
-	printf_debug("Loading mesh \"%s\" from %s\n", in.c_str(), database.c_str());
-	pmp::SurfaceMesh mesh;
-	mesh.read(vars::GetAssetPath(database + "/models/" + in));
-
-	modelstats::NormalizationStatistics beforeStats;
-	modelstats::NormalizationStatistics afterStats;
+	pmp::SurfaceMesh mesh = database::read_mesh(database, in);
 
 	// Preprocess the mesh
+	modelstats::NormalizationStatistics beforeStats;
+	modelstats::NormalizationStatistics afterStats;
 	preprocessor::resample(mesh, beforeStats, afterStats);
 	preprocessor::normalize(mesh, beforeStats, afterStats);
 
 	// Write resampled mesh to disk
-	printf_debug("Writing mesh to disk\n");
-	mesh.write(vars::GetAssetPath(database + "/models/" + out));
+	database::write_mesh(mesh, database, out);
 
 	// Write the normalizationStats to json
 	modelstats::WriteNormalizationStatistics(database, in, out, beforeStats, afterStats);
@@ -84,9 +101,7 @@ void preprocess(const string database, const string in, const string out)
 void extract(const string database, const string in)
 {
 	// Get the mesh
-	printf_debug("Loading mesh \"%s\" from %s\n", in.c_str(), database.c_str());
-	pmp::SurfaceMesh mesh;
-	mesh.read(vars::GetAssetPath(database + "/models/" + in));
+	pmp::SurfaceMesh mesh = database::read_mesh(database, in);
 
 	// Check whether it is preprocessed
 	assert(preprocessor::is_resampled(mesh));
