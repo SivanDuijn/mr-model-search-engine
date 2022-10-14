@@ -8359,6 +8359,17 @@
         "totalAngle": 9.194665153700043e-07,
         "totalFlip": 3
     },
+    "tcube.off": {
+        "aabbSize": 1.499354362487793,
+        "angleX": 1.5530116558074951,
+        "angleY": 1.5885813236236572,
+        "angleZ": 3.138925790786743,
+        "nFaces": 12,
+        "nVertices": 8,
+        "position": 8.499705472786445e-08,
+        "totalAngle": 6.280518531799316,
+        "totalFlip": -1
+    },
     "tcube_long.off": {
         "aabbSize": 3.316624879837036,
         "nFaces": 12,
@@ -8372,5 +8383,16 @@
         "nVertices": 8,
         "position": 2.6941830988391757e-09,
         "xRotation": 0.0
+    },
+    "tcube_processed.off": {
+        "aabbSize": 1.7116395235061646,
+        "angleX": 3.136789083480835,
+        "angleY": 0.0048028333112597466,
+        "angleZ": 3.1415913105010986,
+        "nFaces": 4996,
+        "nVertices": 2500,
+        "position": 1.009635042237278e-08,
+        "totalAngle": 6.2831830978393555,
+        "totalFlip": 3
     }
 }

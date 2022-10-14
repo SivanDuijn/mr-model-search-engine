@@ -2,6 +2,24 @@
 
 int main(int argc, char *argv[])
 {
+	// try to get databasename, in and out filenames
+	string database = ""; string in = ""; string inWithoutExt = ""; string ext = ""; string out = "";
+	if (argc == 4) 
+	{
+		database = argv[2];
+		in = argv[3];
+		string s(argv[3]);
+		size_t pos = s.find('.');
+		inWithoutExt = s.substr(0, pos);
+		ext = s.substr(pos + 1);
+	}
+	else if (argc == 5)
+	{
+		database = argv[2];
+		in = argv[3];
+		out = argv[4];
+	}
+
 	if (argc < 2) printf("Please supply an argument");
 
 	else if (!strcmp(argv[1], "debug")) debug();
@@ -10,21 +28,23 @@ int main(int argc, char *argv[])
 
 	else if (!strcmp(argv[1], "preprocess"))  
 	{
-		if (argc == 4) 
-		{
-			string s(argv[3]);
-			size_t pos = s.find('.');
-			string name = s.substr(0, pos);
-			string ext = s.substr(pos + 1);
-			preprocess(argv[2], s, name + "_processed." + ext);
-		}
-		else if (argc == 5)
-			preprocess(argv[2], argv[3], argv[4]);
-		else
+		if (out != "")
+			preprocess(database, in, out);
+		else if (ext != "")
+			preprocess(database, in, inWithoutExt + "_processed." + ext);
+		else 
 			preprocess();
 	}
 
-	else if (!strcmp(argv[1], "extract")) extract();
+	else if (!strcmp(argv[1], "extract"))
+	{
+		if (out != "")
+			extract(database, in, out);
+		else if (inWithoutExt != "")
+			extract(database, in, inWithoutExt + "_features.json");
+		else 
+			extract();
+	}
 
 	else printf("Unknown argument");
 
@@ -90,5 +110,5 @@ void extract(const string database, const string in, const string out)
 
 	cout << '\n' << descriptors::D1(mesh, 10) << endl;
 
-	global_descriptors::CalcVolume(mesh);
+	global_descriptors::CalcAll(mesh);
 }
