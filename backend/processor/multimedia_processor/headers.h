@@ -9,6 +9,7 @@
 #include <pmp/algorithms/Subdivision.h>
 #include <pmp/algorithms/Decimation.h>
 #include <pmp/algorithms/DifferentialGeometry.h>
+#include <pmp/algorithms/HoleFilling.h>
 #include <Eigen/Dense>
 #include "../variables.h"
 #include "../lib/nlohmann-json/json.hpp"

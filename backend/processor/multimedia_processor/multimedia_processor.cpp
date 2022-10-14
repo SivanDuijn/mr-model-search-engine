@@ -89,4 +89,6 @@ void extract(const string database, const string in, const string out)
 	mesh.read(vars::GetAssetPath(database + "/models/" + in));
 
 	cout << '\n' << descriptors::D1(mesh, 10) << endl;
+
+	global_descriptors::CalcVolume(mesh);
 }

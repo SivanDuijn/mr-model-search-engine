@@ -28,6 +28,29 @@ namespace global_descriptors
         return diff[0] * diff[1] * diff[2];
     }
 
+    float CalcVolume(pmp::SurfaceMesh &mesh)
+    {
+        int nBoundaryHalfEdges = 1;
+        while (nBoundaryHalfEdges > 0) {
+            for (pmp::Halfedge he : mesh.halfedges())
+            {
+                if (mesh.is_boundary(he))
+                {
+                    pmp::HoleFilling hf = pmp::HoleFilling(mesh);
+                    hf.fill_hole(he);
+                    break;
+                }
+            }
+
+            nBoundaryHalfEdges = 0;
+            for (pmp::Halfedge he : mesh.halfedges())
+                if (mesh.is_boundary(he))
+                    nBoundaryHalfEdges++;
+                    
+            cout << nBoundaryHalfEdges << endl;
+        }
+    }
+
     float CalcEccentricity(pmp::SurfaceMesh &mesh)
     {
         Eigen::Map<Eigen::MatrixXf> map = eigen_vectors::GetVertexMap(mesh);
