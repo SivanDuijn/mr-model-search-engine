@@ -13,6 +13,12 @@ namespace utils
     	seed ^= seed << 5;
     	return seed;
     }
+    // Get a random vertex index
+    // NOTE: only for resampled meshes
+    unsigned int RandomVertexIndex()
+    {
+        return RandomUInt() & (VERTEX_COUNT - 1);
+    }
 
     // Map a mesh's point list (aka array of Eigen::Matrix3f) to a single Eigen::MatrixXd
     Eigen::Map<Eigen::MatrixXf> GetVertexMap(pmp::SurfaceMesh &mesh)

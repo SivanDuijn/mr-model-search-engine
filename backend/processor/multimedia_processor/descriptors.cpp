@@ -39,8 +39,10 @@ namespace descriptors
         Eigen::Map<Eigen::MatrixXf> map = utils::GetVertexMap(mesh);
 
         // Get all the distances between random vertices
-        Eigen::VectorXf dist(bins);
-        //for (size_t i = 0; i < 2500; i++)
+        Eigen::MatrixXf verts = Eigen::MatrixXf(3, VERTEX_COUNT);
+        for (size_t i = 0; i < VERTEX_COUNT; i++)
+            verts.col(i) = map.col(utils::RandomVertexIndex());
+        Eigen::VectorXf dist = (map - verts).colwise().norm();
 
         // Bin the result
         return bin(dist, bins);

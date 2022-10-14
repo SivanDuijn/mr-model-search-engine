@@ -4,6 +4,11 @@ using namespace std;
 
 namespace preprocessor
 {
+    bool is_resampled(pmp::SurfaceMesh &mesh)
+    {
+        return (mesh.is_triangle_mesh() && mesh.n_vertices() == VERTEX_COUNT);
+    }
+
     // Resample a mesh at the given path
     void resample(pmp::SurfaceMesh &mesh, modelstats::NormalizationStatistics &beforeStats, modelstats::NormalizationStatistics &afterStats)
     {
@@ -22,19 +27,18 @@ namespace preprocessor
         }
 
         // Subdivide and/or decimate depending on the vertex count
-        const unsigned int des = 2048; // example desired vertex count mentioned in technical tips
-        while (mesh.n_vertices() < des)
+        while (mesh.n_vertices() < VERTEX_COUNT)
         {
             printf_debug("Subdividing mesh");
             pmp::Subdivision div = pmp::Subdivision(mesh);
             div.loop();
             printf_debug(" to %zu vertices\n", mesh.n_vertices());
         }
-        if (mesh.n_vertices() > des)
+        if (mesh.n_vertices() > VERTEX_COUNT)
         {
             printf_debug("Decimating mesh");
             pmp::Decimation dec = pmp::Decimation(mesh);
-            dec.decimate(des);
+            dec.decimate(VERTEX_COUNT);
             printf_debug(" to %zu vertices\n", mesh.n_vertices());
         }
         else

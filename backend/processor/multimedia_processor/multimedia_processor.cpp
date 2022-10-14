@@ -88,5 +88,9 @@ void extract(const string database, const string in)
 	pmp::SurfaceMesh mesh;
 	mesh.read(vars::GetAssetPath(database + "/models/" + in));
 
+	// Check whether it is preprocessed
+	assert(preprocessor::is_resampled(mesh));
+
 	cout << "D1:\n" << descriptors::D1(mesh, 10) << endl;
+	cout << "D2:\n" << descriptors::D2(mesh, 10) << endl;
 }

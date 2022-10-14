@@ -3,6 +3,7 @@
 namespace utils 
 {
     unsigned int RandomUInt();
+    unsigned int RandomVertexIndex();
 
     Eigen::Map<Eigen::MatrixXf> GetVertexMap(pmp::SurfaceMesh &mesh);
 

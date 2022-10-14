@@ -3,6 +3,7 @@
 #include <string>
 #include <fstream>
 #include <vector>
+#include <assert.h>
 #include <pmp/SurfaceMesh.h>
 #include <pmp/BoundingBox.h>
 #include <pmp/algorithms/Triangulation.h>
@@ -21,7 +22,8 @@
 
 #include "multimedia_processor.h"
 
-#define FLT_EPSILON 1.19209290E-07F
+// Must be a power of 2!
+#define VERTEX_COUNT 2048
 
 #if 1
     #define printf_debug printf
