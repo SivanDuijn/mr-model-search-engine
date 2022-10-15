@@ -8,7 +8,7 @@ include_directories(${PROJECT_SOURCE_DIR}/submodules/pmp-library/src)
 include_directories(${PROJECT_SOURCE_DIR}/submodules/pmp-library/external/eigen)
 
 # Add source to this project's executable.
-file(GLOB_RECURSE sources *.cpp *.h)
+file(GLOB_RECURSE sources *.cpp *.h "../lib/libgdiam/gdiam.cpp")
 add_executable(multimedia_processor ${sources})
 target_link_libraries(multimedia_processor pmp)
 

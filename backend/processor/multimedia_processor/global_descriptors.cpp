@@ -10,6 +10,7 @@ namespace global_descriptors
         gd.volume = CalcVolume(mesh);
         gd.compactness = CalcCompactness(gd.surfaceArea, gd.volume);
         gd.eccentricity = CalcEccentricity(mesh);
+        gd.diameter = CalcDiameter(mesh);
 
         return gd;
     }
@@ -115,5 +116,17 @@ namespace global_descriptors
 
         printf_debug("%f\n", eccentricity);
         return eccentricity;
+    }
+
+    float CalcDiameter(pmp::SurfaceMesh &mesh)
+    {
+        printf_debug("Calculating diameter...     ");
+        pmp::VertexProperty points = mesh.get_vertex_property<pmp::Point>("v:point");
+
+        // Using code from Sariel Har-Peled, https://sarielhp.org/research/papers/00/diameter/diam_prog.html
+        gdiam::GPointPair pair = gdiam::gdiam_approx_diam_pair((float*)points.data(), mesh.n_vertices(), 0.0);
+
+        printf_debug("%f\n", pair.distance);
+        return pair.distance;
     }
 }

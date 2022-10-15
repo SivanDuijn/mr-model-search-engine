@@ -8,10 +8,10 @@ Eigen::VectorXi bin(Eigen::VectorXf data, int bins)
     hist.setZero();
 
     // Divide the data
-    float min = data.minCoeff(), max = data.maxCoeff() + FLT_EPSILON;
-    float binsize = (max - min) / bins;
+    float minC = data.minCoeff(), maxC = data.maxCoeff() + FLT_EPSILON;
+    float binsize = (maxC - minC) / bins;
     for (size_t i = 0, size = data.size(); i < size; i++)
-        hist[(int)((data[i] - min) / binsize)]++;
+        hist[(int)((data[i] - minC) / binsize)]++;
 
     return hist;
 }

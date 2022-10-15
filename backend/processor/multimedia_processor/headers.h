@@ -13,6 +13,7 @@
 #include <Eigen/Dense>
 #include "../variables.h"
 #include "../lib/nlohmann-json/json.hpp"
+#include "../lib/libgdiam/gdiam.hpp"
 
 #include "eigen_vectors.h"
 #include "model_statistics.h"

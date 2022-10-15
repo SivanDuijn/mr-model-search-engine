@@ -9,6 +9,7 @@ namespace global_descriptors
         float volume;
         float eccentricity;
         float compactness;
+        float diameter;
     };
 
     float CalcSurfaceArea(pmp::SurfaceMesh &mesh);
@@ -16,7 +17,7 @@ namespace global_descriptors
     float CalcVolume(pmp::SurfaceMesh &mesh);
     float CalcCompactness(pmp::SurfaceMesh &mesh); // with respect to a sphere
     float CalcCompactness(float surfaceArea, float volume);
-    // float CalcDiameter(pmp::SurfaceMesh &mesh);
+    float CalcDiameter(pmp::SurfaceMesh &mesh);
     float CalcEccentricity(pmp::SurfaceMesh &mesh); // ratio of largest to smallest eigenvalues of covariance matrix
 
     GlobalDescriptors CalcAll(pmp::SurfaceMesh &mesh);
