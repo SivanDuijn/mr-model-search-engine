@@ -36,12 +36,12 @@ int main(int argc, char *argv[])
 			preprocess();
 	}
 
+	else if (!strcmp(argv[1], "extract-all")) extractAll();
+
 	else if (!strcmp(argv[1], "extract"))
 	{
-		if (out != "")
-			extract(database, in, out);
-		else if (inWithoutExt != "")
-			extract(database, in, inWithoutExt + "_features.json");
+		if (in != "")
+			extract(database, in);
 		else 
 			extract();
 	}
@@ -59,14 +59,7 @@ void debug()
 void preprocessAll(const string database)
 {
 	vector<string> filenames;
-	
-	// Read in filenames
-	ifstream ifs(vars::GetAssetPath(database + "/files.json"));
-	nlohmann::json files = nlohmann::json::parse(ifs);
-	for (nlohmann::json::iterator it = files.begin(); it != files.end(); ++it) 
-		for (nlohmann::json::iterator it2 = it.value().begin(); it2 != it.value().end(); ++it2) 
-			filenames.push_back(*it2);
-
+	utils::GetAllFilenamesInDatabase(database, filenames);
 	// Process every file in the database
 	for (string file : filenames)
 	{
@@ -101,7 +94,22 @@ void preprocess(const string database, const string in, const string out)
 	printf("Preprocessed mesh \"%s\" from %s successfully, output: %s\n", in.c_str(), database.c_str(), out.c_str());
 }
 
-void extract(const string database, const string in, const string out)
+void extractAll(const string database)
+{
+	vector<string> filenames;
+	utils::GetAllFilenamesInDatabase(database, filenames);
+
+	// Extract feature descriptors for every file in the database
+	for (string file : filenames)
+	{
+		size_t pos = file.find('.');
+		string name = file.substr(0, pos);
+		string ext = file.substr(pos + 1);
+		extract(database, name + "_processed." + ext); // Calculate feature for all the processed models
+	}
+}
+
+void extract(const string database, const string in)
 {
 	// Get the mesh
 	printf_debug("Loading mesh \"%s\" from %s\n", in.c_str(), database.c_str());
@@ -110,5 +118,22 @@ void extract(const string database, const string in, const string out)
 
 	cout << '\n' << descriptors::D1(mesh, 10) << endl;
 
-	global_descriptors::CalcAll(mesh);
+	auto globalDescriptors = global_descriptors::CalcAll(mesh);
+
+	// Write the descriptors to json
+	ifstream ifs(vars::GetAssetPath(database + "/featureDescriptors.json"));
+	nlohmann::json jsonDescriptors;
+	if (!ifs.fail())
+		jsonDescriptors = nlohmann::json::parse(ifs);
+	jsonDescriptors[in] = {
+		{"area", globalDescriptors.surfaceArea}, 
+		{"AABBVolume", globalDescriptors.AABBVolume},
+		{"volume", globalDescriptors.volume},
+		{"compactness", globalDescriptors.compactness},
+		{"eccentricity", globalDescriptors.eccentricity},
+		{"diameter", globalDescriptors.diameter}
+	};
+	ofstream ofs(vars::GetAssetPath(database + "/featureDescriptors.json"));
+	ofs << setw(4) << jsonDescriptors << endl; // TODO: removing setw(4) might improve filesize
+	ofs.close();
 }

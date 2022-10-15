@@ -15,6 +15,7 @@
 #include "../lib/nlohmann-json/json.hpp"
 #include "../lib/libgdiam/gdiam.hpp"
 
+#include "utils.h"
 #include "eigen_vectors.h"
 #include "model_statistics.h"
 #include "global_descriptors.h"
