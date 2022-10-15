@@ -1,4 +1,5 @@
-import React, { useEffect, useRef } from "react";
+import React, { useContext, useEffect, useRef } from "react";
+import { ModelContext } from "src/lib/contexts";
 import ThreeJSViewGL from "./viewGL";
 
 type Props = {
@@ -16,6 +17,14 @@ export const MemoizedViewGLCanvas = React.memo((props: Props) => {
         viewGL.current = new ThreeJSViewGL(canvasRef.current || undefined);
         props.onMounted(viewGL.current);
     }, []);
+
+    const { state } = useContext(ModelContext);
+    useEffect(() => {
+        viewGL.current?.setMaterial(state.renderSettings.material);
+        viewGL.current?.showWireframe(state.renderSettings.showWireframe);
+        viewGL.current?.showVertexNormals(state.renderSettings.showVertexNormals);
+        viewGL.current?.setAutoRotateEnabled(state.renderSettings.autoRotateEnabled);
+    }, [state.renderSettings]);
 
     const prevXY = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
 

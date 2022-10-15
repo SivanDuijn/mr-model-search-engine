@@ -159,6 +159,8 @@ export default class ThreeJSViewGL {
 
     // SET OPTIONS FUNCTIONS
     setMaterial(renderMaterial: RenderMaterial) {
+        if (this.renderMaterial == renderMaterial && this.mesh) return;
+
         this.renderMaterial = renderMaterial;
 
         const options = {
@@ -262,7 +264,7 @@ export default class ThreeJSViewGL {
         this.controls.update();
 
         if (this.mesh && this.mouseIsDown && this.autoRotateEnabled)
-            this.group.rotation.y += PI2 * 0.15 * deltaTime; // 0.15 revolutions per second
+            this.group.rotation.y += PI2 * 0.05 * deltaTime; // 0.05 revolutions per second
         // this.vertexNormalsHelper?.update();
 
         requestAnimationFrame(this.update.bind(this));

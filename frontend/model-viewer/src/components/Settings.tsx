@@ -1,19 +1,37 @@
 import clsx from "clsx";
+import { useRouter } from "next/router";
+import { useEffect } from "react";
+import { useRenderSettings } from "src/lib/contexts/hooks";
+import { ModelState } from "src/lib/contexts/reducer";
+import { getRenderMaterial, getURLVariableBool } from "src/lib/utils";
 import { RenderMaterial } from "./model-viewer/viewGL";
 
 type SettingsProps = {
-    defaultMaterial: RenderMaterial;
-    defaultWireframeEnabled: boolean;
-    defaultVertexNormalsEnabled: boolean;
-    defaultAutoRotateEnabled: boolean;
-    onRenderMaterialChange: (material: RenderMaterial) => void;
-    onWireframeEnable: (enabled: boolean) => void;
-    onVertexNormalsEnable: (enabled: boolean) => void;
-    onAutoRotateEnable: (enabled: boolean) => void;
     className?: string;
 };
 
 export default function Settings(props: SettingsProps) {
+    const { settings, changeRenderSettings } = useRenderSettings();
+
+    // Get settings from url variables, if they are defined
+    const router = useRouter();
+    useEffect(() => {
+        const material = getRenderMaterial(router.query["mat"] as string);
+        const showWireframe = getURLVariableBool(router.query["wireframe"]);
+        const showVertextNormals = getURLVariableBool(router.query["vnormals"]);
+        const autoRotateEnabled = getURLVariableBool(router.query["rotate"]);
+
+        const renderSettingsFromUrl: ModelState["renderSettings"] = { ...settings };
+        if (material != undefined) renderSettingsFromUrl.material = material;
+        if (showWireframe != undefined) renderSettingsFromUrl.showWireframe = showWireframe;
+        if (showVertextNormals != undefined)
+            renderSettingsFromUrl.showVertexNormals = showVertextNormals;
+        if (autoRotateEnabled != undefined)
+            renderSettingsFromUrl.autoRotateEnabled = autoRotateEnabled;
+
+        changeRenderSettings(renderSettingsFromUrl);
+    }, [router]);
+
     return (
         <div className={props.className}>
             <p className={clsx("border-b-2", "text-center", "font-bold")}>Settings</p>
@@ -24,11 +42,14 @@ export default function Settings(props: SettingsProps) {
                     </label>
                     <select
                         id="renderMaterial"
-                        defaultValue={props.defaultMaterial}
+                        value={settings.material}
                         onChange={(e) =>
-                            props.onRenderMaterialChange(
-                                parseInt(e.currentTarget.value) as unknown as RenderMaterial,
-                            )
+                            changeRenderSettings({
+                                ...settings,
+                                material: parseInt(
+                                    e.currentTarget.value,
+                                ) as unknown as RenderMaterial,
+                            })
                         }
                     >
                         <option value={RenderMaterial.Flat} label={"Flat"} />
@@ -46,8 +67,13 @@ export default function Settings(props: SettingsProps) {
                     <input
                         type="checkbox"
                         id="wireframe"
-                        onClick={(e) => props.onWireframeEnable(e.currentTarget.checked)}
-                        defaultChecked={props.defaultWireframeEnabled}
+                        onChange={(e) =>
+                            changeRenderSettings({
+                                ...settings,
+                                showWireframe: e.currentTarget.checked,
+                            })
+                        }
+                        checked={settings.showWireframe}
                     />
                 </div>
                 <div>
@@ -57,8 +83,13 @@ export default function Settings(props: SettingsProps) {
                     <input
                         type="checkbox"
                         id="vertexNormals"
-                        onClick={(e) => props.onVertexNormalsEnable(e.currentTarget.checked)}
-                        defaultChecked={props.defaultVertexNormalsEnabled}
+                        onChange={(e) =>
+                            changeRenderSettings({
+                                ...settings,
+                                showVertexNormals: e.currentTarget.checked,
+                            })
+                        }
+                        checked={settings.showVertexNormals}
                     />
                 </div>
                 <div>
@@ -68,8 +99,13 @@ export default function Settings(props: SettingsProps) {
                     <input
                         type="checkbox"
                         id="rotate"
-                        onClick={(e) => props.onAutoRotateEnable(e.currentTarget.checked)}
-                        defaultChecked={props.defaultAutoRotateEnabled}
+                        onChange={(e) =>
+                            changeRenderSettings({
+                                ...settings,
+                                autoRotateEnabled: e.currentTarget.checked,
+                            })
+                        }
+                        checked={settings.autoRotateEnabled}
                     />
                 </div>
             </div>
