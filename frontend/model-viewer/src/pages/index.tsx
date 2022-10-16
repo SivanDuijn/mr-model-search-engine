@@ -51,6 +51,7 @@ export default function HomePage() {
                         "mt-4",
                         "mb-2",
                         "flex-grow",
+                        "min-w-[600px]",
                     )}
                 />
             </div>
