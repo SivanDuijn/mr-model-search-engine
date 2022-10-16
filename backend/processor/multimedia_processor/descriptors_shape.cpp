@@ -81,7 +81,8 @@ namespace descriptors
         Eigen::VectorXf area = norm.colwise().norm() / 2;
 
         // Bin the result
-        return bin(area, bins);
+        // Use square root to normalize
+        return bin(area.cwiseSqrt(), bins);
     }
 
     // Volume of tetrahedron from random vertices
@@ -105,7 +106,8 @@ namespace descriptors
         Eigen::VectorXf volume = vert1.cwiseProduct(div).colwise().sum() / 6;
 
         // Bin the result
-        return bin(volume, bins);
+        // Use cube root to normalize
+        return bin(volume.cwiseSqrt().cwiseSqrt(), bins);
     }
 
     ShapeDescriptors get_shape_descriptors(pmp::SurfaceMesh &mesh, int bins)
