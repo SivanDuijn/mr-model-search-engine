@@ -82,7 +82,7 @@ namespace preprocessor
         // We don't have to center the sample matrix because we just centered the samples :)
         // Get the eigenvectors
         Eigen::Matrix3f cov = (map * map.transpose()) / float(map.cols() - 1);
-        auto eigenVs = utils::GetMajorMinorEigenVectors(cov);
+        auto eigenVs = eigen_vectors::GetMajorMinorEigenVectors(cov);
         Eigen::Vector3f	major = get<0>(eigenVs);
         Eigen::Vector3f middl = get<1>(eigenVs);
         Eigen::Vector3f minor = get<2>(eigenVs);
@@ -105,7 +105,7 @@ namespace preprocessor
 
         // Store rotation after rotating
         cov = (map * map.adjoint()) / float(map.cols() - 1);
-        eigenVs = utils::GetMajorMinorEigenVectors(cov);
+        eigenVs = eigen_vectors::GetMajorMinorEigenVectors(cov);
         afterStats.angleX = pmp::angle(get<0>(eigenVs), pmp::Point(1,0,0));
         afterStats.angleY = pmp::angle(get<1>(eigenVs), pmp::Point(0,1,0));
         afterStats.angleZ = pmp::angle(get<2>(eigenVs), pmp::Point(0,0,1));

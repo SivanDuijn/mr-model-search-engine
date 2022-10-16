@@ -10,10 +10,13 @@
 #include <pmp/algorithms/Subdivision.h>
 #include <pmp/algorithms/Decimation.h>
 #include <pmp/algorithms/DifferentialGeometry.h>
+#include <pmp/algorithms/HoleFilling.h>
 #include <Eigen/Dense>
 #include "../variables.h"
 #include "../lib/nlohmann-json/json.hpp"
+#include "../lib/libgdiam/gdiam.hpp"
 
+#include "utils.h"
 #include "eigen_vectors.h"
 #include "model_statistics.h"
 #include "global_descriptors.h"

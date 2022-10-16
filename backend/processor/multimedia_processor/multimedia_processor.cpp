@@ -23,6 +23,24 @@ namespace database
 
 int main(int argc, char *argv[])
 {
+	// try to get databasename, in and out filenames
+	string database = "", in = "", inWithoutExt = "", ext = "", out = "";
+	if (argc == 4) 
+	{
+		database = argv[2];
+		in = argv[3];
+		string s(argv[3]);
+		size_t pos = s.find('.');
+		inWithoutExt = s.substr(0, pos);
+		ext = s.substr(pos + 1);
+	}
+	else if (argc == 5)
+	{
+		database = argv[2];
+		in = argv[3];
+		out = argv[4];
+	}
+
 	if (argc < 2) printf("Please supply an argument");
 
 	else if (!strcmp(argv[1], "debug")) debug();
@@ -31,21 +49,23 @@ int main(int argc, char *argv[])
 
 	else if (!strcmp(argv[1], "preprocess"))  
 	{
-		if (argc == 4) 
-		{
-			string s(argv[3]);
-			size_t pos = s.find('.');
-			string name = s.substr(0, pos);
-			string ext = s.substr(pos + 1);
-			preprocess(argv[2], s, name + "_processed." + ext);
-		}
-		else if (argc == 5)
-			preprocess(argv[2], argv[3], argv[4]);
-		else
+		if (out != "")
+			preprocess(database, in, out);
+		else if (ext != "")
+			preprocess(database, in, inWithoutExt + "_processed." + ext);
+		else 
 			preprocess();
 	}
 
-	else if (!strcmp(argv[1], "extract")) extract();
+	else if (!strcmp(argv[1], "extract-all")) extractAll();
+
+	else if (!strcmp(argv[1], "extract"))
+	{
+		if (in != "")
+			extract(database, in);
+		else 
+			extract();
+	}
 
 	else printf("Unknown argument");
 
@@ -60,14 +80,7 @@ void debug()
 void preprocessAll(const string database)
 {
 	vector<string> filenames;
-	
-	// Read in filenames
-	ifstream ifs(vars::GetAssetPath(database + "/files.json"));
-	nlohmann::json files = nlohmann::json::parse(ifs);
-	for (nlohmann::json::iterator it = files.begin(); it != files.end(); ++it) 
-		for (nlohmann::json::iterator it2 = it.value().begin(); it2 != it.value().end(); ++it2) 
-			filenames.push_back(*it2);
-
+	utils::GetAllFilenamesInDatabase(database, filenames);
 	// Process every file in the database
 	for (string file : filenames)
 	{
@@ -98,7 +111,48 @@ void preprocess(const string database, const string in, const string out)
 	printf("Preprocessed mesh \"%s\" from %s successfully, output: %s\n", in.c_str(), database.c_str(), out.c_str());
 }
 
+void extractAll(const string database)
+{
+	vector<string> filenames;
+	utils::GetAllFilenamesInDatabase(database, filenames);
+
+	// Extract feature descriptors for every file in the database
+	for (string file : filenames)
+	{
+		size_t pos = file.find('.');
+		string name = file.substr(0, pos);
+		string ext = file.substr(pos + 1);
+		extract(database, name + "_processed." + ext); // Calculate feature for all the processed models
+	}
+}
+
 void extract(const string database, const string in)
+{
+	// Get the mesh
+	pmp::SurfaceMesh mesh = database::read_mesh(database, in);
+
+	auto globalDescriptors = global_descriptors::CalcAll(mesh);
+
+	// Write the descriptors to json
+	ifstream ifs(vars::GetAssetPath(database + "/featureDescriptors.json"));
+	nlohmann::json jsonDescriptors;
+	if (!ifs.fail())
+		jsonDescriptors = nlohmann::json::parse(ifs);
+	jsonDescriptors[in] = {
+		{"area", globalDescriptors.surfaceArea}, 
+		{"AABBVolume", globalDescriptors.AABBVolume},
+		{"volume", globalDescriptors.volume},
+		{"compactness", globalDescriptors.compactness},
+		{"eccentricity", globalDescriptors.eccentricity},
+		{"diameter", globalDescriptors.diameter}
+	};
+	ofstream ofs(vars::GetAssetPath(database + "/featureDescriptors.json"));
+	ofs << setw(4) << jsonDescriptors << endl; // TODO: removing setw(4) might improve filesize
+	ofs.close();
+}
+
+// TODO remove
+void extractOld(const string database, const string in)
 {
 	// Get the mesh
 	pmp::SurfaceMesh mesh = database::read_mesh(database, in);

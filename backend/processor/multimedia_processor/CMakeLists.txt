@@ -8,7 +8,7 @@ include_directories(${PROJECT_SOURCE_DIR}/submodules/pmp-library/src)
 include_directories(${PROJECT_SOURCE_DIR}/submodules/pmp-library/external/eigen)
 
 # Add source to this project's executable.
-file(GLOB_RECURSE sources *.cpp *.h)
+file(GLOB_RECURSE sources *.cpp *.h "../lib/libgdiam/gdiam.cpp")
 add_executable(multimedia_processor ${sources})
 target_link_libraries(multimedia_processor pmp)
 
@@ -21,5 +21,5 @@ add_custom_command(
   TARGET "multimedia_processor"
   POST_BUILD
   COMMAND ${CMAKE_COMMAND}
-  ARGS -E copy $<TARGET_FILE:multimedia_processor> ${CMAKE_SOURCE_DIR}/../server/processors
+  ARGS -E copy $<TARGET_FILE:multimedia_processor> ${CMAKE_SOURCE_DIR}/../server/processors/multimedia_processor
 )
