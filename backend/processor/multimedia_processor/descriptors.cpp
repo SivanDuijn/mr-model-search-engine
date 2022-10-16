@@ -54,8 +54,8 @@ namespace descriptors
         VertexMap map = utils::GetVertexMap(mesh);
 
         // Get all the distances between random vertices
-        VertexMat verts = utils::RandomVertices(map);
-        Eigen::VectorXf dist = (map - verts).colwise().norm();
+        VertexMat vert = utils::RandomVertices(map);
+        Eigen::VectorXf dist = (map - vert).colwise().norm();
 
         // Bin the result
         return bin(dist, bins);
@@ -82,5 +82,29 @@ namespace descriptors
 
         // Bin the result
         return bin(area, bins);
+    }
+
+    // Volume of tetrahedron from random vertices
+    Eigen::VectorXi D4(pmp::SurfaceMesh &mesh, int bins)
+    {
+        // Get the vertices as an Eigen map
+        VertexMap map = utils::GetVertexMap(mesh);
+
+        // Get all the volumes of random tetrahedron
+        // https://stackoverflow.com/a/9866530
+        VertexMat vert1 = utils::RandomVertices(map) - map;
+        VertexMat vert2 = utils::RandomVertices(map) - map;
+        VertexMat vert3 = utils::RandomVertices(map) - map;
+        VertexMat div   = VertexMat();
+        div.row(0) = vert2.row(1).cwiseProduct(vert3.row(2) -
+            vert2.row(2).cwiseProduct(vert3.row(1)));
+        div.row(1) = vert2.row(2).cwiseProduct(vert3.row(0) -
+            vert2.row(0).cwiseProduct(vert3.row(2)));
+        div.row(2) = vert2.row(0).cwiseProduct(vert3.row(1) -
+            vert2.row(1).cwiseProduct(vert3.row(0)));
+        Eigen::VectorXf volume = vert1.cwiseProduct(div).colwise().sum() / 6;
+
+        // Bin the result
+        return bin(volume, bins);
     }
 }
