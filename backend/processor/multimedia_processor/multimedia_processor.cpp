@@ -158,14 +158,14 @@ void extract(const string database, const string in)
 		{"volume", globalDescriptors.volume},
 		{"compactness", globalDescriptors.compactness},
 		{"eccentricity", globalDescriptors.eccentricity},
-		{"diameter", globalDescriptors.diameter}/*,
-		{"A3", shapeDescriptors.A3},
-		{"D1", shapeDescriptors.D1},
-		{"D2", shapeDescriptors.D2},
-		{"D3", shapeDescriptors.D3},
-		{"D4", shapeDescriptors.D4}*/
+		{"diameter", globalDescriptors.diameter},
+		{"A3", shapeDescriptors.A3.bins.array()},
+		{"D1", shapeDescriptors.D1.bins.array()},
+		{"D2", shapeDescriptors.D2.bins.array()},
+		{"D3", shapeDescriptors.D3.bins.array()},
+		{"D4", shapeDescriptors.D4.bins.array()}
 	};
 	ofstream ofs(vars::GetAssetPath(database + "/featureDescriptors.json"));
-	ofs << setw(4) << jsonDescriptors << endl; // TODO: removing setw(4) might improve filesize
+	ofs << jsonDescriptors << endl; // TODO: removing setw(4) might improve filesize
 	ofs.close();
 }

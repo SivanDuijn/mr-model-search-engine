@@ -25,6 +25,8 @@
 
 #include "multimedia_processor.h"
 
+#define FLT_EPSILON 1.19209290E-07F
+
 // Must be a power of 2!
 #define VERTEX_COUNT 2048
 

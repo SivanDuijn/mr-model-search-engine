@@ -25,6 +25,11 @@ export interface ModelState {
         compactness: number;
         eccentricity: number;
         diameter: number;
+        A3: number[];
+        D1: number[];
+        D2: number[];
+        D3: number[];
+        D4: number[];
     };
     renderSettings: {
         material: RenderMaterial;
