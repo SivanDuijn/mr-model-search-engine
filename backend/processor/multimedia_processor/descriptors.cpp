@@ -48,32 +48,23 @@ namespace descriptors
 
     Eigen::VectorXi D3(pmp::SurfaceMesh &mesh, int bins)
     {
-        return D2(mesh, bins);
-
-        /*
         // Get the vertices as an Eigen map
-        Eigen::Map<Eigen::MatrixXf> map = utils::GetVertexMap(mesh);
+        VertexMap map = utils::GetVertexMap(mesh);
 
         // Get all the areas of random triangles
-        Eigen::MatrixXf verts1 = Eigen::MatrixXf(3, VERTEX_COUNT);
-        Eigen::MatrixXf verts2 = Eigen::MatrixXf(3, VERTEX_COUNT);
-        for (size_t i = 0; i < VERTEX_COUNT; i++) 
-        {
-            verts1.col(i) = map.col(utils::RandomVertexIndex());
-            verts2.col(i) = map.col(utils::RandomVertexIndex());
-        }
-        verts1 -= map;
-        verts2 -= map;
-        // No colwise cross :(
-        Eigen::VectorXf area = Eigen::VectorXf(VERTEX_COUNT);
-        for (size_t i = 0; i < VERTEX_COUNT; i++) 
-        {
-            Eigen::Vector3f test = verts1.col(i).cross(verts2.col(i));
-            area[i] = test.norm() / 2;
-        }
+        // https://math.stackexchange.com/a/1951650
+        VertexMat edge1 = utils::RandomVertices(map) - map;
+        VertexMat edge2 = utils::RandomVertices(map) - map;
+        VertexMat norm  = VertexMat();
+        norm.row(0) = edge1.row(1).cwiseProduct(edge2.row(2) -
+            edge1.row(2).cwiseProduct(edge2.row(1)));
+        norm.row(1) = edge1.row(2).cwiseProduct(edge2.row(0) -
+            edge1.row(0).cwiseProduct(edge2.row(2)));
+        norm.row(2) = edge1.row(0).cwiseProduct(edge2.row(1) -
+            edge1.row(1).cwiseProduct(edge2.row(0)));
+        Eigen::VectorXf area = norm.colwise().norm() / 2;
 
         // Bin the result
         return bin(area, bins);
-        */
     }
 }

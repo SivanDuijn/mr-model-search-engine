@@ -28,11 +28,12 @@ namespace utils
         return ret;
     }
 
-    // Map a mesh's point list (aka array of Eigen::Matrix3f) to a single Eigen::MatrixXd
+    // Map a mesh's point list (aka array of Eigen::Matrix3f) to a single Eigen::MatrixXf
     VertexMap GetVertexMap(pmp::SurfaceMesh &mesh)
     {
+        assert(mesh.n_vertices() == VERTEX_COUNT);
         pmp::VertexProperty points = mesh.get_vertex_property<pmp::Point>("v:point");
-        return VertexMap((float*)(points.data()), 3, mesh.n_vertices());
+        return VertexMap((float*)(points.data()), 3, VERTEX_COUNT);
     }
 
     std::tuple<int, int> GetMajorMinorIndexEigenValues(Eigen::Vector3f eigenvalues) 
