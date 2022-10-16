@@ -1,28 +1,16 @@
 import modelClasses from "public/PSBDatabase/classes.json";
 import modelNormStats from "public/PSBDatabase/normalizationStats.json";
-
-export interface ModelStats {
-    className?: string;
-    nFaces?: number;
-    nVertices?: number;
-    boundingBoxSize?: number;
-    distBarycenterToOrigin?: number;
-    angleX?: number;
-    angleY?: number;
-    angleZ?: number;
-    totalAngle?: number;
-    totalFlip?: number;
-}
+import { ModelState } from "./contexts/reducer";
 
 export default function GetModelStats(
-    modelFileName: string,
+    modelName: string,
     mesh: THREE.Mesh,
-): ModelStats | undefined {
+): ModelState["model"]["stats"] {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const normStats = (modelNormStats as any)[modelFileName];
-    modelFileName = modelFileName.replace("_processed", "");
+    const normStats = (modelNormStats as any)[modelName];
+    modelName = modelName.replace("_processed", "");
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const modelClass = (modelClasses as any)[modelFileName];
+    const modelClass = (modelClasses as any)[modelName];
     return {
         className: modelClass ? modelClass : undefined,
         nVertices: mesh.geometry.getAttribute("position").count,

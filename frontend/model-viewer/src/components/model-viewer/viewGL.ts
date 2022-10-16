@@ -1,11 +1,12 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { VertexNormalsHelper } from "three/examples/jsm/helpers/VertexNormalsHelper";
-import GetModelStats, { ModelStats } from "src/lib/getModelStats";
+import { initialState } from "src/lib/contexts";
+import { ModelState } from "src/lib/contexts/reducer";
+import GetModelStats from "src/lib/getModelStats";
 import LoadOBJModel from "src/lib/OBJLoader";
 import LoadOFFModel from "src/lib/OFFLoader";
 import { CreateThreeLineBox, GetModelfiletype } from "src/lib/utils";
-import { defaultSettings } from "src/pages";
 
 export const PI2 = Math.PI * 2;
 
@@ -42,23 +43,14 @@ export default class ThreeJSViewGL {
 
     private mouseIsDown = true;
 
-    private onModelStatsChanged?: (stats: ModelStats | undefined) => void;
+    private onModelStatsChanged?: (stats: ModelState["model"]["stats"]) => void;
     currentModel: string | undefined;
 
-    constructor(
-        canvas: HTMLCanvasElement | undefined,
-        options?: {
-            renderMaterial?: RenderMaterial;
-            vertexNormalsEnabled?: boolean;
-            wireframeEnabled?: boolean;
-            autoRotateEnabled?: boolean;
-        },
-    ) {
-        this.renderMaterial = options?.renderMaterial ?? defaultSettings.material;
-        this.vertexNormalsEnabled =
-            options?.vertexNormalsEnabled ?? defaultSettings.showVertexNormals;
-        this.wireframeEnabled = options?.wireframeEnabled ?? defaultSettings.showWireframe;
-        this.autoRotateEnabled = options?.autoRotateEnabled ?? defaultSettings.autoRotateEnabled;
+    constructor(canvas: HTMLCanvasElement | undefined) {
+        this.renderMaterial = initialState.renderSettings.material;
+        this.wireframeEnabled = initialState.renderSettings.showWireframe;
+        this.vertexNormalsEnabled = initialState.renderSettings.showVertexNormals;
+        this.autoRotateEnabled = initialState.renderSettings.autoRotateEnabled;
 
         this.scene = new THREE.Scene();
         this.renderer = new THREE.WebGLRenderer({
@@ -93,7 +85,7 @@ export default class ThreeJSViewGL {
         requestAnimationFrame(this.update.bind(this));
     }
 
-    setOnModelStatsChanged(onModelStatsChanged: (stats: ModelStats | undefined) => void) {
+    setOnModelStatsChanged(onModelStatsChanged: (stats: ModelState["model"]["stats"]) => void) {
         this.onModelStatsChanged = onModelStatsChanged;
     }
 
@@ -159,6 +151,8 @@ export default class ThreeJSViewGL {
 
     // SET OPTIONS FUNCTIONS
     setMaterial(renderMaterial: RenderMaterial) {
+        if (this.renderMaterial == renderMaterial && this.mesh) return;
+
         this.renderMaterial = renderMaterial;
 
         const options = {
@@ -262,8 +256,7 @@ export default class ThreeJSViewGL {
         this.controls.update();
 
         if (this.mesh && this.mouseIsDown && this.autoRotateEnabled)
-            this.group.rotation.y += PI2 * 0.15 * deltaTime; // 0.15 revolutions per second
-        // this.vertexNormalsHelper?.update();
+            this.group.rotation.y += PI2 * 0.05 * deltaTime; // 0.05 revolutions per second
 
         requestAnimationFrame(this.update.bind(this));
     }
