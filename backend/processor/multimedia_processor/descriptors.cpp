@@ -22,10 +22,10 @@ namespace descriptors
     Eigen::VectorXi D1(pmp::SurfaceMesh &mesh, int bins)
     {
         // Get the vertices as an Eigen map
-        Eigen::Map<Eigen::MatrixXf> map = utils::GetVertexMap(mesh);
+        VertexMap map = utils::GetVertexMap(mesh);
 
         // Get all the distances to the baricenter
-        Eigen::Vector3f bcenter = (Eigen::Vector3f)pmp::centroid(mesh);
+        Vertex bcenter = (Vertex)pmp::centroid(mesh);
         Eigen::VectorXf dist = (map.colwise() - bcenter).colwise().norm();
 
         // Bin the result
@@ -36,12 +36,10 @@ namespace descriptors
     Eigen::VectorXi D2(pmp::SurfaceMesh &mesh, int bins)
     {
         // Get the vertices as an Eigen map
-        Eigen::Map<Eigen::MatrixXf> map = utils::GetVertexMap(mesh);
+        VertexMap map = utils::GetVertexMap(mesh);
 
         // Get all the distances between random vertices
-        Eigen::MatrixXf verts = Eigen::MatrixXf(3, VERTEX_COUNT);
-        for (size_t i = 0; i < VERTEX_COUNT; i++)
-            verts.col(i) = map.col(utils::RandomVertexIndex());
+        VertexMat verts = utils::RandomVertices(map);
         Eigen::VectorXf dist = (map - verts).colwise().norm();
 
         // Bin the result

@@ -61,19 +61,19 @@ namespace preprocessor
     void normalize(pmp::SurfaceMesh &mesh, modelstats::NormalizationStatistics &beforeStats, modelstats::NormalizationStatistics &afterStats)
     {
         // Get the vertices as an Eigen map
-        Eigen::Map<Eigen::MatrixXf> map = utils::GetVertexMap(mesh);
+        VertexMap map = utils::GetVertexMap(mesh);
 
         // Store barycenter distance to origin before translation
-        beforeStats.distBarycenterToOrigin = ((Eigen::Vector3f)pmp::centroid(mesh)).norm();
+        beforeStats.distBarycenterToOrigin = ((Vertex)pmp::centroid(mesh)).norm();
 
         // Translate barycenter to origin
         printf_debug("Translating barycenter to origin");
         pmp::Point bcenter = pmp::centroid(mesh);
-        map.colwise() -= (Eigen::Vector3f)bcenter;
+        map.colwise() -= (Vertex)bcenter;
         printf_debug(" (-[%f, %f, %f])\n", bcenter.data()[0], bcenter.data()[1], bcenter.data()[2]);
 
         // Store barycenter distance to origin after translation
-        afterStats.distBarycenterToOrigin = ((Eigen::Vector3f)pmp::centroid(mesh)).norm();
+        afterStats.distBarycenterToOrigin = ((Vertex)pmp::centroid(mesh)).norm();
 
         // Align with coordinate frame
         printf_debug("Aligning with coordinate frame");
@@ -131,7 +131,7 @@ namespace preprocessor
         // Scale to unit volume
         printf_debug("Scaling to unit volume");
         Eigen::MatrixXf bounds = Eigen::MatrixXf(3, 2);
-        bounds << (Eigen::Vector3f)(mesh.bounds().min()), (Eigen::Vector3f)(mesh.bounds().max());
+        bounds << (Vertex)(mesh.bounds().min()), (Vertex)(mesh.bounds().max());
         float max = bounds.cwiseAbs().maxCoeff();
         float scale = 0.5f / max;
 
