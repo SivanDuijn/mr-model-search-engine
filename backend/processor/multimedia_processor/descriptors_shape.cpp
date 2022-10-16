@@ -1,25 +1,25 @@
 #include "headers.h"
 
-// Divide a vector of mesh data among a given number of bins
-Eigen::VectorXi bin(Eigen::VectorXf data, size_t bins)
-{
-    // Initialize the histogram
-    Eigen::VectorXi hist(bins);
-    hist.setZero();
-
-    // Divide the data
-    float min = data.minCoeff(), max = data.maxCoeff() + FLT_EPSILON;
-    float binsize = (max - min) / bins;
-    for (size_t i = 0, size = data.size(); i < size; i++)
-        hist[(size_t)((data[i] - min) / binsize)]++;
-
-    return hist;
-}
-
 namespace descriptors
 {
+    // Divide a vector of mesh data among a given number of bins
+    Histogram bin(Eigen::VectorXf data, size_t count)
+    {
+        // Initialize the bins
+        Eigen::VectorXi bins(count);
+        bins.setZero();
+
+        // Divide the data
+        float min = data.minCoeff(), max = data.maxCoeff() + FLT_EPSILON;
+        float binsize = (max - min) / count;
+        for (size_t i = 0, size = data.size(); i < size; i++)
+            bins[(size_t)((data[i] - min) / binsize)]++;
+
+        return Histogram{ bins, min, binsize };
+    }
+    
     // Angle between edges of random vertices
-    Eigen::VectorXi A3(pmp::SurfaceMesh &mesh, int bins)
+    Histogram A3(pmp::SurfaceMesh &mesh, int bins)
     {
         // Get the vertices as an Eigen map
         VertexMap map = utils::GetVertexMap(mesh);
@@ -34,7 +34,7 @@ namespace descriptors
     }
 
     // Distance from random vertices to barycenter
-    Eigen::VectorXi D1(pmp::SurfaceMesh &mesh, int bins)
+    Histogram D1(pmp::SurfaceMesh &mesh, int bins)
     {
         // Get the vertices as an Eigen map
         VertexMap map = utils::GetVertexMap(mesh);
@@ -48,7 +48,7 @@ namespace descriptors
     }
 
     // Distance from random vertices to each other
-    Eigen::VectorXi D2(pmp::SurfaceMesh &mesh, int bins)
+    Histogram D2(pmp::SurfaceMesh &mesh, int bins)
     {
         // Get the vertices as an Eigen map
         VertexMap map = utils::GetVertexMap(mesh);
@@ -62,7 +62,7 @@ namespace descriptors
     }
 
     // Surface area of triangle from random vertices
-    Eigen::VectorXi D3(pmp::SurfaceMesh &mesh, int bins)
+    Histogram D3(pmp::SurfaceMesh &mesh, int bins)
     {
         // Get the vertices as an Eigen map
         VertexMap map = utils::GetVertexMap(mesh);
@@ -85,7 +85,7 @@ namespace descriptors
     }
 
     // Volume of tetrahedron from random vertices
-    Eigen::VectorXi D4(pmp::SurfaceMesh &mesh, int bins)
+    Histogram D4(pmp::SurfaceMesh &mesh, int bins)
     {
         // Get the vertices as an Eigen map
         VertexMap map = utils::GetVertexMap(mesh);
@@ -106,5 +106,17 @@ namespace descriptors
 
         // Bin the result
         return bin(volume, bins);
+    }
+
+    ShapeDescriptors get_shape_descriptors(pmp::SurfaceMesh &mesh, int bins)
+    {
+        return ShapeDescriptors
+        {
+            A3(mesh, bins),
+            D1(mesh, bins),
+            D2(mesh, bins),
+            D3(mesh, bins),
+            D4(mesh, bins)
+        };
     }
 }

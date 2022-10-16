@@ -98,6 +98,7 @@ void preprocessAll(const string database)
 		size_t pos = file.find('.');
 		string name = file.substr(0, pos);
 		string ext = file.substr(pos + 1);
+		 // Process all the unprocessed models
 		preprocess(database, file, name + "_processed." + ext);
 	}
 }
@@ -131,7 +132,8 @@ void extractAll(const string database)
 		size_t pos = file.find('.');
 		string name = file.substr(0, pos);
 		string ext = file.substr(pos + 1);
-		extract(database, name + "_processed." + ext); // Calculate feature for all the processed models
+		// Calculate feature for all the processed models
+		extract(database, name + "_processed." + ext);
 	}
 }
 
@@ -140,9 +142,12 @@ void extract(const string database, const string in)
 	// Get the mesh
 	pmp::SurfaceMesh mesh = database::read_mesh(database, in);
 
-	auto globalDescriptors = descriptors::CalcAll(mesh);
+	// Extract features
+	auto globalDescriptors = descriptors::get_global_descriptors(mesh);
+	auto shapeDescriptors  = descriptors::get_shape_descriptors(mesh, 10);
 
 	// Write the descriptors to json
+	// TODO maybe move to a seperate function
 	ifstream ifs(vars::GetAssetPath(database + "/featureDescriptors.json"));
 	nlohmann::json jsonDescriptors;
 	if (!ifs.fail())
@@ -153,25 +158,14 @@ void extract(const string database, const string in)
 		{"volume", globalDescriptors.volume},
 		{"compactness", globalDescriptors.compactness},
 		{"eccentricity", globalDescriptors.eccentricity},
-		{"diameter", globalDescriptors.diameter}
+		{"diameter", globalDescriptors.diameter}/*,
+		{"A3", shapeDescriptors.A3},
+		{"D1", shapeDescriptors.D1},
+		{"D2", shapeDescriptors.D2},
+		{"D3", shapeDescriptors.D3},
+		{"D4", shapeDescriptors.D4}*/
 	};
 	ofstream ofs(vars::GetAssetPath(database + "/featureDescriptors.json"));
 	ofs << setw(4) << jsonDescriptors << endl; // TODO: removing setw(4) might improve filesize
 	ofs.close();
-}
-
-// TODO remove
-void extractOld(const string database, const string in)
-{
-	// Get the mesh
-	pmp::SurfaceMesh mesh = database::read_mesh(database, in);
-
-	// Check whether it is preprocessed
-	assert(preprocessor::is_resampled(mesh));
-
-	cout << "A3:\n" << descriptors::A3(mesh, 10) << endl;
-	cout << "D1:\n" << descriptors::D1(mesh, 10) << endl;
-	cout << "D2:\n" << descriptors::D2(mesh, 10) << endl;
-	cout << "D3:\n" << descriptors::D3(mesh, 10) << endl;
-	cout << "D4:\n" << descriptors::D4(mesh, 10) << endl;
 }
