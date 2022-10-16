@@ -18,6 +18,21 @@ Eigen::VectorXi bin(Eigen::VectorXf data, size_t bins)
 
 namespace descriptors
 {
+    // Angle between edges of random vertices
+    Eigen::VectorXi A3(pmp::SurfaceMesh &mesh, int bins)
+    {
+        // Get the vertices as an Eigen map
+        VertexMap map = utils::GetVertexMap(mesh);
+
+        // Get all the angles between random triangles
+        VertexMat edge1 = utils::RandomVertices(map) - map;
+        VertexMat edge2 = utils::RandomVertices(map) - map;
+        Eigen::VectorXf angle = edge1.cwiseProduct(edge2).colwise().sum().array().acos();
+
+        // Bin the result
+        return bin(angle, bins);
+    }
+
     // Distance from random vertices to barycenter
     Eigen::VectorXi D1(pmp::SurfaceMesh &mesh, int bins)
     {
@@ -46,6 +61,7 @@ namespace descriptors
         return bin(dist, bins);
     }
 
+    // Surface area of triangle from random vertices
     Eigen::VectorXi D3(pmp::SurfaceMesh &mesh, int bins)
     {
         // Get the vertices as an Eigen map

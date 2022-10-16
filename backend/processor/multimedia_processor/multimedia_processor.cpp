@@ -106,6 +106,7 @@ void extract(const string database, const string in)
 	// Check whether it is preprocessed
 	assert(preprocessor::is_resampled(mesh));
 
+	cout << "A3:\n" << descriptors::A3(mesh, 10) << endl;
 	cout << "D1:\n" << descriptors::D1(mesh, 10) << endl;
 	cout << "D2:\n" << descriptors::D2(mesh, 10) << endl;
 	cout << "D3:\n" << descriptors::D3(mesh, 10) << endl;
