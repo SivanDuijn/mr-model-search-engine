@@ -1,9 +1,42 @@
 ﻿#include "headers.h"
 
+// TODO move to seperate file
+// I hate header files :(
+namespace database 
+{
+    // Read a mesh from a database
+    pmp::SurfaceMesh read_mesh(const string database, const string file)
+    {
+	    printf_debug("Loading mesh \"%s\" from %s\n", file.c_str(), database.c_str());
+	    pmp::SurfaceMesh mesh;
+	    mesh.read(vars::GetAssetPath(database + "/models/" + file));
+        return mesh;
+    }
+
+    // Write a mesh to a database
+    void write_mesh(pmp::SurfaceMesh &mesh, const string database, const string file)
+    {
+	    printf_debug("Writing mesh \"%s\" to disk\n", file.c_str());
+	    mesh.write(vars::GetAssetPath(database + "/models/" + file));
+    }
+
+	vector<string> get_filenames(const string database)
+    {
+		vector<string> filenames = vector<string>();
+        // Read filenames
+        ifstream ifs(vars::GetAssetPath(database + "/files.json"));
+        nlohmann::json files = nlohmann::json::parse(ifs);
+        for (nlohmann::json::iterator it = files.begin(); it != files.end(); ++it) 
+            for (nlohmann::json::iterator it2 = it.value().begin(); it2 != it.value().end(); ++it2) 
+                filenames.push_back(*it2);
+		return filenames;
+    }
+}
+
 int main(int argc, char *argv[])
 {
 	// try to get databasename, in and out filenames
-	string database = ""; string in = ""; string inWithoutExt = ""; string ext = ""; string out = "";
+	string database = "", in = "", inWithoutExt = "", ext = "", out = "";
 	if (argc == 4) 
 	{
 		database = argv[2];
@@ -58,14 +91,14 @@ void debug()
 
 void preprocessAll(const string database)
 {
-	vector<string> filenames;
-	utils::GetAllFilenamesInDatabase(database, filenames);
+	vector<string> filenames = database::get_filenames(database);
 	// Process every file in the database
 	for (string file : filenames)
 	{
 		size_t pos = file.find('.');
 		string name = file.substr(0, pos);
 		string ext = file.substr(pos + 1);
+		 // Process all the unprocessed models
 		preprocess(database, file, name + "_processed." + ext);
 	}
 }
@@ -73,20 +106,16 @@ void preprocessAll(const string database)
 void preprocess(const string database, const string in, const string out)
 {
 	// Get the mesh
-	printf_debug("Loading mesh \"%s\" from %s\n", in.c_str(), database.c_str());
-	pmp::SurfaceMesh mesh;
-	mesh.read(vars::GetAssetPath(database + "/models/" + in));
-
-	modelstats::NormalizationStatistics beforeStats;
-	modelstats::NormalizationStatistics afterStats;
+	pmp::SurfaceMesh mesh = database::read_mesh(database, in);
 
 	// Preprocess the mesh
+	modelstats::NormalizationStatistics beforeStats;
+	modelstats::NormalizationStatistics afterStats;
 	preprocessor::resample(mesh, beforeStats, afterStats);
 	preprocessor::normalize(mesh, beforeStats, afterStats);
 
 	// Write resampled mesh to disk
-	printf_debug("Writing mesh to disk\n");
-	mesh.write(vars::GetAssetPath(database + "/models/" + out));
+	database::write_mesh(mesh, database, out);
 
 	// Write the normalizationStats to json
 	modelstats::WriteNormalizationStatistics(database, in, out, beforeStats, afterStats);
@@ -96,31 +125,29 @@ void preprocess(const string database, const string in, const string out)
 
 void extractAll(const string database)
 {
-	vector<string> filenames;
-	utils::GetAllFilenamesInDatabase(database, filenames);
-
+	vector<string> filenames = database::get_filenames(database);
 	// Extract feature descriptors for every file in the database
 	for (string file : filenames)
 	{
 		size_t pos = file.find('.');
 		string name = file.substr(0, pos);
 		string ext = file.substr(pos + 1);
-		extract(database, name + "_processed." + ext); // Calculate feature for all the processed models
+		// Calculate feature for all the processed models
+		extract(database, name + "_processed." + ext);
 	}
 }
 
 void extract(const string database, const string in)
 {
 	// Get the mesh
-	printf_debug("Loading mesh \"%s\" from %s\n", in.c_str(), database.c_str());
-	pmp::SurfaceMesh mesh;
-	mesh.read(vars::GetAssetPath(database + "/models/" + in));
+	pmp::SurfaceMesh mesh = database::read_mesh(database, in);
 
-	cout << '\n' << descriptors::D1(mesh, 10) << endl;
-
-	auto globalDescriptors = global_descriptors::CalcAll(mesh);
+	// Extract features
+	auto globalDescriptors = descriptors::get_global_descriptors(mesh);
+	auto shapeDescriptors  = descriptors::get_shape_descriptors(mesh, 10);
 
 	// Write the descriptors to json
+	// TODO maybe move to a seperate function
 	ifstream ifs(vars::GetAssetPath(database + "/featureDescriptors.json"));
 	nlohmann::json jsonDescriptors;
 	if (!ifs.fail())
@@ -131,7 +158,12 @@ void extract(const string database, const string in)
 		{"volume", globalDescriptors.volume},
 		{"compactness", globalDescriptors.compactness},
 		{"eccentricity", globalDescriptors.eccentricity},
-		{"diameter", globalDescriptors.diameter}
+		{"diameter", globalDescriptors.diameter}/*,
+		{"A3", shapeDescriptors.A3},
+		{"D1", shapeDescriptors.D1},
+		{"D2", shapeDescriptors.D2},
+		{"D3", shapeDescriptors.D3},
+		{"D4", shapeDescriptors.D4}*/
 	};
 	ofstream ofs(vars::GetAssetPath(database + "/featureDescriptors.json"));
 	ofs << setw(4) << jsonDescriptors << endl; // TODO: removing setw(4) might improve filesize

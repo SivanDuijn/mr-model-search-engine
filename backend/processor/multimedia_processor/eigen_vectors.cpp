@@ -2,13 +2,6 @@
 
 namespace eigen_vectors 
 {
-    // Map the mesh's point list (aka array of Eigen::Matrix3f) to a single Eigen::MatrixXd
-    Eigen::Map<Eigen::MatrixXf> GetVertexMap(pmp::SurfaceMesh &mesh)
-    {
-        pmp::VertexProperty points = mesh.get_vertex_property<pmp::Point>("v:point");
-        return Eigen::Map<Eigen::MatrixXf>((float*)(points.data()), 3, mesh.n_vertices());
-    }
-
     std::tuple<int, int, int> GetMajorMinorIndexEigenValues(Eigen::Vector3f eigenvalues) 
     {
         Eigen::Vector3f v = eigenvalues;
@@ -53,7 +46,7 @@ namespace eigen_vectors
 
     std::tuple<Eigen::Vector3f, Eigen::Vector3f, Eigen::Vector3f> GetMajorMinorEigenVectors(pmp::SurfaceMesh &mesh) 
     {
-        Eigen::Map<Eigen::MatrixXf> map = GetVertexMap(mesh);
+        VertexMap map = utils::GetVertexMap(mesh);
         Eigen::Matrix3f cov = (map * map.transpose()) / float(map.cols() - 1);
         return GetMajorMinorEigenVectors(cov);
     }

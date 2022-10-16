@@ -4,6 +4,11 @@ using namespace std;
 
 namespace preprocessor
 {
+    bool is_resampled(pmp::SurfaceMesh &mesh)
+    {
+        return (mesh.is_triangle_mesh() && mesh.n_vertices() == VERTEX_COUNT);
+    }
+
     // Resample a mesh at the given path
     void resample(pmp::SurfaceMesh &mesh, modelstats::NormalizationStatistics &beforeStats, modelstats::NormalizationStatistics &afterStats)
     {
@@ -22,19 +27,18 @@ namespace preprocessor
         }
 
         // Subdivide and/or decimate depending on the vertex count
-        const unsigned int des = 2500; // example desired vertex count mentioned in technical tips
-        while (mesh.n_vertices() < des)
+        while (mesh.n_vertices() < VERTEX_COUNT)
         {
             printf_debug("Subdividing mesh");
             pmp::Subdivision div = pmp::Subdivision(mesh);
             div.loop();
             printf_debug(" to %zu vertices\n", mesh.n_vertices());
         }
-        if (mesh.n_vertices() > des)
+        if (mesh.n_vertices() > VERTEX_COUNT)
         {
             printf_debug("Decimating mesh");
             pmp::Decimation dec = pmp::Decimation(mesh);
-            dec.decimate(des);
+            dec.decimate(VERTEX_COUNT);
             printf_debug(" to %zu vertices\n", mesh.n_vertices());
         }
         else
@@ -57,19 +61,19 @@ namespace preprocessor
     void normalize(pmp::SurfaceMesh &mesh, modelstats::NormalizationStatistics &beforeStats, modelstats::NormalizationStatistics &afterStats)
     {
         // Get the vertices as an Eigen map
-        Eigen::Map<Eigen::MatrixXf> map = eigen_vectors::GetVertexMap(mesh);
+        VertexMap map = utils::GetVertexMap(mesh);
 
         // Store barycenter distance to origin before translation
-        beforeStats.distBarycenterToOrigin = ((Eigen::Vector3f)pmp::centroid(mesh)).norm();
+        beforeStats.distBarycenterToOrigin = ((Vertex)pmp::centroid(mesh)).norm();
 
         // Translate barycenter to origin
         printf_debug("Translating barycenter to origin");
         pmp::Point bcenter = pmp::centroid(mesh);
-        map.colwise() -= (Eigen::Vector3f)bcenter;
+        map.colwise() -= (Vertex)bcenter;
         printf_debug(" (-[%f, %f, %f])\n", bcenter.data()[0], bcenter.data()[1], bcenter.data()[2]);
 
         // Store barycenter distance to origin after translation
-        afterStats.distBarycenterToOrigin = ((Eigen::Vector3f)pmp::centroid(mesh)).norm();
+        afterStats.distBarycenterToOrigin = ((Vertex)pmp::centroid(mesh)).norm();
 
         // Align with coordinate frame
         printf_debug("Aligning with coordinate frame");
@@ -127,7 +131,7 @@ namespace preprocessor
         // Scale to unit volume
         printf_debug("Scaling to unit volume");
         Eigen::MatrixXf bounds = Eigen::MatrixXf(3, 2);
-        bounds << (Eigen::Vector3f)(mesh.bounds().min()), (Eigen::Vector3f)(mesh.bounds().max());
+        bounds << (Vertex)(mesh.bounds().min()), (Vertex)(mesh.bounds().max());
         float max = bounds.cwiseAbs().maxCoeff();
         float scale = 0.5f / max;
 

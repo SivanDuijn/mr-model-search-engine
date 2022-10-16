@@ -1,21 +1,8 @@
 #include "headers.h"
 
-namespace global_descriptors
+namespace descriptors
 {
-    GlobalDescriptors CalcAll(pmp::SurfaceMesh &mesh)
-    {
-        GlobalDescriptors gd;
-        gd.surfaceArea = CalcSurfaceArea(mesh);
-        gd.AABBVolume = CalcAABBVolume(mesh);
-        gd.volume = CalcVolume(mesh);
-        gd.compactness = CalcCompactness(gd.surfaceArea, gd.volume);
-        gd.eccentricity = CalcEccentricity(mesh);
-        gd.diameter = CalcDiameter(mesh);
-
-        return gd;
-    }
-
-    float CalcSurfaceArea(pmp::SurfaceMesh &mesh)
+    float surface_area(pmp::SurfaceMesh &mesh)
     {
         printf_debug("Calculating surface area... ");
         pmp::VertexProperty<pmp::Point> points = mesh.get_vertex_property<pmp::Point>("v:point");
@@ -34,7 +21,20 @@ namespace global_descriptors
         return area;
     }
 
-    float CalcAABBVolume(pmp::SurfaceMesh &mesh)
+    float compactness(pmp::SurfaceMesh &mesh)
+    {
+        return compactness(surface_area(mesh), volume(mesh));
+    }
+    float compactness(float surfaceArea, float volume)
+    {
+        printf_debug("Calculating compactness...  ");
+
+        float compactness = (surfaceArea * surfaceArea * surfaceArea) / (36*M_PI*volume*volume);
+        printf_debug("%f\n", compactness);
+        return compactness;
+    }
+
+    float aabb_volume(pmp::SurfaceMesh &mesh)
     {
         printf_debug("Calculating AABB volume...  ");
         pmp::BoundingBox bounds = mesh.bounds();
@@ -46,7 +46,7 @@ namespace global_descriptors
         return volume;
     }
 
-    float CalcVolume(pmp::SurfaceMesh &mesh)
+    float volume(pmp::SurfaceMesh &mesh)
     {
         printf_debug("Calculating volume...\n");
         printf_debug("  Filling holes...\n");
@@ -88,23 +88,22 @@ namespace global_descriptors
         return volume;
     }
 
-    float CalcCompactness(pmp::SurfaceMesh &mesh)
+    float diameter(pmp::SurfaceMesh &mesh)
     {
-        return CalcCompactness(CalcSurfaceArea(mesh), CalcVolume(mesh));
-    }
-    float CalcCompactness(float surfaceArea, float volume)
-    {
-        printf_debug("Calculating compactness...  ");
+        printf_debug("Calculating diameter...     ");
+        pmp::VertexProperty points = mesh.get_vertex_property<pmp::Point>("v:point");
 
-        float compactness = (surfaceArea * surfaceArea * surfaceArea) / (36*M_PI*volume*volume);
-        printf_debug("%f\n", compactness);
-        return compactness;
+        // Using code from Sariel Har-Peled, https://sarielhp.org/research/papers/00/diameter/diam_prog.html
+        gdiam::GPointPair pair = gdiam::gdiam_approx_diam_pair((float*)points.data(), mesh.n_vertices(), 0.0);
+
+        printf_debug("%f\n", pair.distance);
+        return pair.distance;
     }
 
-    float CalcEccentricity(pmp::SurfaceMesh &mesh)
+    float eccentricity(pmp::SurfaceMesh &mesh)
     {
         printf_debug("Calculating eccentricity... ");
-        Eigen::Map<Eigen::MatrixXf> map = eigen_vectors::GetVertexMap(mesh);
+        VertexMap map = utils::GetVertexMap(mesh);
         Eigen::Matrix3f cov = (map * map.transpose()) / float(map.cols() - 1);
         Eigen::EigenSolver<Eigen::MatrixXf> solver;
         solver.compute(cov);
@@ -118,15 +117,18 @@ namespace global_descriptors
         return eccentricity;
     }
 
-    float CalcDiameter(pmp::SurfaceMesh &mesh)
+    GlobalDescriptors get_global_descriptors(pmp::SurfaceMesh &mesh)
     {
-        printf_debug("Calculating diameter...     ");
-        pmp::VertexProperty points = mesh.get_vertex_property<pmp::Point>("v:point");
-
-        // Using code from Sariel Har-Peled, https://sarielhp.org/research/papers/00/diameter/diam_prog.html
-        gdiam::GPointPair pair = gdiam::gdiam_approx_diam_pair((float*)points.data(), mesh.n_vertices(), 0.0);
-
-        printf_debug("%f\n", pair.distance);
-        return pair.distance;
+        GlobalDescriptors gd =
+        {
+            surface_area(mesh),
+            0.0f,
+            aabb_volume(mesh),
+            volume(mesh),
+            diameter(mesh),
+            eccentricity(mesh)
+        };
+        gd.compactness = compactness(gd.surfaceArea, gd.volume);
+        return gd;
     }
 }

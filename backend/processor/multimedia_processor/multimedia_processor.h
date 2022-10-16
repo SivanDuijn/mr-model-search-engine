@@ -5,6 +5,7 @@
 
 using namespace std;
 
+// TODO move mesh loading to main function?
 void debug();
 void preprocess(const string database = "PSBDatabase", const string in = "69.off", const string out = "69_processed.off");
 void preprocessAll(const string database = "PSBDatabase");
