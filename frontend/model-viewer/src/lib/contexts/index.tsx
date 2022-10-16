@@ -4,6 +4,7 @@ import { Actions, modelReducer, ModelState } from "./reducer";
 
 export const initialState: ModelState = {
     model: {
+        name: "125.off",
         isProcessed: true,
     },
     renderSettings: {

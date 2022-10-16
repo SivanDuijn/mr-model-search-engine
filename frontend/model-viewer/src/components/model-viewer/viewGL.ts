@@ -80,7 +80,6 @@ export default class ThreeJSViewGL {
         this.camera.lookAt(new THREE.Vector3(0, 0, 0));
 
         this.setMaterial(this.renderMaterial);
-        this.loadModelByUrl("PSBDatabase/models/125.off");
 
         requestAnimationFrame(this.update.bind(this));
     }

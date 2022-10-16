@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import { useCallback, useRef } from "react";
-import DescriptorHistograms from "src/components/DescriptoHistograms";
+import DescriptorHistograms from "src/components/DescriptorHistograms";
 import ModelDescriptors from "src/components/ModelDescriptors";
 import ModelInformation from "src/components/ModelInformation";
 import { ModelProvider } from "src/lib/contexts";
