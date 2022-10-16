@@ -1,11 +1,23 @@
 import { RenderMaterial } from "src/components/model-viewer/viewGL";
 
 export interface ModelState {
-    modelInfo: {
+    model: {
         file?: string;
         name?: string;
-        class?: string;
+        // class?: string;
         isProcessed?: boolean;
+        stats?: {
+            className?: string;
+            nFaces?: number;
+            nVertices?: number;
+            boundingBoxSize?: number;
+            distBarycenterToOrigin?: number;
+            angleX?: number;
+            angleY?: number;
+            angleZ?: number;
+            totalAngle?: number;
+            totalFlip?: number;
+        };
     };
     renderSettings: {
         material: RenderMaterial;
@@ -17,13 +29,13 @@ export interface ModelState {
 
 // Actions:
 export enum ActionKind {
-    ChangeModelInfo,
+    ChangeModel,
     ChangeRenderSettings,
 }
 
-export interface ChangeModelInfoAction {
-    type: ActionKind.ChangeModelInfo;
-    payload: ModelState["modelInfo"];
+export interface ChangeModelAction {
+    type: ActionKind.ChangeModel;
+    payload: ModelState["model"];
 }
 
 export interface ChangeRenderSettingsAction {
@@ -32,7 +44,7 @@ export interface ChangeRenderSettingsAction {
 }
 //
 
-export type Actions = ChangeModelInfoAction | ChangeRenderSettingsAction;
+export type Actions = ChangeModelAction | ChangeRenderSettingsAction;
 
 export function modelReducer(state: ModelState, action: Actions) {
     const { type, payload } = action;
@@ -42,10 +54,10 @@ export function modelReducer(state: ModelState, action: Actions) {
                 ...state,
                 ...{ renderSettings: { ...payload } },
             };
-        case ActionKind.ChangeModelInfo:
+        case ActionKind.ChangeModel:
             return {
                 ...state,
-                ...{ modelInfo: { ...payload } },
+                ...{ model: { ...payload, stats: { ...payload.stats } } },
             };
         default:
             return state;

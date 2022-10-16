@@ -1,5 +1,5 @@
 import { useContext } from "react";
-import { ActionKind, ChangeRenderSettingsAction } from "./reducer";
+import { ActionKind, ChangeModelAction, ChangeRenderSettingsAction } from "./reducer";
 import { ModelContext } from ".";
 
 export function useRenderSettings() {
@@ -10,4 +10,14 @@ export function useRenderSettings() {
     };
 
     return { settings: state.renderSettings, changeRenderSettings };
+}
+
+export function useModel() {
+    const { state, dispatch } = useContext(ModelContext);
+
+    const changeModel = (model: ChangeModelAction["payload"]) => {
+        dispatch({ type: ActionKind.ChangeModel, payload: model });
+    };
+
+    return { model: state.model, changeModel };
 }

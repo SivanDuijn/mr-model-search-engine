@@ -1,22 +1,30 @@
 import clsx from "clsx";
-import { ModelStats } from "src/lib/getModelStats";
+import { useModel } from "src/lib/contexts/hooks";
 
-export default function ModelInformation(props: { stats?: ModelStats }) {
+type Props = {
+    className?: string;
+};
+
+export default function ModelInformation(props: Props) {
+    const {
+        model: { stats },
+    } = useModel();
+
     const rows = [
-        { label: "class", value: props.stats?.className },
-        { label: "# vertices", value: props.stats?.nVertices },
-        { label: "# faces", value: props.stats?.nFaces },
-        { label: "dist to center", value: Number(props.stats?.distBarycenterToOrigin?.toFixed(5)) },
-        { label: "AABB size", value: Number(props.stats?.boundingBoxSize?.toFixed(5)) },
-        { label: "angle x-axis", value: Number(props.stats?.angleX?.toFixed(5)) },
-        { label: "angle y-axis", value: Number(props.stats?.angleY?.toFixed(5)) },
-        { label: "angle z-axis", value: Number(props.stats?.angleZ?.toFixed(5)) },
-        { label: "total angle", value: Number(props.stats?.totalAngle?.toFixed(5)) },
-        { label: "total flip", value: Number(props.stats?.totalFlip?.toFixed(5)) },
+        { label: "class", value: stats?.className },
+        { label: "# vertices", value: stats?.nVertices },
+        { label: "# faces", value: stats?.nFaces },
+        { label: "dist to center", value: Number(stats?.distBarycenterToOrigin?.toFixed(5)) },
+        { label: "AABB size", value: Number(stats?.boundingBoxSize?.toFixed(5)) },
+        { label: "angle x-axis", value: Number(stats?.angleX?.toFixed(5)) },
+        { label: "angle y-axis", value: Number(stats?.angleY?.toFixed(5)) },
+        { label: "angle z-axis", value: Number(stats?.angleZ?.toFixed(5)) },
+        { label: "total angle", value: Number(stats?.totalAngle?.toFixed(5)) },
+        { label: "total flip", value: Number(stats?.totalFlip?.toFixed(5)) },
     ];
 
     return (
-        <div className={clsx("border-2", "border-slate-200", "mx-2", "mt-4")}>
+        <div className={props.className}>
             <p className={clsx("border-b-2", "text-center", "font-bold")}>Model Information</p>
             <table className={clsx("p-2", "ml-2")}>
                 <tbody>

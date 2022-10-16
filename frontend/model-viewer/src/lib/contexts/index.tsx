@@ -2,8 +2,10 @@ import { createContext, ReactElement, useReducer, Dispatch } from "react";
 import { RenderMaterial } from "src/components/model-viewer/viewGL";
 import { Actions, modelReducer, ModelState } from "./reducer";
 
-const initialState: ModelState = {
-    modelInfo: {},
+export const initialState: ModelState = {
+    model: {
+        isProcessed: true,
+    },
     renderSettings: {
         material: RenderMaterial.Flat,
         showWireframe: true,

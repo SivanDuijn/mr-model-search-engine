@@ -1,19 +1,32 @@
 import clsx from "clsx";
-import { useState, useMemo, useRef } from "react";
+import { useRouter } from "next/router";
+import { useState, useMemo, useEffect } from "react";
 import filenames from "public/PSBDatabase/files.json";
-
-const database = "PSBDatabase";
+import { useModel } from "src/lib/contexts/hooks";
 
 type ModelSelectorProps = {
-    onModelSelected: (url: string) => void;
     onFileSelected: (textContent: string, fileName: string) => void;
     className?: string;
 };
 
 export default function ModelSelector(props: ModelSelectorProps) {
-    const [subgroup, setSubgroup] = useState<string>();
-    const usePreprocessed = useRef(true);
-    const currentModel = useRef("");
+    const { model, changeModel } = useModel();
+
+    const router = useRouter();
+    const modelNameFromUrl = router.query["m"];
+    useEffect(() => {
+        if (modelNameFromUrl && !Array.isArray(modelNameFromUrl))
+            changeModel({
+                ...model,
+                name: modelNameFromUrl.replace("_processed", ""),
+                isProcessed: modelNameFromUrl.includes("_processed"),
+                file: undefined,
+            });
+    }, [modelNameFromUrl]);
+
+    const [subgroup, setSubgroup] = useState<string | undefined>(model.stats?.className);
+
+    useEffect(() => setSubgroup(model.stats?.className), [model.stats?.className]);
 
     const subgroupfiles = useMemo(() => {
         if (subgroup) {
@@ -40,8 +53,13 @@ export default function ModelSelector(props: ModelSelectorProps) {
                                 file.text().then((text) => {
                                     const m = file.name.split("/");
                                     props.onFileSelected(text, m[m.length - 1]);
+                                    setSubgroup(undefined);
+                                    changeModel({
+                                        ...model,
+                                        file: m[m.length - 1],
+                                        name: undefined,
+                                    });
                                 });
-                            setSubgroup(undefined);
                         }}
                     />
                 </div>
@@ -49,7 +67,7 @@ export default function ModelSelector(props: ModelSelectorProps) {
                 <div className="flex flex-row">
                     <select
                         onChange={(e) => setSubgroup(e.currentTarget.value)}
-                        value={subgroup ? undefined : ""}
+                        value={subgroup ?? ""}
                     >
                         {!subgroup && <option value=""></option>}
                         {Object.keys(filenames).map((subgroup) => (
@@ -62,20 +80,10 @@ export default function ModelSelector(props: ModelSelectorProps) {
                         className="ml-3 min-w-[7rem]"
                         onChange={(e) => {
                             const file = e.currentTarget.value;
-
-                            if (subgroup !== undefined && file !== undefined) {
-                                currentModel.current = file;
-                                const ws = file.split(".");
-                                props.onModelSelected(
-                                    database +
-                                        "/models/" +
-                                        ws[0] +
-                                        `${usePreprocessed.current ? "_processed" : ""}.` +
-                                        ws[1],
-                                );
-                            }
+                            if (subgroup !== undefined && file !== undefined)
+                                changeModel({ ...model, name: file, file: undefined });
                         }}
-                        value={subgroup ? undefined : ""}
+                        value={model.name ?? ""}
                     >
                         <option value=""></option>
                         {subgroupfiles.map((file) => (
@@ -90,21 +98,13 @@ export default function ModelSelector(props: ModelSelectorProps) {
                             title="preprocessed"
                             className="ml-2"
                             type="checkbox"
-                            defaultChecked={true}
+                            checked={model.isProcessed ?? true}
                             onChange={(e) => {
-                                if (e.currentTarget.checked != usePreprocessed.current) {
-                                    usePreprocessed.current = e.currentTarget.checked;
-                                    if (currentModel.current != "") {
-                                        const ws = currentModel.current.split(".");
-                                        props.onModelSelected(
-                                            database +
-                                                "/models/" +
-                                                ws[0] +
-                                                `${usePreprocessed.current ? "_processed" : ""}.` +
-                                                ws[1],
-                                        );
-                                    }
-                                }
+                                if (e.currentTarget.checked != model.isProcessed)
+                                    changeModel({
+                                        ...model,
+                                        isProcessed: e.currentTarget.checked,
+                                    });
                             }}
                         />
                     </div>

@@ -1,6 +1,8 @@
-import React, { useContext, useEffect, useRef } from "react";
-import { ModelContext } from "src/lib/contexts";
+import React, { useEffect, useRef } from "react";
+import { useModel, useRenderSettings } from "src/lib/contexts/hooks";
 import ThreeJSViewGL from "./viewGL";
+
+const database = "PSBDatabase";
 
 type Props = {
     onMounted: (viewGL: ThreeJSViewGL) => void;
@@ -12,19 +14,30 @@ export const MemoizedViewGLCanvas = React.memo((props: Props) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const mouseIsDown = useRef<boolean>(false);
     const viewGL = useRef<ThreeJSViewGL>();
+    const { settings } = useRenderSettings();
+    const { model, changeModel } = useModel();
 
     useEffect(() => {
         viewGL.current = new ThreeJSViewGL(canvasRef.current || undefined);
         props.onMounted(viewGL.current);
     }, []);
 
-    const { state } = useContext(ModelContext);
     useEffect(() => {
-        viewGL.current?.setMaterial(state.renderSettings.material);
-        viewGL.current?.showWireframe(state.renderSettings.showWireframe);
-        viewGL.current?.showVertexNormals(state.renderSettings.showVertexNormals);
-        viewGL.current?.setAutoRotateEnabled(state.renderSettings.autoRotateEnabled);
-    }, [state.renderSettings]);
+        viewGL.current?.setMaterial(settings.material);
+        viewGL.current?.showWireframe(settings.showWireframe);
+        viewGL.current?.showVertexNormals(settings.showVertexNormals);
+        viewGL.current?.setAutoRotateEnabled(settings.autoRotateEnabled);
+    }, [settings]);
+
+    useEffect(() => {
+        if (model.name) {
+            viewGL.current?.setOnModelStatsChanged((stats) => changeModel({ ...model, stats }));
+            const ws = model.name.split(".");
+            viewGL.current?.loadModelByUrl(
+                database + "/models/" + ws[0] + `${model.isProcessed ? "_processed" : ""}.` + ws[1],
+            );
+        }
+    }, [model.name, model.isProcessed]);
 
     const prevXY = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
 
