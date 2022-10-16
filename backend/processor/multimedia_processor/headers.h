@@ -19,8 +19,8 @@
 #include "utils.h"
 #include "eigen_vectors.h"
 #include "model_statistics.h"
-#include "global_descriptors.h"
-#include "descriptors.h"
+#include "descriptors_global.h"
+#include "descriptors_shape.h"
 #include "preprocessor.h"
 
 #include "multimedia_processor.h"

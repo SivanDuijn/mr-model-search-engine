@@ -35,14 +35,4 @@ namespace utils
         pmp::VertexProperty points = mesh.get_vertex_property<pmp::Point>("v:point");
         return VertexMap((float*)(points.data()), 3, VERTEX_COUNT);
     }
-    
-    void GetAllFilenamesInDatabase(const std::string database, std::vector<std::string>& filenames)
-    {
-        // Read in filenames
-        ifstream ifs(vars::GetAssetPath(database + "/files.json"));
-        nlohmann::json files = nlohmann::json::parse(ifs);
-        for (nlohmann::json::iterator it = files.begin(); it != files.end(); ++it) 
-            for (nlohmann::json::iterator it2 = it.value().begin(); it2 != it.value().end(); ++it2) 
-                filenames.push_back(*it2);
-    }
 }

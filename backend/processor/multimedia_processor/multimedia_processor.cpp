@@ -19,6 +19,18 @@ namespace database
 	    printf_debug("Writing mesh \"%s\" to disk\n", file.c_str());
 	    mesh.write(vars::GetAssetPath(database + "/models/" + file));
     }
+
+	vector<string> get_filenames(const string database)
+    {
+		vector<string> filenames = vector<string>();
+        // Read filenames
+        ifstream ifs(vars::GetAssetPath(database + "/files.json"));
+        nlohmann::json files = nlohmann::json::parse(ifs);
+        for (nlohmann::json::iterator it = files.begin(); it != files.end(); ++it) 
+            for (nlohmann::json::iterator it2 = it.value().begin(); it2 != it.value().end(); ++it2) 
+                filenames.push_back(*it2);
+		return filenames;
+    }
 }
 
 int main(int argc, char *argv[])
@@ -79,8 +91,7 @@ void debug()
 
 void preprocessAll(const string database)
 {
-	vector<string> filenames;
-	utils::GetAllFilenamesInDatabase(database, filenames);
+	vector<string> filenames = database::get_filenames(database);
 	// Process every file in the database
 	for (string file : filenames)
 	{
@@ -113,9 +124,7 @@ void preprocess(const string database, const string in, const string out)
 
 void extractAll(const string database)
 {
-	vector<string> filenames;
-	utils::GetAllFilenamesInDatabase(database, filenames);
-
+	vector<string> filenames = database::get_filenames(database);
 	// Extract feature descriptors for every file in the database
 	for (string file : filenames)
 	{
@@ -131,7 +140,7 @@ void extract(const string database, const string in)
 	// Get the mesh
 	pmp::SurfaceMesh mesh = database::read_mesh(database, in);
 
-	auto globalDescriptors = global_descriptors::CalcAll(mesh);
+	auto globalDescriptors = descriptors::CalcAll(mesh);
 
 	// Write the descriptors to json
 	ifstream ifs(vars::GetAssetPath(database + "/featureDescriptors.json"));

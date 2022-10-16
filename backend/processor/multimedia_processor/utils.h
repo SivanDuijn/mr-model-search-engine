@@ -8,11 +8,6 @@ typedef Eigen::Map<VertexMat>                 VertexMap;
 
 namespace utils
 {
-    unsigned int RandomUInt();
-    unsigned int RandomVertexIndex();
     VertexMat RandomVertices(VertexMap &verts);
-
     VertexMap GetVertexMap(pmp::SurfaceMesh &mesh);
-    
-    void GetAllFilenamesInDatabase(const std::string database, std::vector<std::string>& filenames);
 }

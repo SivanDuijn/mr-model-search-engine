@@ -1,6 +1,6 @@
 #pragma once
 
-namespace global_descriptors
+namespace descriptors
 {
     struct GlobalDescriptors
     {

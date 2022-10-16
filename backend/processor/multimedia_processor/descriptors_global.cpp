@@ -1,6 +1,6 @@
 #include "headers.h"
 
-namespace global_descriptors
+namespace descriptors
 {
     GlobalDescriptors CalcAll(pmp::SurfaceMesh &mesh)
     {
