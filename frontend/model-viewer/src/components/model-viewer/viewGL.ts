@@ -43,7 +43,7 @@ export default class ThreeJSViewGL {
 
     private mouseIsDown = true;
 
-    private onModelStatsChanged?: (stats: ModelState["model"]["stats"]) => void;
+    private onModelStatsChanged?: (stats: ModelState["modelStats"]) => void;
     currentModel: string | undefined;
 
     constructor(canvas: HTMLCanvasElement | undefined) {
@@ -85,7 +85,7 @@ export default class ThreeJSViewGL {
         requestAnimationFrame(this.update.bind(this));
     }
 
-    setOnModelStatsChanged(onModelStatsChanged: (stats: ModelState["model"]["stats"]) => void) {
+    setOnModelStatsChanged(onModelStatsChanged: (stats: ModelState["modelStats"]) => void) {
         this.onModelStatsChanged = onModelStatsChanged;
     }
 

@@ -8371,18 +8371,26 @@
         "totalFlip": -1
     },
     "tcube_long.off": {
-        "aabbSize": 3.316624879837036,
+        "aabbSize": 2.860502004623413,
+        "angleX": 3.1413791179656982,
+        "angleY": 1.560976266860962,
+        "angleZ": 1.5806163549423218,
         "nFaces": 12,
         "nVertices": 8,
-        "position": 1.0643687042843908e-09,
-        "xRotation": 0.0
+        "position": 1.2480796840463881e-07,
+        "totalAngle": 6.2829718589782715,
+        "totalFlip": -1
     },
     "tcube_long_processed.off": {
-        "aabbSize": 1.1055415868759155,
-        "nFaces": 12,
-        "nVertices": 8,
-        "position": 2.6941830988391757e-09,
-        "xRotation": 0.0
+        "aabbSize": 1.107242465019226,
+        "angleX": 0.0,
+        "angleY": 3.1415765285491943,
+        "angleZ": 3.1415765285491943,
+        "nFaces": 4996,
+        "nVertices": 2500,
+        "position": 2.7029656735066965e-08,
+        "totalAngle": 6.283153057098389,
+        "totalFlip": 3
     },
     "tcube_processed.off": {
         "aabbSize": 1.7116395235061646,

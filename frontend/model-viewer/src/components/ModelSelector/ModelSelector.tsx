@@ -2,7 +2,7 @@ import clsx from "clsx";
 import { useRouter } from "next/router";
 import { useState, useMemo, useEffect } from "react";
 import filenames from "public/PSBDatabase/files.json";
-import { useModel } from "src/lib/contexts/hooks";
+import { useModel, useModelStats } from "src/lib/contexts/hooks";
 
 type ModelSelectorProps = {
     onFileSelected: (textContent: string, fileName: string) => void;
@@ -11,6 +11,7 @@ type ModelSelectorProps = {
 
 export default function ModelSelector(props: ModelSelectorProps) {
     const { model, changeModel } = useModel();
+    const { stats } = useModelStats();
 
     const router = useRouter();
     const modelNameFromUrl = router.query["m"];
@@ -24,9 +25,9 @@ export default function ModelSelector(props: ModelSelectorProps) {
             });
     }, [modelNameFromUrl]);
 
-    const [subgroup, setSubgroup] = useState<string | undefined>(model.stats?.className);
+    const [subgroup, setSubgroup] = useState<string | undefined>(stats?.className);
 
-    useEffect(() => setSubgroup(model.stats?.className), [model.stats?.className]);
+    useEffect(() => setSubgroup(stats?.className), [stats?.className]);
 
     const subgroupfiles = useMemo(() => {
         if (subgroup) {

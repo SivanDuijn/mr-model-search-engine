@@ -1,5 +1,7 @@
-import React, { useEffect, useRef } from "react";
-import { useModel, useRenderSettings } from "src/lib/contexts/hooks";
+import React, { useContext, useEffect, useRef } from "react";
+import { ModelContext } from "src/lib/contexts";
+import { ActionKind, ModelState } from "src/lib/contexts/reducer";
+import GetModelDescriptors from "src/lib/getModelDescriptors";
 import ThreeJSViewGL from "./viewGL";
 
 const database = "PSBDatabase";
@@ -14,30 +16,43 @@ export const MemoizedViewGLCanvas = React.memo((props: Props) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const mouseIsDown = useRef<boolean>(false);
     const viewGL = useRef<ThreeJSViewGL>();
-    const { settings } = useRenderSettings();
-    const { model, changeModel } = useModel();
+    const { state, dispatch } = useContext(ModelContext);
 
+    const setModelState = (stats: ModelState["modelStats"]) => {
+        dispatch({
+            type: ActionKind.ChangeModelStats,
+            payload: stats,
+        });
+    };
     useEffect(() => {
         viewGL.current = new ThreeJSViewGL(canvasRef.current || undefined);
+        viewGL.current?.setOnModelStatsChanged((stats) => setModelState(stats));
         props.onMounted(viewGL.current);
     }, []);
 
     useEffect(() => {
-        viewGL.current?.setMaterial(settings.material);
-        viewGL.current?.showWireframe(settings.showWireframe);
-        viewGL.current?.showVertexNormals(settings.showVertexNormals);
-        viewGL.current?.setAutoRotateEnabled(settings.autoRotateEnabled);
-    }, [settings]);
+        viewGL.current?.setMaterial(state.renderSettings.material);
+        viewGL.current?.showWireframe(state.renderSettings.showWireframe);
+        viewGL.current?.showVertexNormals(state.renderSettings.showVertexNormals);
+        viewGL.current?.setAutoRotateEnabled(state.renderSettings.autoRotateEnabled);
+    }, [state.renderSettings]);
 
     useEffect(() => {
-        if (model.name) {
-            viewGL.current?.setOnModelStatsChanged((stats) => changeModel({ ...model, stats }));
-            const ws = model.name.split(".");
+        if (state.model.name) {
+            dispatch({
+                type: ActionKind.ChangeModelDescriptors,
+                payload: GetModelDescriptors(state.model.name, state.model.isProcessed),
+            });
+            const ws = state.model.name.split(".");
             viewGL.current?.loadModelByUrl(
-                database + "/models/" + ws[0] + `${model.isProcessed ? "_processed" : ""}.` + ws[1],
+                database +
+                    "/models/" +
+                    ws[0] +
+                    `${state.model.isProcessed ? "_processed" : ""}.` +
+                    ws[1],
             );
         }
-    }, [model.name, model.isProcessed]);
+    }, [state.model.name, state.model.isProcessed]);
 
     const prevXY = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
 

@@ -4,20 +4,27 @@ export interface ModelState {
     model: {
         file?: string;
         name?: string;
-        // class?: string;
         isProcessed?: boolean;
-        stats?: {
-            className?: string;
-            nFaces?: number;
-            nVertices?: number;
-            boundingBoxSize?: number;
-            distBarycenterToOrigin?: number;
-            angleX?: number;
-            angleY?: number;
-            angleZ?: number;
-            totalAngle?: number;
-            totalFlip?: number;
-        };
+    };
+    modelStats?: {
+        className?: string;
+        nFaces?: number;
+        nVertices?: number;
+        boundingBoxSize?: number;
+        distBarycenterToOrigin?: number;
+        angleX?: number;
+        angleY?: number;
+        angleZ?: number;
+        totalAngle?: number;
+        totalFlip?: number;
+    };
+    modelDescriptors?: {
+        area: number;
+        AABBVolume: number;
+        volume: number;
+        compactness: number;
+        eccentricity: number;
+        diameter: number;
     };
     renderSettings: {
         material: RenderMaterial;
@@ -30,12 +37,22 @@ export interface ModelState {
 // Actions:
 export enum ActionKind {
     ChangeModel,
+    ChangeModelStats,
+    ChangeModelDescriptors,
     ChangeRenderSettings,
 }
 
 export interface ChangeModelAction {
     type: ActionKind.ChangeModel;
     payload: ModelState["model"];
+}
+export interface ChangeModelStatsAction {
+    type: ActionKind.ChangeModelStats;
+    payload: ModelState["modelStats"];
+}
+export interface ChangeModelDescriptorsAction {
+    type: ActionKind.ChangeModelDescriptors;
+    payload: ModelState["modelDescriptors"];
 }
 
 export interface ChangeRenderSettingsAction {
@@ -44,7 +61,11 @@ export interface ChangeRenderSettingsAction {
 }
 //
 
-export type Actions = ChangeModelAction | ChangeRenderSettingsAction;
+export type Actions =
+    | ChangeModelAction
+    | ChangeModelStatsAction
+    | ChangeModelDescriptorsAction
+    | ChangeRenderSettingsAction;
 
 export function modelReducer(state: ModelState, action: Actions) {
     const { type, payload } = action;
@@ -57,7 +78,17 @@ export function modelReducer(state: ModelState, action: Actions) {
         case ActionKind.ChangeModel:
             return {
                 ...state,
-                ...{ model: { ...payload, stats: { ...payload.stats } } },
+                model: payload,
+            };
+        case ActionKind.ChangeModelStats:
+            return {
+                ...state,
+                modelStats: payload,
+            };
+        case ActionKind.ChangeModelDescriptors:
+            return {
+                ...state,
+                modelDescriptors: payload,
             };
         default:
             return state;

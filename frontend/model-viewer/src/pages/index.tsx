@@ -1,5 +1,6 @@
 import clsx from "clsx";
 import { useCallback, useRef } from "react";
+import ModelDescriptors from "src/components/ModelDescriptors";
 import ModelInformation from "src/components/ModelInformation";
 import { ModelProvider } from "src/lib/contexts";
 import { MemoizedViewGLCanvas } from "../components/model-viewer/ModelViewer";
@@ -23,15 +24,20 @@ export default function HomePage() {
                             viewGL.current?.loadModelByText(textContent, filetype)
                         }
                     />
-                    <Settings className={clsx("border-2", "border-slate-200", "mx-2", "mt-8")} />
+                    <Settings className={clsx("border-2", "border-slate-200", "mx-2", "mt-4")} />
                 </div>
                 <MemoizedViewGLCanvas
                     className={clsx("border-2", "border-slate-200", "mx-2", "mt-4")}
                     onMounted={onCanvasMounted}
                 />
-                <ModelInformation
-                    className={clsx("border-2", "border-slate-200", "mx-2", "mt-4")}
-                />
+                <div>
+                    <ModelInformation
+                        className={clsx("border-2", "border-slate-200", "mx-2", "mt-4")}
+                    />
+                    <ModelDescriptors
+                        className={clsx("border-2", "border-slate-200", "mx-2", "mt-4")}
+                    />
+                </div>
             </div>
         </ModelProvider>
     );

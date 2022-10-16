@@ -5,7 +5,7 @@ import { ModelState } from "./contexts/reducer";
 export default function GetModelStats(
     modelName: string,
     mesh: THREE.Mesh,
-): ModelState["model"]["stats"] {
+): ModelState["modelStats"] {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const normStats = (modelNormStats as any)[modelName];
     modelName = modelName.replace("_processed", "");

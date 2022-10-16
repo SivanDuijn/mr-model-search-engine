@@ -110,9 +110,9 @@ namespace global_descriptors
         solver.compute(cov);
 
         Eigen::Vector3f eigenValues = solver.eigenvalues().real();
-        std::tuple<int, int> indices = eigen_vectors::GetMajorMinorIndexEigenValues(eigenValues);
+        std::tuple<int, int, int> indices = eigen_vectors::GetMajorMinorIndexEigenValues(eigenValues);
 
-        float eccentricity = eigenValues[std::get<0>(indices)] / eigenValues[std::get<1>(indices)];
+        float eccentricity = eigenValues[std::get<0>(indices)] / eigenValues[std::get<2>(indices)];
 
         printf_debug("%f\n", eccentricity);
         return eccentricity;
