@@ -6,7 +6,7 @@ import ModelInformation from "src/components/ModelInformation";
 import { ModelProvider } from "src/lib/contexts";
 import { MemoizedViewGLCanvas } from "../components/model-viewer/ModelViewer";
 import ThreeJSViewGL from "../components/model-viewer/viewGL";
-import ModelSelector from "../components/ModelSelector/ModelSelector";
+import ModelSelector from "../components/ModelSelector";
 import Settings from "../components/Settings";
 
 export default function HomePage() {

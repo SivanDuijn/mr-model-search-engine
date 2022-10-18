@@ -77,7 +77,7 @@ export default function ModelSelector(props: ModelSelectorProps) {
                             </option>
                         ))}
                     </select>
-                    <select
+                    {/* <select
                         className="ml-3 min-w-[7rem]"
                         onChange={(e) => {
                             const file = e.currentTarget.value;
@@ -92,8 +92,9 @@ export default function ModelSelector(props: ModelSelectorProps) {
                                 {file}
                             </option>
                         ))}
-                    </select>
-                    <div className="flex flex-row">
+                    </select> */}
+                    <div className="flex flex-row ml-4">
+                        <p>Processed:</p>
                         <input
                             id="preprocessed"
                             title="preprocessed"
@@ -109,6 +110,33 @@ export default function ModelSelector(props: ModelSelectorProps) {
                             }}
                         />
                     </div>
+                </div>
+                <div className={clsx("flex", "flex-wrap", "mt-2")}>
+                    {subgroupfiles.map((file) => (
+                        <div
+                            key={file}
+                            className={clsx(
+                                "w-10",
+                                "pt-[3px]",
+                                "pb-[2px]",
+                                // "px-[3px]",
+                                "m-1",
+                                "text-white",
+                                "text-center",
+                                "text-sm",
+                                model.name === file
+                                    ? "bg-slate-500"
+                                    : "bg-slate-700 hover:bg-slate-500",
+                                "hover:cursor-pointer",
+                            )}
+                            onClick={() => {
+                                if (subgroup !== undefined && file !== undefined)
+                                    changeModel({ ...model, name: file, file: undefined });
+                            }}
+                        >
+                            {file.split(".")[0]}
+                        </div>
+                    ))}
                 </div>
             </div>
         </div>
