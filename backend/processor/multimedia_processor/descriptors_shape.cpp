@@ -107,7 +107,7 @@ namespace descriptors
 
         // Bin the result
         // Use cube root to normalize
-        return bin(volume.cwiseSqrt().cwiseSqrt(), bins);
+        return bin(volume.unaryExpr([](float v) -> float { return cbrtf(v); }), bins);
     }
 
     ShapeDescriptors get_shape_descriptors(pmp::SurfaceMesh &mesh, int bins)

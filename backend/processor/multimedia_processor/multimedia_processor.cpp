@@ -143,8 +143,8 @@ void extract(const string database, const string in)
 	pmp::SurfaceMesh mesh = database::read_mesh(database, in);
 
 	// Extract features
-	auto globalDescriptors = descriptors::get_global_descriptors(mesh);
-	auto shapeDescriptors  = descriptors::get_shape_descriptors(mesh, 10);
+	auto gd = descriptors::get_global_descriptors(mesh);
+	auto sd  = descriptors::get_shape_descriptors(mesh, 10);
 
 	// Write the descriptors to json
 	// TODO maybe move to a seperate function
@@ -153,17 +153,19 @@ void extract(const string database, const string in)
 	if (!ifs.fail())
 		jsonDescriptors = nlohmann::json::parse(ifs);
 	jsonDescriptors[in] = {
-		{"area", globalDescriptors.surfaceArea}, 
-		{"AABBVolume", globalDescriptors.AABBVolume},
-		{"volume", globalDescriptors.volume},
-		{"compactness", globalDescriptors.compactness},
-		{"eccentricity", globalDescriptors.eccentricity},
-		{"diameter", globalDescriptors.diameter},
-		{"A3", shapeDescriptors.A3.bins.array()},
-		{"D1", shapeDescriptors.D1.bins.array()},
-		{"D2", shapeDescriptors.D2.bins.array()},
-		{"D3", shapeDescriptors.D3.bins.array()},
-		{"D4", shapeDescriptors.D4.bins.array()}
+		{"area", gd.surfaceArea}, 
+		{"AABBVolume", gd.AABBVolume},
+		{"volume", gd.volume},
+		{"compactness", gd.compactness},
+		{"eccentricity", gd.eccentricity},
+		{"diameter", gd.diameter},
+		{"sphericity", gd.sphericity},
+		{"rectangularity", gd.rectangularity},
+		{"A3", sd.A3.bins.array()},
+		{"D1", sd.D1.bins.array()},
+		{"D2", sd.D2.bins.array()},
+		{"D3", sd.D3.bins.array()},
+		{"D4", sd.D4.bins.array()}
 	};
 	ofstream ofs(vars::GetAssetPath(database + "/featureDescriptors.json"));
 	ofs << jsonDescriptors << endl; // TODO: removing setw(4) might improve filesize

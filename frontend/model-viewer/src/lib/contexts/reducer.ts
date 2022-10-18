@@ -25,6 +25,8 @@ export interface ModelState {
         compactness: number;
         eccentricity: number;
         diameter: number;
+        sphericity: number;
+        rectangularity: number;
         A3: number[];
         D1: number[];
         D2: number[];

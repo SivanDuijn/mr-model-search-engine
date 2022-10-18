@@ -10,6 +10,8 @@ namespace descriptors
         float volume;
         float diameter;
         float eccentricity;
+        float sphericity;
+        float rectangularity;
     };
 
     float surface_area(pmp::SurfaceMesh &mesh);

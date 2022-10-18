@@ -27,6 +27,8 @@ export default function ModelDescriptors(props: Props) {
             value: Number(descriptors?.diameter.toFixed(5)),
             tip: "Largest distance between any two surface points",
         },
+        { label: "Sphericity", value: Number(descriptors?.sphericity.toFixed(5)) },
+        { label: "Rectangularity", value: Number(descriptors?.rectangularity.toFixed(5)) },
     ];
 
     return (

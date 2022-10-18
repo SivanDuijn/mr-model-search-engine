@@ -126,9 +126,13 @@ namespace descriptors
             aabb_volume(mesh),
             volume(mesh),
             diameter(mesh),
-            eccentricity(mesh)
+            eccentricity(mesh),
+            0.0f,
+            0.0f
         };
         gd.compactness = compactness(gd.surfaceArea, gd.volume);
+        gd.sphericity = 1 / gd.compactness;
+		gd.rectangularity = gd.volume / gd.AABBVolume;
         return gd;
     }
 }
