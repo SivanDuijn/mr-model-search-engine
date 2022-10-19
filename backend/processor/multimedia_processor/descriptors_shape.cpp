@@ -40,21 +40,30 @@ namespace descriptors
     // Angle between edges of random vertices
     Eigen::VectorXf A3(pmp::SurfaceMesh &mesh)
     {
+        printf_debug("Calculating A3...");
         // Get the vertices as an Eigen map
         VertexMap map = utils::GetVertexMap(mesh);
 
         // Get all the angles between random triangles
-        VertexMat edge1 = utils::RandomVertices(map) - map;
-        VertexMat edge2 = utils::RandomVertices(map) - map;
-        Eigen::VectorXf angle = edge1.cwiseProduct(edge2).colwise().sum().array().acos();
+        VertexMat nedge1 = (utils::RandomVertices(map) - map).colwise().normalized();
+        VertexMat nedge2 = (utils::RandomVertices(map) - map).colwise().normalized();
+        Eigen::VectorXf angle = nedge1.cwiseProduct(nedge2).colwise().sum().array().acos();
+        //cout<<'\n'<<nedge1<<endl;
+        //cout<<'\n'<<nedge2<<endl;
+        //cout<<'\n'<<nedge1.cwiseProduct(nedge2)<<endl;
+        //cout<<'\n'<<nedge1.cwiseProduct(nedge2).colwise().sum()<<endl;
+        //cout<<'\n'<<nedge1.cwiseProduct(nedge2).colwise().sum().array()<<endl;
+        //cout<<'\n'<<nedge1.cwiseProduct(nedge2).colwise().sum().array().acos()<<endl;
 
         // Bin the result
+        printf_debug("           done\n");
         return angle;
     }
 
     // Distance from random vertices to barycenter
     Eigen::VectorXf D1(pmp::SurfaceMesh &mesh)
     {
+        printf_debug("Calculating D1...");
         // Get the vertices as an Eigen map
         VertexMap map = utils::GetVertexMap(mesh);
 
@@ -63,12 +72,14 @@ namespace descriptors
         Eigen::VectorXf dist = (map.colwise() - bcenter).colwise().norm();
 
         // Bin the result
+        printf_debug("           done\n");
         return dist;
     }
 
     // Distance from random vertices to each other
     Eigen::VectorXf D2(pmp::SurfaceMesh &mesh)
     {
+        printf_debug("Calculating D2...");
         // Get the vertices as an Eigen map
         VertexMap map = utils::GetVertexMap(mesh);
 
@@ -77,12 +88,14 @@ namespace descriptors
         Eigen::VectorXf dist = (map - vert).colwise().norm();
 
         // Bin the result
+        printf_debug("           done\n");
         return dist;
     }
 
     // Surface area of triangle from random vertices
     Eigen::VectorXf D3(pmp::SurfaceMesh &mesh)
     {
+        printf_debug("Calculating D3...");
         // Get the vertices as an Eigen map
         VertexMap map = utils::GetVertexMap(mesh);
 
@@ -101,6 +114,7 @@ namespace descriptors
 
         // Bin the result
         // Use square root to normalize
+        printf_debug("           done\n");
         return area.cwiseSqrt();
     }
 
@@ -108,6 +122,7 @@ namespace descriptors
     // Volume of tetrahedron from random vertices
     Eigen::VectorXf D4(pmp::SurfaceMesh &mesh)
     {
+        printf_debug("Calculating D4...");
         // Get the vertices as an Eigen map
         VertexMap map = utils::GetVertexMap(mesh);
 
@@ -127,6 +142,7 @@ namespace descriptors
 
         // Bin the result
         // Use cube root to normalize
+        printf_debug("           done\n");
         return volume.unaryExpr([](float v) -> float { return cbrtf(v); });
     }
 
@@ -151,11 +167,11 @@ namespace descriptors
             vector<Eigen::VectorXf> v;
         };
 
-        RawShapeDescriptors A3Desc = { __FLT_MAX__, __FLT_MIN__, vector<Eigen::VectorXf>() };
-        RawShapeDescriptors D1Desc = { __FLT_MAX__, __FLT_MIN__, vector<Eigen::VectorXf>() };
-        RawShapeDescriptors D2Desc = { __FLT_MAX__, __FLT_MIN__, vector<Eigen::VectorXf>() };
-        RawShapeDescriptors D3Desc = { __FLT_MAX__, __FLT_MIN__, vector<Eigen::VectorXf>() };
-        RawShapeDescriptors D4Desc = { __FLT_MAX__, __FLT_MIN__, vector<Eigen::VectorXf>() };
+        RawShapeDescriptors A3Desc = { FLT_MAX, FLT_MIN, vector<Eigen::VectorXf>() };
+        RawShapeDescriptors D1Desc = { FLT_MAX, FLT_MIN, vector<Eigen::VectorXf>() };
+        RawShapeDescriptors D2Desc = { FLT_MAX, FLT_MIN, vector<Eigen::VectorXf>() };
+        RawShapeDescriptors D3Desc = { FLT_MAX, FLT_MIN, vector<Eigen::VectorXf>() };
+        RawShapeDescriptors D4Desc = { FLT_MAX, FLT_MIN, vector<Eigen::VectorXf>() };
         for (string file : filenames)
         {
             pmp::SurfaceMesh mesh = database::read_mesh(database, file);

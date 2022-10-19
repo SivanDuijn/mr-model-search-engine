@@ -105,7 +105,9 @@ void extractAll(const string database)
 	// Extract features
 	vector<descriptors::GlobalDescriptors> gds;
 	vector<descriptors::ShapeDescriptors> sds;
+	printf_debug("Getting global descriptors\n");
 	descriptors::get_global_descriptors(database, filenames, gds);
+	printf_debug("Getting shape descriptors\n");
 	descriptors::get_shape_descriptors(database, filenames, sds, 10);
 
 	ifstream ifs(vars::GetAssetPath(database + "/featureDescriptors.json"));
@@ -139,6 +141,8 @@ void extract(const string database, const string in)
 	pmp::SurfaceMesh mesh = database::read_mesh(database, in);
 
 	// Extract features
+	printf_debug("Getting global descriptors\n");
 	descriptors::get_global_descriptors(mesh);
+	printf_debug("Getting shape descriptors\n");
 	descriptors::get_shape_descriptors(mesh, 10);
 }

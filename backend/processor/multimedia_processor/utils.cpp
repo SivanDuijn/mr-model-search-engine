@@ -20,11 +20,16 @@ namespace utils
         return RandomUInt() & (VERTEX_COUNT - 1);
     }
     // Get an array of random vertices from a resampled mesh
+    // No vertex will remain in place
     VertexMat RandomVertices(VertexMap &verts)
     {
         VertexMat ret = VertexMat();
-        for (size_t i = 0; i < VERTEX_COUNT; i++)
-            ret.col(i) = verts.col(utils::RandomVertexIndex());
+        for (size_t i = 0, j; i < VERTEX_COUNT; i++)
+        {
+            do j = utils::RandomVertexIndex();
+            while (j == i);
+            ret.col(i) = verts.col(j);
+        }
         return ret;
     }
 

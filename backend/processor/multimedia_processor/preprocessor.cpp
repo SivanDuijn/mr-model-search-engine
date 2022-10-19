@@ -49,8 +49,6 @@ namespace preprocessor
         // Store vertices and faces after resampling
         afterStats.nVertices = mesh.n_vertices();
         afterStats.nFaces = mesh.n_faces();
-
-        printf_debug("Done\n");
     }
 
     // Normalize a mesh according to 4 steps:
@@ -163,7 +161,5 @@ namespace preprocessor
             }
             mesh = flippedMesh;
         }
-        
-        printf_debug("Done\n");
     }
 }
