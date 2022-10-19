@@ -92,9 +92,8 @@ void preprocess(const string database, const string in, const string out)
 
 void extractAll(const string database)
 {
-	vector<string> fns = database::get_filenames(database);
 	vector<string> filenames;
-	for (string file : fns)
+	for (string file : database::get_filenames(database))
 	{
 		size_t pos = file.find('.');
 		string name = file.substr(0, pos);

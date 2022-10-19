@@ -143,7 +143,7 @@ namespace descriptors
         };
     }
 
-    void get_shape_descriptors(string database, vector<string>& filenames, vector<ShapeDescriptors> &descriptors, int nBins)
+    void get_shape_descriptors(string database, vector<string> &filenames, vector<ShapeDescriptors> &descriptors, int nBins)
     {    
         struct RawShapeDescriptors
         {
