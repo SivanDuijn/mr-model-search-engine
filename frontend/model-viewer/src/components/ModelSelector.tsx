@@ -77,22 +77,6 @@ export default function ModelSelector(props: ModelSelectorProps) {
                             </option>
                         ))}
                     </select>
-                    {/* <select
-                        className="ml-3 min-w-[7rem]"
-                        onChange={(e) => {
-                            const file = e.currentTarget.value;
-                            if (subgroup !== undefined && file !== undefined)
-                                changeModel({ ...model, name: file, file: undefined });
-                        }}
-                        value={model.name ?? ""}
-                    >
-                        <option value=""></option>
-                        {subgroupfiles.map((file) => (
-                            <option key={file} value={file}>
-                                {file}
-                            </option>
-                        ))}
-                    </select> */}
                     <div className="flex flex-row ml-4">
                         <p>Processed:</p>
                         <input
@@ -116,7 +100,7 @@ export default function ModelSelector(props: ModelSelectorProps) {
                         <div
                             key={file}
                             className={clsx(
-                                "w-10",
+                                "min-w-[2.5rem]",
                                 "pt-[3px]",
                                 "pb-[2px]",
                                 "m-1",
