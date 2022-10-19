@@ -119,7 +119,6 @@ export default function ModelSelector(props: ModelSelectorProps) {
                                 "w-10",
                                 "pt-[3px]",
                                 "pb-[2px]",
-                                // "px-[3px]",
                                 "m-1",
                                 "text-white",
                                 "text-center",

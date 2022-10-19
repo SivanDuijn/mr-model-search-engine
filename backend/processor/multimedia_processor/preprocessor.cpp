@@ -88,14 +88,14 @@ namespace preprocessor
         Eigen::Vector3f minor = get<2>(eigenVs);
         // Create the inverse rotation matrix by transposing the eigenvectors to it
         Eigen::Matrix3f rot {
-            {major(0), major(1), major(2)},
             {middl(0), middl(1), middl(2)},
+            {major(0), major(1), major(2)},
             {minor(0), minor(1), minor(2)},
         };
 
         // Store rotation before rotating
-        beforeStats.angleX = pmp::angle(major, pmp::Point(1,0,0));
-        beforeStats.angleY = pmp::angle(middl, pmp::Point(0,1,0));
+        beforeStats.angleX = pmp::angle(middl, pmp::Point(1,0,0));
+        beforeStats.angleY = pmp::angle(major, pmp::Point(0,1,0));
         beforeStats.angleZ = pmp::angle(minor, pmp::Point(0,0,1));
         beforeStats.totalAngle = beforeStats.angleX + beforeStats.angleY + beforeStats.angleZ;
 
@@ -106,8 +106,8 @@ namespace preprocessor
         // Store rotation after rotating
         cov = (map * map.adjoint()) / float(map.cols() - 1);
         eigenVs = eigen_vectors::GetMajorMinorEigenVectors(cov);
-        afterStats.angleX = pmp::angle(get<0>(eigenVs), pmp::Point(1,0,0));
-        afterStats.angleY = pmp::angle(get<1>(eigenVs), pmp::Point(0,1,0));
+        afterStats.angleX = pmp::angle(get<0>(eigenVs), pmp::Point(0,1,0));
+        afterStats.angleY = pmp::angle(get<1>(eigenVs), pmp::Point(1,0,0));
         afterStats.angleZ = pmp::angle(get<2>(eigenVs), pmp::Point(0,0,1));
         afterStats.totalAngle = afterStats.angleX + afterStats.angleY + afterStats.angleZ;
 
@@ -148,7 +148,7 @@ namespace preprocessor
         // If the mesh was flipped once or thrice we need to invert the normals
         // TODO optimize (in place?)
         int flipSum = flip.sum();
-        if (flipSum == 1 || flipSum == -3)
+        if (!(flipSum == 1 || flipSum == -3))
         {
             pmp::SurfaceMesh flippedMesh;
             for (auto v : mesh.vertices())

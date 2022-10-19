@@ -24,6 +24,9 @@ export default function Histogram(props: HistogramProps) {
             axisTicks: { show: false },
             title: { text: props.title, offsetY: -10 },
         },
+        yaxis: {
+            decimalsInFloat: 2,
+        },
         tooltip: { enabled: false },
         grid: { borderColor: "grey" },
         chart: {

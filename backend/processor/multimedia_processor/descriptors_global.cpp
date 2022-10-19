@@ -135,4 +135,28 @@ namespace descriptors
 		gd.rectangularity = gd.volume / gd.AABBVolume;
         return gd;
     }
+    void get_global_descriptors(string database, vector<string>& filenames, vector<GlobalDescriptors> &descriptors)
+    {
+        for (string file : filenames)
+        {
+            pmp::SurfaceMesh mesh = database::read_mesh(database, file);
+
+            GlobalDescriptors gd =
+            {
+                surface_area(mesh),
+                0.0f,
+                aabb_volume(mesh),
+                volume(mesh),
+                diameter(mesh),
+                eccentricity(mesh),
+                0.0f,
+                0.0f
+            };
+            gd.compactness = compactness(gd.surfaceArea, gd.volume);
+            gd.sphericity = 1 / gd.compactness;
+            gd.rectangularity = gd.volume / gd.AABBVolume;
+
+            descriptors.push_back(gd);
+        }
+    }
 }

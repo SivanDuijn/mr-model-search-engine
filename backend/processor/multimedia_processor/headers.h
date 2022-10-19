@@ -17,6 +17,7 @@
 #include "../lib/libgdiam/gdiam.hpp"
 
 #include "utils.h"
+#include "database.h"
 #include "eigen_vectors.h"
 #include "model_statistics.h"
 #include "descriptors_global.h"

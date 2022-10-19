@@ -6,7 +6,7 @@ namespace descriptors
     // Bins range from [ min+binsize*bin, min+binsize*(bin+1) )
     struct Histogram
     {
-        Eigen::VectorXi bins;
+        Eigen::VectorXf bins;
         float min, binsize;
     };
 
@@ -15,11 +15,15 @@ namespace descriptors
         Histogram A3, D1, D2, D3, D4;
     };
 
-    Histogram A3(pmp::SurfaceMesh &mesh, int bins);
-    Histogram D1(pmp::SurfaceMesh &mesh, int bins);
-    Histogram D2(pmp::SurfaceMesh &mesh, int bins);
-    Histogram D3(pmp::SurfaceMesh &mesh, int bins);
-    Histogram D4(pmp::SurfaceMesh &mesh, int bins);
+    Eigen::VectorXf A3(pmp::SurfaceMesh &mesh);
+    Eigen::VectorXf D1(pmp::SurfaceMesh &mesh);
+    Eigen::VectorXf D2(pmp::SurfaceMesh &mesh);
+    Eigen::VectorXf D3(pmp::SurfaceMesh &mesh);
+    Eigen::VectorXf D4(pmp::SurfaceMesh &mesh);
 
-    ShapeDescriptors get_shape_descriptors(pmp::SurfaceMesh &mesh, int bins);
+    // Gets the non normalized histogram shape descriptors for one mesh
+    ShapeDescriptors get_shape_descriptors(pmp::SurfaceMesh &mesh, int nBins);
+
+    // Gets the normalized histogram, where min max is used over the all the files
+    void get_shape_descriptors(std::string database, std::vector<std::string>& filenames, std::vector<ShapeDescriptors> &descriptors, int nBins);
 }

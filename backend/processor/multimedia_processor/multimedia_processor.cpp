@@ -1,38 +1,5 @@
 ﻿#include "headers.h"
 
-// TODO move to seperate file
-// I hate header files :(
-namespace database 
-{
-    // Read a mesh from a database
-    pmp::SurfaceMesh read_mesh(const string database, const string file)
-    {
-	    printf_debug("Loading mesh \"%s\" from %s\n", file.c_str(), database.c_str());
-	    pmp::SurfaceMesh mesh;
-	    mesh.read(vars::GetAssetPath(database + "/models/" + file));
-        return mesh;
-    }
-
-    // Write a mesh to a database
-    void write_mesh(pmp::SurfaceMesh &mesh, const string database, const string file)
-    {
-	    printf_debug("Writing mesh \"%s\" to disk\n", file.c_str());
-	    mesh.write(vars::GetAssetPath(database + "/models/" + file));
-    }
-
-	vector<string> get_filenames(const string database)
-    {
-		vector<string> filenames = vector<string>();
-        // Read filenames
-        ifstream ifs(vars::GetAssetPath(database + "/files.json"));
-        nlohmann::json files = nlohmann::json::parse(ifs);
-        for (nlohmann::json::iterator it = files.begin(); it != files.end(); ++it) 
-            for (nlohmann::json::iterator it2 = it.value().begin(); it2 != it.value().end(); ++it2) 
-                filenames.push_back(*it2);
-		return filenames;
-    }
-}
-
 int main(int argc, char *argv[])
 {
 	// try to get databasename, in and out filenames
@@ -125,16 +92,46 @@ void preprocess(const string database, const string in, const string out)
 
 void extractAll(const string database)
 {
-	vector<string> filenames = database::get_filenames(database);
-	// Extract feature descriptors for every file in the database
-	for (string file : filenames)
+	vector<string> fns = database::get_filenames(database);
+	vector<string> filenames;
+	for (string file : fns)
 	{
 		size_t pos = file.find('.');
 		string name = file.substr(0, pos);
 		string ext = file.substr(pos + 1);
-		// Calculate feature for all the processed models
-		extract(database, name + "_processed." + ext);
+		// Calculate descriptors for all the processed models
+		filenames.push_back(name + "_processed." + ext);
 	}
+
+	// Extract features
+	vector<descriptors::GlobalDescriptors> gds;
+	vector<descriptors::ShapeDescriptors> sds;
+	descriptors::get_global_descriptors(database, filenames, gds);
+	descriptors::get_shape_descriptors(database, filenames, sds, 10);
+
+	ifstream ifs(vars::GetAssetPath(database + "/featureDescriptors.json"));
+	nlohmann::json jsonDescriptors;
+	if (!ifs.fail())
+		jsonDescriptors = nlohmann::json::parse(ifs);
+	for (size_t i = 0, nFiles = filenames.size(); i < nFiles; i++)
+		jsonDescriptors[filenames[i]] = {
+			{"area", gds[i].surfaceArea}, 
+			{"AABBVolume", gds[i].AABBVolume},
+			{"volume", gds[i].volume},
+			{"compactness", gds[i].compactness},
+			{"eccentricity", gds[i].eccentricity},
+			{"diameter", gds[i].diameter},
+			{"sphericity", gds[i].sphericity},
+			{"rectangularity", gds[i].rectangularity},
+			{"A3", sds[i].A3.bins.array()},
+			{"D1", sds[i].D1.bins.array()},
+			{"D2", sds[i].D2.bins.array()},
+			{"D3", sds[i].D3.bins.array()},
+			{"D4", sds[i].D4.bins.array()}
+		};
+	ofstream ofs(vars::GetAssetPath(database + "/featureDescriptors.json"));
+	ofs << jsonDescriptors << endl; // TODO: removing setw(4) might improve filesize
+	ofs.close();
 }
 
 void extract(const string database, const string in)
@@ -143,31 +140,6 @@ void extract(const string database, const string in)
 	pmp::SurfaceMesh mesh = database::read_mesh(database, in);
 
 	// Extract features
-	auto gd = descriptors::get_global_descriptors(mesh);
-	auto sd  = descriptors::get_shape_descriptors(mesh, 10);
-
-	// Write the descriptors to json
-	// TODO maybe move to a seperate function
-	ifstream ifs(vars::GetAssetPath(database + "/featureDescriptors.json"));
-	nlohmann::json jsonDescriptors;
-	if (!ifs.fail())
-		jsonDescriptors = nlohmann::json::parse(ifs);
-	jsonDescriptors[in] = {
-		{"area", gd.surfaceArea}, 
-		{"AABBVolume", gd.AABBVolume},
-		{"volume", gd.volume},
-		{"compactness", gd.compactness},
-		{"eccentricity", gd.eccentricity},
-		{"diameter", gd.diameter},
-		{"sphericity", gd.sphericity},
-		{"rectangularity", gd.rectangularity},
-		{"A3", sd.A3.bins.array()},
-		{"D1", sd.D1.bins.array()},
-		{"D2", sd.D2.bins.array()},
-		{"D3", sd.D3.bins.array()},
-		{"D4", sd.D4.bins.array()}
-	};
-	ofstream ofs(vars::GetAssetPath(database + "/featureDescriptors.json"));
-	ofs << jsonDescriptors << endl; // TODO: removing setw(4) might improve filesize
-	ofs.close();
+	descriptors::get_global_descriptors(mesh);
+	descriptors::get_shape_descriptors(mesh, 10);
 }
