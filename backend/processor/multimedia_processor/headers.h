@@ -19,6 +19,10 @@
 // Must be a power of 2!
 #define VERTEX_COUNT 2048
 
+#define FLT_EPSILON 1.19209290E-07F
+#define FLT_MIN -3.40282e+038
+#define FLT_MAX 3.40282e+038
+
 typedef Eigen::Vector3f                       Vertex;
 typedef Eigen::Matrix<float, 3, VERTEX_COUNT> VertexMat;
 typedef Eigen::Map<VertexMat>                 VertexMap;
