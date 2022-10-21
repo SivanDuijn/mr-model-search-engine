@@ -34,10 +34,47 @@ namespace preprocessor
             div.loop();
             printf_debug(" to %zu vertices\n", mesh.n_vertices());
         }
-        if (mesh.n_vertices() > VERTEX_COUNT)
+        if (mesh.n_vertices() != VERTEX_COUNT)
         {
+            float modifier = 0.3;
+            float prevNVertices = 0;
+
+            while (std::abs(int(mesh.n_vertices() - VERTEX_COUNT)) > 100 || mesh.n_vertices() < VERTEX_COUNT) 
+            {
+                // cout << mesh.n_vertices() << endl;
+
+                prevNVertices = mesh.n_vertices();
+
+                float avgEdgeLength = 0;
+                for (auto e : mesh.edges())
+                    avgEdgeLength += mesh.edge_length(e);
+                avgEdgeLength /= mesh.n_edges();
+                // cout << avgEdgeLength << endl;
+
+                float m = 1 + modifier;
+                if (mesh.n_vertices() < VERTEX_COUNT)
+                    m = 1 - modifier;
+
+                pmp::Remeshing remesher(mesh);
+                remesher.uniform_remeshing(avgEdgeLength * m);
+                // cout << avgEdgeLength * m << endl;
+                // cout << mesh.n_vertices() << endl;
+
+                float diff2 = fmin(mesh.n_vertices(), prevNVertices) / fmax(mesh.n_vertices(), prevNVertices);
+                if (diff2 > 0.9)
+                    modifier += 0.05;
+                else 
+                {
+                    float diff = fmin(mesh.n_vertices(), VERTEX_COUNT) / fmax(mesh.n_vertices(), VERTEX_COUNT);
+                    modifier = fmin(0.3f, 1 - diff);
+                }
+                // cout << modifier << endl << endl;
+
+                // cin.get();
+            }
+
             printf_debug("Decimating mesh");
-            pmp::Decimation dec = pmp::Decimation(mesh);
+            pmp::Decimation dec(mesh);
             dec.decimate(VERTEX_COUNT);
             printf_debug(" to %zu vertices\n", mesh.n_vertices());
         }

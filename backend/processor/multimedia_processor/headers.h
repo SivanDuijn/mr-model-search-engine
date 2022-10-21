@@ -7,6 +7,7 @@
 
 #include <Eigen/Dense>
 #include <pmp/algorithms/Decimation.h>
+#include <pmp/algorithms/Remeshing.h>
 #include <pmp/algorithms/DifferentialGeometry.h>
 #include <pmp/algorithms/HoleFilling.h>
 #include <pmp/algorithms/Subdivision.h>
