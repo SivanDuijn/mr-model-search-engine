@@ -67,7 +67,13 @@ export default function ModelSelector(props: ModelSelectorProps) {
                 <p className="mt-5">Select file from database</p>
                 <div className="flex flex-row">
                     <select
-                        onChange={(e) => setSubgroup(e.currentTarget.value)}
+                        onChange={(e) => {
+                            setSubgroup(e.currentTarget.value);
+                            const files = (filenames as unknown as Record<string, string[]>)[
+                                e.currentTarget.value
+                            ];
+                            if (files) changeModel({ ...model, name: files[0], file: undefined });
+                        }}
                         value={subgroup ?? ""}
                     >
                         {!subgroup && <option value=""></option>}

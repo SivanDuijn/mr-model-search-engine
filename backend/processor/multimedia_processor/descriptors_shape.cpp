@@ -12,8 +12,11 @@ namespace descriptors
         // Divide the data
         float min = data.minCoeff(), max = data.maxCoeff() + FLT_EPSILON;
         float binsize = (max - min) / nBins;
-        for (size_t i = 0, size = data.size(); i < size; i++)
+        for (size_t i = 0, size = data.size(); i < size; i++) {
+            int bin = (size_t)((data[i] - min) / binsize);
+            assert(bin < nBins - 1);
             bins[(size_t)((data[i] - min) / binsize)]++;
+        }
 
         return Histogram{ bins, min, binsize };
     }
@@ -48,12 +51,6 @@ namespace descriptors
         VertexMat nedge1 = (utils::RandomVertices(map) - map).colwise().normalized();
         VertexMat nedge2 = (utils::RandomVertices(map) - map).colwise().normalized();
         Eigen::VectorXf angle = nedge1.cwiseProduct(nedge2).colwise().sum().array().acos();
-        //cout<<'\n'<<nedge1<<endl;
-        //cout<<'\n'<<nedge2<<endl;
-        //cout<<'\n'<<nedge1.cwiseProduct(nedge2)<<endl;
-        //cout<<'\n'<<nedge1.cwiseProduct(nedge2).colwise().sum()<<endl;
-        //cout<<'\n'<<nedge1.cwiseProduct(nedge2).colwise().sum().array()<<endl;
-        //cout<<'\n'<<nedge1.cwiseProduct(nedge2).colwise().sum().array().acos()<<endl;
 
         // Bin the result
         printf_debug("           done\n");
@@ -118,7 +115,6 @@ namespace descriptors
         return area.cwiseSqrt();
     }
 
-
     // Volume of tetrahedron from random vertices
     Eigen::VectorXf D4(pmp::SurfaceMesh &mesh)
     {
@@ -161,56 +157,31 @@ namespace descriptors
 
     void get_shape_descriptors(string database, vector<string> &filenames, vector<ShapeDescriptors> &descriptors, int nBins)
     {    
-        struct RawShapeDescriptors
-        {
-            float min, max;
-            vector<Eigen::VectorXf> v;
-        };
+        vector<Eigen::VectorXf> A3Desc;
+        vector<Eigen::VectorXf> D1Desc;
+        vector<Eigen::VectorXf> D2Desc;
+        vector<Eigen::VectorXf> D3Desc;
+        vector<Eigen::VectorXf> D4Desc;
+        float A3Max = M_PI;
+        float D1Max = 0.86602540378; // sqrt(0.5^2 + 0.5^2 + 0.5^2)
+        float D2Max = 1.73205080757; // sqrt(3)
+        float D3Max = 0.84089641525; // sqrt(sqrt(2)*1*0.5)
+        float D4Max = 0.693361274; // max volume of tetrahedron in unit cube, (0,0,0) (1,1,0) (1,0,1) (0,1,1)
+        float A3Binsize = (A3Max + FLT_EPSILON) / nBins;
+        float D1Binsize = (D1Max + FLT_EPSILON) / nBins;
+        float D2Binsize = (D2Max + FLT_EPSILON) / nBins;
+        float D3Binsize = (D3Max + FLT_EPSILON) / nBins;
+        float D4Binsize = (D4Max + FLT_EPSILON) / nBins;
 
-        RawShapeDescriptors A3Desc = { FLT_MAX, FLT_MIN, vector<Eigen::VectorXf>() };
-        RawShapeDescriptors D1Desc = { FLT_MAX, FLT_MIN, vector<Eigen::VectorXf>() };
-        RawShapeDescriptors D2Desc = { FLT_MAX, FLT_MIN, vector<Eigen::VectorXf>() };
-        RawShapeDescriptors D3Desc = { FLT_MAX, FLT_MIN, vector<Eigen::VectorXf>() };
-        RawShapeDescriptors D4Desc = { FLT_MAX, FLT_MIN, vector<Eigen::VectorXf>() };
         for (string file : filenames)
         {
             pmp::SurfaceMesh mesh = database::read_mesh(database, file);
-
-            auto v = A3(mesh);
-            A3Desc.min = min(A3Desc.min, v.minCoeff());
-            A3Desc.max = max(A3Desc.max, v.maxCoeff());
-            A3Desc.v.push_back(v);
-            v = D1(mesh);
-            D1Desc.min = min(D1Desc.min, v.minCoeff());
-            D1Desc.max = max(D1Desc.max, v.maxCoeff());
-            D1Desc.v.push_back(v);
-            v = D2(mesh);
-            D2Desc.min = min(D2Desc.min, v.minCoeff());
-            D2Desc.max = max(D2Desc.max, v.maxCoeff());
-            D2Desc.v.push_back(v);
-            v = D3(mesh);
-            D3Desc.min = min(D3Desc.min, v.minCoeff());
-            D3Desc.max = max(D3Desc.max, v.maxCoeff());
-            D3Desc.v.push_back(v);
-            v = D4(mesh);
-            D4Desc.min = min(D4Desc.min, v.minCoeff());
-            D4Desc.max = max(D4Desc.max, v.maxCoeff());
-            D4Desc.v.push_back(v);
-        }
-
-        float A3Binsize = (A3Desc.max - A3Desc.min + FLT_EPSILON) / nBins;
-        float D1Binsize = (D1Desc.max - D1Desc.min + FLT_EPSILON) / nBins;
-        float D3Binsize = (D3Desc.max - D3Desc.min + FLT_EPSILON) / nBins;
-        float D2Binsize = (D2Desc.max - D2Desc.min + FLT_EPSILON) / nBins;
-        float D4Binsize = (D4Desc.max - D4Desc.min + FLT_EPSILON) / nBins;
-        for (size_t i = 0, nFiles = filenames.size(); i < nFiles; i++)
-        {
             descriptors.push_back({
-                bin(A3Desc.v[i], nBins, A3Desc.min, A3Binsize),
-                bin(D1Desc.v[i], nBins, D1Desc.min, D1Binsize),
-                bin(D2Desc.v[i], nBins, D2Desc.min, D2Binsize),
-                bin(D3Desc.v[i], nBins, D3Desc.min, D3Binsize),
-                bin(D4Desc.v[i], nBins, D4Desc.min, D4Binsize),
+                bin(A3(mesh), nBins, 0, A3Binsize),
+                bin(D1(mesh), nBins, 0, D1Binsize),
+                bin(D2(mesh), nBins, 0, D2Binsize),
+                bin(D3(mesh), nBins, 0, D3Binsize),
+                bin(D4(mesh), nBins, 0, D4Binsize),
             });
         }
     }
