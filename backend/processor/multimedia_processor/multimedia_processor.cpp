@@ -46,6 +46,9 @@ int main(int argc, char *argv[])
 			extract();
 	}
 
+	else if (!strcmp(argv[1], "compute-fvs") || !strcmp(argv[1], "compute-feature-vectors"))
+		computeFeatureVectors();
+
 	else printf("Unknown argument");
 
 	return 0;
@@ -145,4 +148,58 @@ void extract(const string database, const string in)
 	descriptors::get_global_descriptors(mesh);
 	printf_debug("Getting shape descriptors\n");
 	descriptors::get_shape_descriptors(mesh, 10);
+}
+
+void computeFeatureVectors(const string database)
+{
+	ifstream ifs(vars::GetAssetPath(database + "/featureDescriptors.json"));
+	nlohmann::json json_descriptors = nlohmann::json::parse(ifs);
+
+	// Create vectors for shape descriptors
+	vector<string> shape_descriptor_names{ "A3", "D1", "D2", "D3", "D4" };
+	// Use the first model in the json to determine the binsize for each shape descriptor
+	vector<size_t> shape_descriptor_binsizes;
+	auto firstModel = json_descriptors.begin().value();
+	for (string sd : shape_descriptor_names)
+		shape_descriptor_binsizes.push_back(firstModel[sd].size());
+	// Create a matrix for each shape descriptor where the rows represent the models
+	vector<Eigen::MatrixXf> shape_fvs;
+	for (size_t i = 0; i < shape_descriptor_names.size(); i++)
+		shape_fvs.push_back(Eigen::MatrixXf(json_descriptors.size(), shape_descriptor_binsizes[i]));
+
+	// Create global descriptors matrix
+	vector<string> models;
+	Eigen::MatrixXf global_fvs(json_descriptors.size(), 8);
+
+	size_t i = 0;
+	for (auto it = json_descriptors.begin(); it != json_descriptors.end(); ++it, i++)
+	{
+		models.push_back(it.key());
+		auto descriptors = it.value();
+		global_fvs.row(i) = Eigen::Matrix<float, 8, 1>(
+			descriptors["area"].get<float>(),
+			descriptors["AABBVolume"].get<float>(),
+			descriptors["volume"].get<float>(),
+			descriptors["compactness"].get<float>(),
+			descriptors["eccentricity"].get<float>(),
+			descriptors["diameter"].get<float>(),
+			descriptors["sphericity"].get<float>(),
+			descriptors["rectangularity"].get<float>()
+		);
+
+		for (size_t sdi = 0; sdi < shape_descriptor_names.size(); sdi++) 
+		{
+			auto descriptor = descriptors[shape_descriptor_names[sdi]];
+			size_t sdj = 0;
+			for (auto it2 = descriptor.begin(); it2 != descriptor.end(); ++it2, sdj++)
+				shape_fvs[sdi](i,sdj) = it2.value().get<float>();
+		}
+	}
+
+	// Standardize global descriptors using the standard deviation
+	Eigen::Matrix<float, 1, 8> global_mean = global_fvs.colwise().mean();
+	Eigen::Matrix<float, 1, 8> sd = ((global_fvs.rowwise() - global_mean).array().square().colwise().sum() / (json_descriptors.size() - 1)).sqrt();
+	global_fvs = (global_fvs.rowwise() - global_mean).array().rowwise() / sd.array();
+
+	// Standardize shape descriptors ?
 }
