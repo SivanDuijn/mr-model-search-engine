@@ -250,7 +250,7 @@ void computeFeatureVectors(const string database)
 	json_fvs["shape_dists_mean"] = shape_dists_mean.array();
 	json_fvs["shape_dists_sd"] = shape_dists_sd.array();
 	json_fvs["models"] = json_models;
-	ofstream ofs(vars::GetAssetPath(database + "/featureVector.json"));
+	ofstream ofs(vars::GetAssetPath(database + "/feature_vectors.json"));
 	ofs << setw(4) << json_fvs << endl; // TODO: removing setw(4) might improve filesize
 	ofs.close();
 }
