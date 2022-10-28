@@ -208,8 +208,8 @@ void computeFeatureVectors(const string database)
 	// Calculate mean and SD of shape descriptor distance
 	Eigen::MatrixXf shape_dists(shape_descriptor_names.size(), (n_models*(n_models - 1)) / 2); // shape descriptor distances, row for each shape descriptor
 	for (size_t sdi = 0, n_fvs = shape_fvs.size(); sdi < n_fvs; sdi++) 
-		for (int i = 0, n_rows = shape_fvs[sdi].rows(), d_i = 0; i < n_rows; i++) 
-			for (int j = i + 1; j < n_rows; j++, d_i++)
+		for (int i = 0, d_i = 0; i < n_models; i++) 
+			for (int j = i + 1; j < n_models; j++, d_i++)
 			{
 				// sdi is the shape descriptor index, A3 D1 D2 ...
 				// i j loop through all the models but i != j and j > i, so we don't have duplicate distances
@@ -227,7 +227,7 @@ void computeFeatureVectors(const string database)
 	
 	auto shape_dists_mean = shape_dists.rowwise().mean();
 	auto shape_dists_sd = ((shape_dists.colwise() - shape_dists_mean).array().square().rowwise().sum() / (shape_dists.cols() - 1)).sqrt();
-	// auto standardized_shape_dists = (shape_dists.colwise() - shape_dists_mean).array().colwise() / shape_dists_sd.array();
+	auto standardized_shape_dists = (shape_dists.colwise() - shape_dists_mean).array().colwise() / shape_dists_sd.array();
 	cout << shape_dists_mean.transpose() << endl;
 	cout << shape_dists_sd.transpose() << endl;
 
@@ -253,4 +253,37 @@ void computeFeatureVectors(const string database)
 	ofstream ofs(vars::GetAssetPath(database + "/feature_vectors.json"));
 	ofs << setw(4) << json_fvs << endl; // TODO: removing setw(4) might improve filesize
 	ofs.close();
-}
+
+	// Calculate distance matrix
+	vector<float> dists((n_models*(n_models - 1)) / 2);
+	for (int i = 0, d_i = 0; i < n_models; i++) 
+	{
+		printf("%i of %i\n", i, n_models);
+		for (int j = i + 1; j < n_models; j++, d_i++)
+		{
+			float global_dist_2 = (standardized_global_fvs.row(i) - standardized_global_fvs.row(j)).array().square().sum();
+			dists[d_i] = sqrtf(global_dist_2 + standardized_shape_dists.col(d_i).square().sum());
+		}
+	}
+	
+	nlohmann::json json_dists = dists;
+	ofs = ofstream(vars::GetAssetPath(database + "/dist_matrix.json"));
+	ofs << json_dists << endl; // TODO: removing setw(4) might improve filesize
+	ofs.close();
+
+	// Give top n models for model x
+	// string x = "125_processed.off"
+	// // get index of model
+	// int m_i = 0;
+	// for (; m_i < n_models; m_i++)
+	// 	if (models[m_i] == x)
+	// 		break;
+	// int d_i = (m_i*(m_i-1)) / 2;
+	// vector<float> q_dists(n_models); 
+	// int i = 0;
+	// for (; i < m_i; i++, d_i++)
+	// 	q_dists[i] = dists[d_i]; 
+
+	// i++;
+	// for (; m_i < n_models; m_i++, d_i += m_i)
+}	
