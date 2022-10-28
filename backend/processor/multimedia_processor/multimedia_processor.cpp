@@ -154,6 +154,7 @@ void computeFeatureVectors(const string database)
 {
 	ifstream ifs(vars::GetAssetPath(database + "/featureDescriptors.json"));
 	nlohmann::json json_descriptors = nlohmann::json::parse(ifs);
+	int n_models = json_descriptors.size();
 
 	// Create vectors for shape descriptors
 	vector<string> shape_descriptor_names{ "A3", "D1", "D2", "D3", "D4" };
@@ -165,11 +166,11 @@ void computeFeatureVectors(const string database)
 	// Create a matrix for each shape descriptor where the rows represent the models
 	vector<Eigen::MatrixXf> shape_fvs;
 	for (size_t i = 0; i < shape_descriptor_names.size(); i++)
-		shape_fvs.push_back(Eigen::MatrixXf(json_descriptors.size(), shape_descriptor_binsizes[i]));
+		shape_fvs.push_back(Eigen::MatrixXf(n_models, shape_descriptor_binsizes[i]));
 
 	// Create global descriptors matrix
 	vector<string> models;
-	Eigen::MatrixXf global_fvs(json_descriptors.size(), 8);
+	Eigen::MatrixXf global_fvs(n_models, 8);
 
 	size_t i = 0;
 	for (auto it = json_descriptors.begin(); it != json_descriptors.end(); ++it, i++)
@@ -198,8 +199,47 @@ void computeFeatureVectors(const string database)
 
 	// Standardize global descriptors using the standard deviation
 	Eigen::Matrix<float, 1, 8> global_mean = global_fvs.colwise().mean();
-	Eigen::Matrix<float, 1, 8> sd = ((global_fvs.rowwise() - global_mean).array().square().colwise().sum() / (json_descriptors.size() - 1)).sqrt();
-	global_fvs = (global_fvs.rowwise() - global_mean).array().rowwise() / sd.array();
+	Eigen::Matrix<float, 1, 8> global_sd = ((global_fvs.rowwise() - global_mean).array().square().colwise().sum() / (n_models - 1)).sqrt();
+	auto standardized_global_fvs = (global_fvs.rowwise() - global_mean).array().rowwise() / global_sd.array();
 
-	// Standardize shape descriptors ?
+	cout << global_mean << endl;
+	cout << global_sd << endl;
+
+	// Calculate mean and SD of shape descriptor distance
+	Eigen::MatrixXf shape_dists(shape_descriptor_names.size(), (n_models*(n_models - 1)) / 2); // shape descriptor distances, row for each shape descriptor
+	for (size_t sdi = 0, n_fvs = shape_fvs.size(); sdi < n_fvs; sdi++) 
+		for (int i = 0, n_rows = shape_fvs[sdi].rows(), d_i = 0; i < n_rows; i++) 
+			for (int j = i + 1; j < n_rows; j++, d_i++)
+			{
+				// sdi is the shape descriptor index, A3 D1 D2 ...
+				// i j loop through all the models but i != j and j > i, so we don't have duplicate distances
+				// d_i is the distance index, just a counter for the distances
+
+				// Earth Movers Distance
+				auto diff = (shape_fvs[sdi].row(i) - shape_fvs[sdi].row(j)).array();
+				Eigen::ArrayXf cumulative_sum(shape_descriptor_binsizes[sdi], 1);
+
+				partial_sum(diff.begin(), diff.end(), cumulative_sum.begin(), plus<float>());
+				float emd = cumulative_sum.abs().sum();
+
+				shape_dists(sdi, d_i) = emd;
+			}
+	
+	auto shape_dists_mean = shape_dists.rowwise().mean();
+	auto shape_dists_sd = ((shape_dists.colwise() - shape_dists_mean).array().square().rowwise().sum() / (shape_dists.cols() - 1)).sqrt();
+	auto standardized_shape_dists = (shape_dists.colwise() - shape_dists_mean).array().colwise() / shape_dists_sd.array();
+	cout << shape_dists_mean.transpose() << endl;
+	cout << shape_dists_sd.transpose() << endl;
+
+	// Write feature vectors and mean and sd to json
+	// separate global and shape descriptors
+	// nlohmann::json json_fvs;
+	// nlohmann::json json_models;
+	// for (int i = 0; i < n_models; i++)
+	// {
+	// 	json_models[models[i]] = {
+	// 		{"global", standardized_global_fvs.row(i).array()},
+	// 		{"shape", [1,2,3]} // 1 2 3 geen idee haha doei
+	// 	}
+	// }
 }
