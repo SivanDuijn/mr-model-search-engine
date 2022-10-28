@@ -227,19 +227,30 @@ void computeFeatureVectors(const string database)
 	
 	auto shape_dists_mean = shape_dists.rowwise().mean();
 	auto shape_dists_sd = ((shape_dists.colwise() - shape_dists_mean).array().square().rowwise().sum() / (shape_dists.cols() - 1)).sqrt();
-	auto standardized_shape_dists = (shape_dists.colwise() - shape_dists_mean).array().colwise() / shape_dists_sd.array();
+	// auto standardized_shape_dists = (shape_dists.colwise() - shape_dists_mean).array().colwise() / shape_dists_sd.array();
 	cout << shape_dists_mean.transpose() << endl;
 	cout << shape_dists_sd.transpose() << endl;
 
 	// Write feature vectors and mean and sd to json
-	// separate global and shape descriptors
-	// nlohmann::json json_fvs;
-	// nlohmann::json json_models;
-	// for (int i = 0; i < n_models; i++)
-	// {
-	// 	json_models[models[i]] = {
-	// 		{"global", standardized_global_fvs.row(i).array()},
-	// 		{"shape", [1,2,3]} // 1 2 3 geen idee haha doei
-	// 	}
-	// }
+	// separate global descriptors and shape descriptors
+	nlohmann::json json_fvs;
+	nlohmann::json json_models;
+	for (int i = 0; i < n_models; i++)
+	{
+		vector<Eigen::ArrayXf> s;
+		for (auto a : shape_fvs)
+			s.push_back(a.row(i).array());
+		json_models[models[i]] = {
+			{"global", standardized_global_fvs.row(i).array()},
+			{"shape", s}
+		};
+	}
+	json_fvs["global_mean"] = global_mean.array();
+	json_fvs["global_sd"] = global_sd.array();
+	json_fvs["shape_dists_mean"] = shape_dists_mean.array();
+	json_fvs["shape_dists_sd"] = shape_dists_sd.array();
+	json_fvs["models"] = json_models;
+	ofstream ofs(vars::GetAssetPath(database + "/featureVector.json"));
+	ofs << setw(4) << json_fvs << endl; // TODO: removing setw(4) might improve filesize
+	ofs.close();
 }
