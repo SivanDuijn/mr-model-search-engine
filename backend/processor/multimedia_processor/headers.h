@@ -19,9 +19,15 @@
 // Must be a power of 2!
 #define VERTEX_COUNT 2048
 
+#ifndef FLT_EPSILON
 #define FLT_EPSILON 1.19209290E-07F
+#endif
+#ifndef FLT_MIN
 #define FLT_MIN -3.40282e+038
+#endif
+#ifndef FLT_MAX
 #define FLT_MAX 3.40282e+038
+#endif
 
 typedef Eigen::Vector3f                       Vertex;
 typedef Eigen::Matrix<float, 3, VERTEX_COUNT> VertexMat;
@@ -32,7 +38,6 @@ typedef Eigen::Map<VertexMat>                 VertexMap;
 #else
     #define printf_debug 0 && printf
 #endif
-
 
 template<typename Iterator>
 std::vector<size_t> n_smallest_indices(Iterator it, Iterator end, size_t n) {
