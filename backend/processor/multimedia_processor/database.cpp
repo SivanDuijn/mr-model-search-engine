@@ -18,15 +18,27 @@ namespace database
 	    mesh.write(vars::GetAssetPath(database + "/models/" + file));
     }
 
-	vector<string> get_filenames(const string database)
+	vector<string> get_filenames(const string database, const bool processed)
     {
 		vector<string> filenames = vector<string>();
         // Read filenames
         ifstream ifs(vars::GetAssetPath(database + "/files.json"));
         nlohmann::json files = nlohmann::json::parse(ifs);
         for (nlohmann::json::iterator it = files.begin(); it != files.end(); ++it) 
-            for (nlohmann::json::iterator it2 = it.value().begin(); it2 != it.value().end(); ++it2) 
-                filenames.push_back(*it2);
+            for (nlohmann::json::iterator it2 = it.value().begin(); it2 != it.value().end(); ++it2)
+            {
+                string file(*it2);
+                if (processed)
+                {
+                    size_t pos = file.find('.');
+                    string name = file.substr(0, pos);
+                    string ext = file.substr(pos + 1);
+                    // Calculate descriptors for all the processed models
+                    file = name + "_processed." + ext;
+                }
+                
+                filenames.push_back(file);
+            } 
 		return filenames;
     }
 }

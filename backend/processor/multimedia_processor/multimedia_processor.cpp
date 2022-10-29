@@ -27,27 +27,29 @@ int main(int argc, char *argv[])
 	else if (!strcmp(argv[1], "preprocess-all")) preprocessAll();
 
 	else if (!strcmp(argv[1], "preprocess"))  
-	{
 		if (out != "")
 			preprocess(database, in, out);
 		else if (ext != "")
 			preprocess(database, in, inWithoutExt + "_processed." + ext);
 		else 
 			preprocess();
-	}
 
 	else if (!strcmp(argv[1], "extract-all")) extractAll();
 
 	else if (!strcmp(argv[1], "extract"))
-	{
 		if (in != "")
 			extract(database, in);
 		else 
 			extract();
-	}
 
 	else if (!strcmp(argv[1], "compute-fvs") || !strcmp(argv[1], "compute-feature-vectors"))
 		computeFeatureVectors();
+
+	else if (!strcmp(argv[1], "query-model"))
+		if (in != "")
+			queryDatabaseModel(database, in);
+		else
+			queryDatabaseModel();
 
 	else printf("Unknown argument");
 
@@ -95,15 +97,7 @@ void preprocess(const string database, const string in, const string out)
 
 void extractAll(const string database)
 {
-	vector<string> filenames;
-	for (string file : database::get_filenames(database))
-	{
-		size_t pos = file.find('.');
-		string name = file.substr(0, pos);
-		string ext = file.substr(pos + 1);
-		// Calculate descriptors for all the processed models
-		filenames.push_back(name + "_processed." + ext);
-	}
+	vector<string> filenames = database::get_filenames(database, true);
 
 	// Extract features
 	vector<descriptors::GlobalDescriptors> gds;
@@ -152,9 +146,10 @@ void extract(const string database, const string in)
 
 void computeFeatureVectors(const string database)
 {
+	vector<string> filenames = database::get_filenames(database, true);
+	int n_models = filenames.size();
 	ifstream ifs(vars::GetAssetPath(database + "/featureDescriptors.json"));
 	nlohmann::json json_descriptors = nlohmann::json::parse(ifs);
-	int n_models = json_descriptors.size();
 
 	// Create vectors for shape descriptors
 	vector<string> shape_descriptor_names{ "A3", "D1", "D2", "D3", "D4" };
@@ -169,14 +164,12 @@ void computeFeatureVectors(const string database)
 		shape_fvs.push_back(Eigen::MatrixXf(n_models, shape_descriptor_binsizes[i]));
 
 	// Create global descriptors matrix
-	vector<string> models;
 	Eigen::MatrixXf global_fvs(n_models, 8);
 
 	size_t i = 0;
-	for (auto it = json_descriptors.begin(); it != json_descriptors.end(); ++it, i++)
+	for (int i = 0; i < n_models; i++)
 	{
-		models.push_back(it.key());
-		auto descriptors = it.value();
+		auto descriptors = json_descriptors[filenames[i]];
 		global_fvs.row(i) = Eigen::Matrix<float, 8, 1>(
 			descriptors["area"].get<float>(),
 			descriptors["AABBVolume"].get<float>(),
@@ -240,7 +233,7 @@ void computeFeatureVectors(const string database)
 		vector<Eigen::ArrayXf> s;
 		for (auto a : shape_fvs)
 			s.push_back(a.row(i).array());
-		json_models[models[i]] = {
+		json_models[filenames[i]] = {
 			{"global", standardized_global_fvs.row(i).array()},
 			{"shape", s}
 		};
@@ -270,20 +263,47 @@ void computeFeatureVectors(const string database)
 	ofs = ofstream(vars::GetAssetPath(database + "/dist_matrix.json"));
 	ofs << json_dists << endl; // TODO: removing setw(4) might improve filesize
 	ofs.close();
+}	
+
+void queryDatabaseModel(const string database, const string in)
+{
+	vector<string> filenames = database::get_filenames(database, true);
+	int n_models = filenames.size();
+
+	// Read in distance matrix
+	ifstream ifs(vars::GetAssetPath(database + "/dist_matrix.json"));
+	nlohmann::json json_dist_matrix;
+	if (ifs.fail())
+		return;
+	json_dist_matrix = nlohmann::json::parse(ifs);
+	ifs.close();
+
+	vector<float> dists((n_models * (n_models-1)) / 2);
+	int i = 0;
+	for (auto it = json_dist_matrix.begin(); it != json_dist_matrix.end(); ++it, i++) 
+  		dists[i] = *it;
 
 	// Give top n models for model x
-	// string x = "125_processed.off"
-	// // get index of model
-	// int m_i = 0;
-	// for (; m_i < n_models; m_i++)
-	// 	if (models[m_i] == x)
-	// 		break;
-	// int d_i = (m_i*(m_i-1)) / 2;
-	// vector<float> q_dists(n_models); 
-	// int i = 0;
-	// for (; i < m_i; i++, d_i++)
-	// 	q_dists[i] = dists[d_i]; 
+	// get index of model
+	int m_i = 0;
+	for (; m_i < n_models; m_i++)
+		if (filenames[m_i] == in)
+			break;
+	cout << m_i << endl;
+	int d_i = (m_i*(m_i-1)) / 2;
+	vector<float> q_dists(n_models); 
+	i = 0;
+	for (; i < m_i; i++, d_i++)
+		q_dists[i] = dists[d_i]; 
 
-	// i++;
-	// for (; m_i < n_models; m_i++, d_i += m_i)
-}	
+	cout << i << " " << d_i << endl;
+	d_i += m_i;
+	i++;
+	for (; m_i < n_models - 1; m_i++, d_i += m_i, i++)
+		q_dists[i] = dists[d_i];
+
+	auto indices = n_smallest_indices(q_dists.begin(), q_dists.end(), 5);
+
+	for (auto index : indices)
+		cout << index << endl;
+}

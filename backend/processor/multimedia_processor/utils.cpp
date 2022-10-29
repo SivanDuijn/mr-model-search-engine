@@ -40,4 +40,5 @@ namespace utils
         pmp::VertexProperty points = mesh.get_vertex_property<pmp::Point>("v:point");
         return VertexMap((float*)(points.data()), 3, VERTEX_COUNT);
     }
+
 }
