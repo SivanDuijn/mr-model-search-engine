@@ -51,6 +51,12 @@ int main(int argc, char *argv[])
 		else
 			queryDatabaseModel();
 
+	else if (!strcmp(argv[1], "compute-all-closest"))
+		if (database != "")
+			computeClosestModels(database);
+		else
+			computeClosestModels();
+
 	else printf("Unknown argument");
 
 	return 0;
@@ -261,7 +267,7 @@ void computeFeatureVectors(const string database)
 	ofs.close();
 }
 
-void queryDatabaseModel(const string database, const string in)
+vector<tuple<string,float>> queryDatabaseModel(const string database, const string in, size_t k)
 {
 	vector<string> filenames = database::get_filenames(database, true);
 	int n_models = filenames.size();
@@ -270,7 +276,7 @@ void queryDatabaseModel(const string database, const string in)
 	ifstream ifs(vars::GetAssetPath(database + "/dist_matrix.json"));
 	nlohmann::json json_dist_matrix;
 	if (ifs.fail())
-		return;
+		return {};
 	json_dist_matrix = nlohmann::json::parse(ifs);
 	ifs.close();
 
@@ -298,11 +304,15 @@ void queryDatabaseModel(const string database, const string in)
 	for (; i < n_models; i++, d_i++)
 		q_dists[i] = dists[d_i];
 
-	auto indices = n_smallest_indices(q_dists.begin(), q_dists.end(), 10);
+	auto indices = n_smallest_indices(q_dists.begin(), q_dists.end(), k);
 
-	for (auto index : indices)
+	vector<tuple<string,float>> closest;
+	for (auto index : indices) {
 		cout << filenames[index] << " " << q_dists[index] << endl;
+		closest.push_back(std::make_pair(filenames[index],q_dists[index]));
+	}
 
+	return closest;
 	
 	// // manually calculate distance between two models to test
 	// string ma = "24_processed.off";
@@ -344,4 +354,21 @@ void queryDatabaseModel(const string database, const string in)
 
 	// cout << shape << endl;
 	// cout << sqrtf(global + shape) << endl;
+}
+
+void computeClosestModels(const string database)
+{
+	auto filenames = database::get_filenames(database, true);
+
+	nlohmann::json json_closest;
+	for (string file : filenames)
+	{
+		auto closest = queryDatabaseModel(database, file, 11);
+		closest.erase(closest.begin());
+		json_closest[file] = closest;
+	}
+
+	ofstream ofs = ofstream(vars::GetAssetPath(database + "/closest_models.json"));
+	ofs << setw(4) << json_closest << endl;
+	ofs.close();
 }
