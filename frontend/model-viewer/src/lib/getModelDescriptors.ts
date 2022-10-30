@@ -1,4 +1,4 @@
-import modelDescriptors from "public/PSBDatabase/featureDescriptors.json";
+import modelDescriptors from "public/PSBDatabase/feature_descriptors.json";
 import { ModelState } from "./contexts/reducer";
 
 export default function GetModelDescriptors(

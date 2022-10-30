@@ -1,10 +1,10 @@
-# converts normalizationStats.json to two CSVs, one without and one with preprocessed stats
+# converts normalization_stats.json to two CSVs, one without and one with preprocessed stats
 import math
 import sys
 import json
 import copy
 
-f = open("normalizationStats.json")
+f = open("normalization_stats.json")
 stats = json.load(f)
 f = open("files.json")
 files = json.load(f)
@@ -31,10 +31,10 @@ for c in files:
         ws = file.split(".")
         processedCSV  = addStatsToCSV(processedCSV, stats[ws[0] + "_processed." + ws[1]], ws[0] + "_processed." + ws[1])
 
-output = open("normalizationStatsUnprocessed.csv", "w")
+output = open("normalization_stats_unprocessed.csv", "w")
 output.write(unprocessedCSV)
 output.close()
-output = open("normalizationStatsProcessed.csv", "w")
+output = open("normalization_stats_processed.csv", "w")
 output.write(processedCSV)
 output.close()
 

@@ -89,7 +89,7 @@ void preprocess(const string database, const string in, const string out)
 	// Write resampled mesh to disk
 	database::write_mesh(mesh, database, out);
 
-	// Write the normalizationStats to json
+	// Write the normalization stats to json
 	modelstats::WriteNormalizationStatistics(database, in, out, beforeStats, afterStats);
 
 	printf("Preprocessed mesh \"%s\" from %s successfully, output: %s\n", in.c_str(), database.c_str(), out.c_str());
@@ -107,7 +107,7 @@ void extractAll(const string database)
 	printf_debug("Getting shape descriptors\n");
 	descriptors::get_shape_descriptors(database, filenames, sds, 10);
 
-	ifstream ifs(vars::GetAssetPath(database + "/featureDescriptors.json"));
+	ifstream ifs(vars::GetAssetPath(database + "/feature_descriptors.json"));
 	nlohmann::json jsonDescriptors;
 	if (!ifs.fail())
 		jsonDescriptors = nlohmann::json::parse(ifs);
@@ -127,7 +127,7 @@ void extractAll(const string database)
 			{"D3", sds[i].D3.bins.array()},
 			{"D4", sds[i].D4.bins.array()}
 		};
-	ofstream ofs(vars::GetAssetPath(database + "/featureDescriptors.json"));
+	ofstream ofs(vars::GetAssetPath(database + "/feature_descriptors.json"));
 	ofs << jsonDescriptors << endl; // TODO: removing setw(4) might improve filesize
 	ofs.close();
 }
@@ -148,7 +148,7 @@ void computeFeatureVectors(const string database)
 {
 	vector<string> filenames = database::get_filenames(database, true);
 	int n_models = filenames.size();
-	ifstream ifs(vars::GetAssetPath(database + "/featureDescriptors.json"));
+	ifstream ifs(vars::GetAssetPath(database + "/feature_descriptors.json"));
 	nlohmann::json json_descriptors = nlohmann::json::parse(ifs);
 
 	// Create vectors for shape descriptors
@@ -214,7 +214,8 @@ void computeFeatureVectors(const string database)
 	
 	auto shape_dists_mean = shape_dists.rowwise().mean();
 	auto shape_dists_sd = ((shape_dists.colwise() - shape_dists_mean).array().square().rowwise().sum() / (shape_dists.cols() - 1)).sqrt();
-	auto standardized_shape_dists = (shape_dists.colwise() - shape_dists_mean).array().colwise() / shape_dists_sd.array();
+	// auto standardized_shape_dists = (shape_dists.colwise() - shape_dists_mean).array().colwise() / shape_dists_sd.array();
+	auto standardized_shape_dists = shape_dists.array().colwise() / shape_dists_sd.array();
 	cout << shape_dists_mean.transpose() << endl;
 	cout << shape_dists_sd.transpose() << endl;
 
@@ -249,7 +250,7 @@ void computeFeatureVectors(const string database)
 		for (int j = i + 1; j < n_models; j++, d_i++)
 		{
 			float global_dist_2 = (standardized_global_fvs.row(i) - standardized_global_fvs.row(j)).array().square().sum();
-			float shape_dist_2 = shape_dists.col(d_i).array().square().sum();
+			float shape_dist_2 = standardized_shape_dists.col(d_i).array().square().sum();
 			dists[d_i] = sqrtf(global_dist_2 + shape_dist_2);
 		}
 	}
@@ -303,55 +304,30 @@ void queryDatabaseModel(const string database, const string in)
 		cout << filenames[index] << " " << q_dists[index] << endl;
 
 	
-	// test with two models
+	// manually calculate distance between two models to test
 	string ma = "24_processed.off";
 	string mb = "31_processed.off";
 
 	ifs = ifstream(vars::GetAssetPath(database + "/feature_vectors.json"));
 	nlohmann::json json_feature_vectors = nlohmann::json::parse(ifs);
 
-	Eigen::VectorXf dists_mean(5);
-	auto json_sdm = json_feature_vectors["shape_dists_mean"];
-	i = 0;
-	for (auto it = json_sdm.begin(); it != json_sdm.end(); ++it, i++)
-		dists_mean(i) = *it;
-	Eigen::VectorXf dists_sd(5);
-	auto json_sdsd = json_feature_vectors["shape_dists_sd"];
-	i = 0;
-	for (auto it = json_sdsd.begin(); it != json_sdsd.end(); ++it, i++)
-		dists_sd(i) = *it;
-	
+	Eigen::VectorXf dists_mean = utils::JSONArrayToVector(json_feature_vectors["shape_dists_mean"]);
+	Eigen::VectorXf dists_sd = utils::JSONArrayToVector(json_feature_vectors["shape_dists_sd"]);
+
 	auto ma_json = json_feature_vectors["models"][ma];
 	auto mb_json = json_feature_vectors["models"][mb];
-	Eigen::VectorXf ma_global(8);
-	auto ma_json_global = ma_json["global"];
-	i = 0;
-	for (auto it = ma_json_global.begin(); it != ma_json_global.end(); ++it, i++)
-		ma_global(i) = *it;
-	Eigen::VectorXf mb_global(8);
-	auto mb_json_global = mb_json["global"];
-	i = 0;
-	for (auto it = mb_json_global.begin(); it != mb_json_global.end(); ++it, i++)
-		mb_global(i) = *it;
+	Eigen::VectorXf ma_global = utils::JSONArrayToVector(ma_json["global"]);
+	Eigen::VectorXf mb_global = utils::JSONArrayToVector(mb_json["global"]);
 
 	vector<string> shape_descriptor_names{ "A3", "D1", "D2", "D3", "D4" };
 	vector<Eigen::VectorXf> ma_shape_hists;
 	vector<Eigen::VectorXf> mb_shape_hists;
-	auto mb_json_shape = ma_json["shape"];
-	auto ma_json_shape = mb_json["shape"];
+	auto mb_json_shape = mb_json["shape"];
+	auto ma_json_shape = ma_json["shape"];
 	for (int j = 0; j < shape_descriptor_names.size(); j++)
 	{
-		Eigen::VectorXf ma_shape_hist(10);
-		i = 0;
-		for (auto it = ma_json_shape[j].begin(); it != ma_json_shape[j].end(); ++it, i++)
-			ma_shape_hist(i) = *it;
-		ma_shape_hists.push_back(ma_shape_hist);
-
-		Eigen::VectorXf mb_shape_hist(10);
-		i = 0;
-		for (auto it = mb_json_shape[j].begin(); it != mb_json_shape[j].end(); ++it, i++)
-			mb_shape_hist(i) = *it;
-		mb_shape_hists.push_back(mb_shape_hist);
+		ma_shape_hists.push_back(utils::JSONArrayToVector(ma_json_shape[j]));
+		mb_shape_hists.push_back(utils::JSONArrayToVector(mb_json_shape[j]));
 	}
 
 	float global = (ma_global - mb_global).array().square().sum();
@@ -362,6 +338,7 @@ void queryDatabaseModel(const string database, const string in)
 	{
 		float emd = utils::EarthMoversDistance(ma_shape_hists[j], mb_shape_hists[j]);
 		// emd = (emd - dists_mean(j)) / dists_sd(j);
+		emd /= dists_sd(j);
 		shape += emd*emd;
 	}
 

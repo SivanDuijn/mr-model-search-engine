@@ -1,5 +1,5 @@
 import modelClasses from "public/PSBDatabase/classes.json";
-import modelNormStats from "public/PSBDatabase/normalizationStats.json";
+import modelNormStats from "public/PSBDatabase/normalization_stats.json";
 import { ModelState } from "./contexts/reducer";
 
 export default function GetModelStats(

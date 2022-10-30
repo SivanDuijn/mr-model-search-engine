@@ -51,4 +51,12 @@ namespace utils
         return emd;
     }
 
+    Eigen::VectorXf JSONArrayToVector(nlohmann::json json_array)
+    {
+        Eigen::VectorXf v(json_array.size());
+        size_t i = 0;
+        for (auto it = json_array.begin(); it != json_array.end(); ++it, i++)
+            v(i) = *it;
+        return v;
+    }
 }
