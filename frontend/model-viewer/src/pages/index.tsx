@@ -3,6 +3,7 @@ import { useCallback, useRef } from "react";
 import DescriptorHistograms from "src/components/DescriptorHistograms";
 import ModelDescriptors from "src/components/ModelDescriptors";
 import ModelInformation from "src/components/ModelInformation";
+import TopClosestModels from "src/components/TopClosestModels";
 import { ModelProvider } from "src/lib/contexts";
 import { MemoizedViewGLCanvas } from "../components/model-viewer/ModelViewer";
 import ThreeJSViewGL from "../components/model-viewer/viewGL";
@@ -19,7 +20,7 @@ export default function HomePage() {
         <ModelProvider>
             <div className={clsx("flex", "flex-col", "h-full")}>
                 <div className={clsx("grid", "lg:grid-cols-[1fr_auto_1fr]")}>
-                    <div className={clsx("grid", "lg:grid-rows-[auto_1fr]")}>
+                    <div className={clsx("grid", "lg:grid-rows-[auto_auto_1fr]")}>
                         <ModelSelector
                             className={clsx("border-2", "border-slate-200", "mx-2", "mt-4")}
                             onFileSelected={(textContent, filetype) =>
@@ -27,6 +28,9 @@ export default function HomePage() {
                             }
                         />
                         <Settings
+                            className={clsx("border-2", "border-slate-200", "mx-2", "mt-4")}
+                        />
+                        <TopClosestModels
                             className={clsx("border-2", "border-slate-200", "mx-2", "mt-4")}
                         />
                     </div>

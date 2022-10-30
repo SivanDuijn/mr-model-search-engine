@@ -267,7 +267,7 @@ void computeFeatureVectors(const string database)
 	ofs.close();
 }
 
-vector<tuple<string,float>> queryDatabaseModel(const string database, const string in, size_t k)
+vector<tuple<int,float>> queryDatabaseModel(const string database, const string in, size_t k)
 {
 	vector<string> filenames = database::get_filenames(database, true);
 	int n_models = filenames.size();
@@ -306,10 +306,10 @@ vector<tuple<string,float>> queryDatabaseModel(const string database, const stri
 
 	auto indices = n_smallest_indices(q_dists.begin(), q_dists.end(), k);
 
-	vector<tuple<string,float>> closest;
+	vector<tuple<int,float>> closest;
 	for (auto index : indices) {
 		cout << filenames[index] << " " << q_dists[index] << endl;
-		closest.push_back(std::make_pair(filenames[index],q_dists[index]));
+		closest.push_back(std::make_pair(index,q_dists[index]));
 	}
 
 	return closest;
@@ -358,14 +358,22 @@ vector<tuple<string,float>> queryDatabaseModel(const string database, const stri
 
 void computeClosestModels(const string database)
 {
-	auto filenames = database::get_filenames(database, true);
+	auto filenames = database::get_filenames(database);
 
 	nlohmann::json json_closest;
 	for (string file : filenames)
 	{
-		auto closest = queryDatabaseModel(database, file, 11);
+		size_t pos = file.find('.');
+		string name = file.substr(0, pos);
+		string ext = file.substr(pos + 1);
+
+		auto closest = queryDatabaseModel(database, name + "_processed." + ext, 11);
+	
 		closest.erase(closest.begin());
-		json_closest[file] = closest;
+		vector<tuple<string,float>> cv;
+		for (auto c : closest)
+			cv.push_back(make_pair(filenames[get<0>(c)], get<1>(c)));
+		json_closest[file] = cv;
 	}
 
 	ofstream ofs = ofstream(vars::GetAssetPath(database + "/closest_models.json"));
