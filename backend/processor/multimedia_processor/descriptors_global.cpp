@@ -105,11 +105,14 @@ namespace descriptors
         printf_debug("Calculating eccentricity... ");
         VertexMap map = utils::GetVertexMap(mesh);
         Eigen::Matrix3f cov = (map * map.transpose()) / float(map.cols() - 1);
-        Eigen::EigenSolver<Eigen::MatrixXf> solver;
-        solver.compute(cov);
+        Eigen::EigenSolver<Eigen::MatrixXf> solver(cov, false);
 
         Eigen::Vector3f eigenValues = solver.eigenvalues().real();
         std::tuple<int, int, int> indices = eigen_vectors::GetMajorMinorIndexEigenValues(eigenValues);
+
+        cout << endl;
+        cout << eigenValues[std::get<0>(indices)] << " " << eigenValues[std::get<1>(indices)] << " " << eigenValues[std::get<2>(indices)] << endl;
+        cout << eigenValues.transpose() << endl;
 
         float eccentricity = eigenValues[std::get<0>(indices)] / eigenValues[std::get<2>(indices)];
 
