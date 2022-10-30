@@ -103,18 +103,12 @@ namespace descriptors
     float eccentricity(pmp::SurfaceMesh &mesh)
     {
         printf_debug("Calculating eccentricity... ");
-        VertexMap map = utils::GetVertexMap(mesh);
-        Eigen::Matrix3f cov = (map * map.transpose()) / float(map.cols() - 1);
-        Eigen::EigenSolver<Eigen::MatrixXf> solver(cov, false);
+        VertexMap map = VertexProperties::GetVertexMap(mesh);
+        VertexProperties::EigenValues values = VertexProperties::GetEigenValues(map);
 
-        Eigen::Vector3f eigenValues = solver.eigenvalues().real();
-        std::tuple<int, int, int> indices = eigen_vectors::GetMajorMinorIndexEigenValues(eigenValues);
+        cout << '\n' << values.major << '\n' << values.medium << '\n' << values.minor << endl;
 
-        cout << endl;
-        cout << eigenValues[std::get<0>(indices)] << " " << eigenValues[std::get<1>(indices)] << " " << eigenValues[std::get<2>(indices)] << endl;
-        cout << eigenValues.transpose() << endl;
-
-        float eccentricity = eigenValues[std::get<0>(indices)] / eigenValues[std::get<2>(indices)];
+        float eccentricity = values.major / values.minor;
 
         printf_debug("%f\n", eccentricity);
         return eccentricity;

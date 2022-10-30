@@ -17,17 +17,10 @@
 #include "../lib/libgdiam/gdiam.hpp"
 
 // Must be a power of 2!
-#define VERTEX_COUNT 2048
+#define VERTEX_COUNT 2048  // 2^11
+#define SAMPLE_COUNT 65536 // 2^16
 
-#ifndef FLT_EPSILON
-#define FLT_EPSILON 1.19209290E-07F
-#endif
-#ifndef FLT_MIN
-#define FLT_MIN -3.40282e+038
-#endif
-#ifndef FLT_MAX
-#define FLT_MAX 3.40282e+038
-#endif
+#define EPSILON 1e-5
 
 typedef Eigen::Vector3f                       Vertex;
 typedef Eigen::Matrix<float, 3, VERTEX_COUNT> VertexMat;
@@ -67,7 +60,7 @@ std::vector<size_t> n_smallest_indices(Iterator it, Iterator end, size_t n) {
 #include "../variables.h"
 #include "database.h"
 #include "utils.h"
-#include "eigen_vectors.h"
+#include "vertex_properties.h"
 #include "model_statistics.h"
 #include "descriptors_global.h"
 #include "descriptors_shape.h"
