@@ -2,7 +2,26 @@
 
 namespace eigen_vectors 
 {
-    std::tuple<Eigen::Vector3f, Eigen::Vector3f, Eigen::Vector3f> GetMajorMinorEigenVectors(Eigen::Matrix3f &cov);
-    std::tuple<Eigen::Vector3f, Eigen::Vector3f, Eigen::Vector3f> GetMajorMinorEigenVectors(pmp::SurfaceMesh &mesh);
-    std::tuple<int, int, int> GetMajorMinorIndexEigenValues(Eigen::Vector3f eigenvalues);
+    struct EigenVectors
+    {
+        Eigen::Vector3f major;
+        Eigen::Vector3f medium;
+        Eigen::Vector3f minor;
+    };
+    struct EigenValues
+    {
+        float major;
+        float medium;
+        float minor;
+    };
+    struct EigenIndices
+    {
+        int major;
+        int medium;
+        int minor;
+    };
+
+    EigenValues GetEigenValues(pmp::SurfaceMesh &mesh);
+    EigenVectors GetEigenVectors(pmp::SurfaceMesh &mesh);
+    EigenIndices GetEigenIndices(Eigen::Vector3f eigenvalues);
 }

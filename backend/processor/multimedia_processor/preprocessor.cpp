@@ -75,26 +75,19 @@ namespace preprocessor
 
         // Align with coordinate frame
         printf_debug("Aligning with coordinate frame");
-        // Compute the covariance matrix
-        // https://stackoverflow.com/a/15142446
-        // We don't have to center the sample matrix because we just centered the samples :)
         // Get the eigenvectors
-        Eigen::Matrix3f cov = (map * map.transpose()) / float(map.cols() - 1);
-        auto eigenVs = eigen_vectors::GetMajorMinorEigenVectors(cov);
-        Eigen::Vector3f	major = get<0>(eigenVs);
-        Eigen::Vector3f middl = get<1>(eigenVs);
-        Eigen::Vector3f minor = get<2>(eigenVs);
+        eigen_vectors::EigenVectors eigen_vectors = eigen_vectors::GetEigenVectors(mesh);
         // Create the inverse rotation matrix by transposing the eigenvectors to it
         Eigen::Matrix3f rot {
-            {middl(0), middl(1), middl(2)},
-            {major(0), major(1), major(2)},
-            {minor(0), minor(1), minor(2)},
+            {eigen_vectors.medium(0), eigen_vectors.medium(1), eigen_vectors.medium(2)},
+            {eigen_vectors.major (0), eigen_vectors.major (1), eigen_vectors.major (2)},
+            {eigen_vectors.minor (0), eigen_vectors.minor (1), eigen_vectors.minor (2)},
         };
 
         // Store rotation before rotating
-        beforeStats.angleX = pmp::angle(middl, pmp::Point(1,0,0));
-        beforeStats.angleY = pmp::angle(major, pmp::Point(0,1,0));
-        beforeStats.angleZ = pmp::angle(minor, pmp::Point(0,0,1));
+        beforeStats.angleX = pmp::angle(eigen_vectors.medium, pmp::Point(1,0,0));
+        beforeStats.angleY = pmp::angle(eigen_vectors.major,  pmp::Point(0,1,0));
+        beforeStats.angleZ = pmp::angle(eigen_vectors.minor,  pmp::Point(0,0,1));
         beforeStats.totalAngle = beforeStats.angleX + beforeStats.angleY + beforeStats.angleZ;
 
         // Rotate the model
@@ -102,11 +95,10 @@ namespace preprocessor
         printf_debug(" ([%f, %f, %f])\n", -beforeStats.angleX, -beforeStats.angleY, -beforeStats.angleZ);
 
         // Store rotation after rotating
-        cov = (map * map.adjoint()) / float(map.cols() - 1);
-        eigenVs = eigen_vectors::GetMajorMinorEigenVectors(cov);
-        afterStats.angleX = pmp::angle(get<0>(eigenVs), pmp::Point(0,1,0));
-        afterStats.angleY = pmp::angle(get<1>(eigenVs), pmp::Point(1,0,0));
-        afterStats.angleZ = pmp::angle(get<2>(eigenVs), pmp::Point(0,0,1));
+        eigen_vectors = eigen_vectors::GetEigenVectors(mesh);
+        afterStats.angleX = pmp::angle(eigen_vectors.major,  pmp::Point(0,1,0));
+        afterStats.angleY = pmp::angle(eigen_vectors.medium, pmp::Point(1,0,0));
+        afterStats.angleZ = pmp::angle(eigen_vectors.minor,  pmp::Point(0,0,1));
         afterStats.totalAngle = afterStats.angleX + afterStats.angleY + afterStats.angleZ;
 
         // Flip based on moment tests
