@@ -67,7 +67,7 @@ std::vector<size_t> n_smallest_indices(Iterator it, Iterator end, size_t n) {
 #include "../variables.h"
 #include "database.h"
 #include "utils.h"
-#include "eigen_vectors.h"
+#include "vertex_properties.h"
 #include "model_statistics.h"
 #include "descriptors_global.h"
 #include "descriptors_shape.h"
