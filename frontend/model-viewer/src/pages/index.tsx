@@ -27,10 +27,10 @@ export default function HomePage() {
                                 viewGL.current?.loadModelByText(textContent, filetype)
                             }
                         />
-                        <Settings
+                        <TopClosestModels
                             className={clsx("border-2", "border-slate-200", "mx-2", "mt-4")}
                         />
-                        <TopClosestModels
+                        <Settings
                             className={clsx("border-2", "border-slate-200", "mx-2", "mt-4")}
                         />
                     </div>
