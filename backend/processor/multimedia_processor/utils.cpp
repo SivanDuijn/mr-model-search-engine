@@ -13,33 +13,6 @@ namespace utils
     	seed ^= seed << 5;
     	return seed;
     }
-    // Get a random vertex index
-    // NOTE: only for resampled meshes
-    unsigned int RandomVertexIndex()
-    {
-        return RandomUInt() & (VERTEX_COUNT - 1);
-    }
-    // Get an array of random vertices from a resampled mesh
-    // No vertex will remain in place
-    VertexMat RandomVertices(VertexMap &verts)
-    {
-        VertexMat ret = VertexMat();
-        for (size_t i = 0, j; i < VERTEX_COUNT; i++)
-        {
-            do j = utils::RandomVertexIndex();
-            while (j == i);
-            ret.col(i) = verts.col(j);
-        }
-        return ret;
-    }
-
-    // Map a mesh's point list (aka array of Eigen::Matrix3f) to a VertexMap
-    VertexMap GetVertexMap(pmp::SurfaceMesh &mesh)
-    {
-        assert(mesh.n_vertices() == VERTEX_COUNT);
-        pmp::VertexProperty points = mesh.get_vertex_property<pmp::Point>("v:point");
-        return VertexMap((float*)(points.data()), 3, VERTEX_COUNT);
-    }
 
     float EarthMoversDistance(Eigen::VectorXf a, Eigen::VectorXf b) 
     {

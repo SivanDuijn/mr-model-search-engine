@@ -45,11 +45,11 @@ namespace descriptors
     {
         printf_debug("Calculating A3...");
         // Get the vertices as an Eigen map
-        VertexMap map = utils::GetVertexMap(mesh);
+        VertexMap map = VertexProperties::GetVertexMap(mesh);
 
         // Get all the angles between random triangles
-        VertexMat nedge1 = (utils::RandomVertices(map) - map).colwise().normalized();
-        VertexMat nedge2 = (utils::RandomVertices(map) - map).colwise().normalized();
+        VertexMat nedge1 = (VertexProperties::RandomVertices(map) - map).colwise().normalized();
+        VertexMat nedge2 = (VertexProperties::RandomVertices(map) - map).colwise().normalized();
         Eigen::VectorXf angle = nedge1.cwiseProduct(nedge2).colwise().sum().array().acos();
 
         // Bin the result
@@ -62,7 +62,7 @@ namespace descriptors
     {
         printf_debug("Calculating D1...");
         // Get the vertices as an Eigen map
-        VertexMap map = utils::GetVertexMap(mesh);
+        VertexMap map = VertexProperties::GetVertexMap(mesh);
 
         // Get all the distances to the baricenter
         Vertex bcenter = (Vertex)pmp::centroid(mesh);
@@ -78,10 +78,10 @@ namespace descriptors
     {
         printf_debug("Calculating D2...");
         // Get the vertices as an Eigen map
-        VertexMap map = utils::GetVertexMap(mesh);
+        VertexMap map = VertexProperties::GetVertexMap(mesh);
 
         // Get all the distances between random vertices
-        VertexMat vert = utils::RandomVertices(map);
+        VertexMat vert = VertexProperties::RandomVertices(map);
         Eigen::VectorXf dist = (map - vert).colwise().norm();
 
         // Bin the result
@@ -94,12 +94,12 @@ namespace descriptors
     {
         printf_debug("Calculating D3...");
         // Get the vertices as an Eigen map
-        VertexMap map = utils::GetVertexMap(mesh);
+        VertexMap map = VertexProperties::GetVertexMap(mesh);
 
         // Get all the areas of random triangles
         // https://math.stackexchange.com/a/1951650
-        VertexMat edge1 = utils::RandomVertices(map) - map;
-        VertexMat edge2 = utils::RandomVertices(map) - map;
+        VertexMat edge1 = VertexProperties::RandomVertices(map) - map;
+        VertexMat edge2 = VertexProperties::RandomVertices(map) - map;
         VertexMat norm  = VertexMat();
         norm.row(0) = edge1.row(1).cwiseProduct(edge2.row(2) -
             edge1.row(2).cwiseProduct(edge2.row(1)));
@@ -120,13 +120,13 @@ namespace descriptors
     {
         printf_debug("Calculating D4...");
         // Get the vertices as an Eigen map
-        VertexMap map = utils::GetVertexMap(mesh);
+        VertexMap map = VertexProperties::GetVertexMap(mesh);
 
         // Get all the volumes of random tetrahedron
         // https://stackoverflow.com/a/9866530
-        VertexMat vert1 = utils::RandomVertices(map) - map;
-        VertexMat vert2 = utils::RandomVertices(map) - map;
-        VertexMat vert3 = utils::RandomVertices(map) - map;
+        VertexMat vert1 = VertexProperties::RandomVertices(map) - map;
+        VertexMat vert2 = VertexProperties::RandomVertices(map) - map;
+        VertexMat vert3 = VertexProperties::RandomVertices(map) - map;
         VertexMat div   = VertexMat();
         div.row(0) = vert2.row(1).cwiseProduct(vert3.row(2) -
             vert2.row(2).cwiseProduct(vert3.row(1)));

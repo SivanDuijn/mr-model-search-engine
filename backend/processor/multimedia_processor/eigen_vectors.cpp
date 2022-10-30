@@ -1,46 +1,47 @@
 #include "headers.h"
 
-namespace eigen_vectors 
+namespace VertexProperties 
 {
-    // Only works for preprocessed meshes!
-    Eigen::Matrix3f GetCovariance(pmp::SurfaceMesh &mesh)
+    // Map a mesh's point list (aka array of Eigen::Matrix3f) to a VertexMap
+    VertexMap GetVertexMap(pmp::SurfaceMesh &mesh)
     {
-        VertexMap map = utils::GetVertexMap(mesh);
+        assert(mesh.n_vertices() == VERTEX_COUNT);
+        pmp::VertexProperty points = mesh.get_vertex_property<pmp::Point>("v:point");
+        return VertexMap((float*)(points.data()), 3, VERTEX_COUNT);
+    }
+
+    // Get a random vertex index
+    // Only works for preprocessed meshes!
+    unsigned int RandomVertexIndex()
+    {
+        return utils::RandomUInt() & (VERTEX_COUNT - 1);
+    }
+
+    // Get an array of random vertices from a resampled mesh
+    // No vertex will remain in place
+    VertexMat RandomVertices(VertexMap &verts)
+    {
+        VertexMat ret = VertexMat();
+        for (size_t i = 0, j; i < VERTEX_COUNT; i++)
+        {
+            do j = RandomVertexIndex();
+            while (j == i);
+            ret.col(i) = verts.col(j);
+        }
+        return ret;
+    }
+
+    // Get the covariance matrix of a set of vertices
+    // Only works for preprocessed meshes!
+    Eigen::Matrix3f GetCovariance(VertexMap &verts)
+    {
         // We don't have to center the samples
         // since that happened in the preprocessing step
         // https://stackoverflow.com/a/15142446
-        return (map * map.transpose()) / float(map.cols() - 1);
+        return (verts * verts.transpose()) / float(verts.cols() - 1);
     }
 
-    EigenValues GetEigenValues(pmp::SurfaceMesh &mesh)
-    {
-        Eigen::Matrix3f cov = GetCovariance(mesh);
-        Eigen::EigenSolver<Eigen::Matrix3f> solver(cov, false);
-        Eigen::Vector3f values = solver.eigenvalues().real();
-        EigenIndices indices = GetEigenIndices(values);
-
-        return EigenValues(
-            values(indices.major),
-            values(indices.medium),
-            values(indices.minor)
-        );
-    }
-
-    EigenVectors GetEigenVectors(pmp::SurfaceMesh &mesh) 
-    {
-        Eigen::Matrix3f cov = GetCovariance(mesh);
-        Eigen::EigenSolver<Eigen::Matrix3f> solver(cov, true);
-        Eigen::Matrix3f vectors = solver.eigenvectors().real();
-        EigenIndices indices = GetEigenIndices(solver.eigenvalues().real());
-
-        return EigenVectors(
-            vectors.col(indices.major),
-            vectors.col(indices.medium),
-            vectors.col(indices.minor)
-        );
-    }
-
-    EigenIndices GetEigenIndices(Eigen::Vector3f eigenvalues) 
+    Eigen::Vector3i GetEigenIndices(Eigen::Vector3f eigenvalues) 
     {
         Eigen::Vector3f v = eigenvalues;
         int major = 0, medium = 0, minor = 0;
@@ -62,6 +63,35 @@ namespace eigen_vectors
         else 
             major = 2, medium = 1, minor = 0;
 
-        return EigenIndices(major, medium, minor);
+        return Eigen::Vector3i(major, medium, minor);
+    }
+
+    EigenValues GetEigenValues(VertexMap &verts)
+    {
+        Eigen::Matrix3f cov = GetCovariance(verts);
+        Eigen::EigenSolver<Eigen::Matrix3f> solver(cov, false);
+        Eigen::Vector3f values = solver.eigenvalues().real();
+        Eigen::Vector3i indices = GetEigenIndices(values);
+
+        return EigenValues(
+            values(indices(0)),
+            values(indices(1)),
+            values(indices(2))
+        );
+    }
+
+    EigenVectors GetEigenVectors(VertexMap &verts) 
+    {
+        Eigen::Matrix3f cov = GetCovariance(verts);
+        Eigen::EigenSolver<Eigen::Matrix3f> solver(cov, true);
+        Eigen::Matrix3f vectors = solver.eigenvectors().real();
+        Eigen::Vector3f values = solver.eigenvalues().real();
+        Eigen::Vector3i indices = GetEigenIndices(values);
+
+        return EigenVectors(
+            vectors.col(indices(0)),
+            vectors.col(indices(1)),
+            vectors.col(indices(2))
+        );
     }
 }

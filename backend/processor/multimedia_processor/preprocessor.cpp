@@ -59,7 +59,7 @@ namespace preprocessor
     void normalize(pmp::SurfaceMesh &mesh, modelstats::NormalizationStatistics &beforeStats, modelstats::NormalizationStatistics &afterStats)
     {
         // Get the vertices as an Eigen map
-        VertexMap map = utils::GetVertexMap(mesh);
+        VertexMap map = VertexProperties::GetVertexMap(mesh);
 
         // Store barycenter distance to origin before translation
         beforeStats.distBarycenterToOrigin = ((Vertex)pmp::centroid(mesh)).norm();
@@ -76,7 +76,7 @@ namespace preprocessor
         // Align with coordinate frame
         printf_debug("Aligning with coordinate frame");
         // Get the eigenvectors
-        eigen_vectors::EigenVectors eigen_vectors = eigen_vectors::GetEigenVectors(mesh);
+        VertexProperties::EigenVectors eigen_vectors = VertexProperties::GetEigenVectors(map);
         // Create the inverse rotation matrix by transposing the eigenvectors to it
         Eigen::Matrix3f rot {
             {eigen_vectors.medium(0), eigen_vectors.medium(1), eigen_vectors.medium(2)},
@@ -95,7 +95,7 @@ namespace preprocessor
         printf_debug(" ([%f, %f, %f])\n", -beforeStats.angleX, -beforeStats.angleY, -beforeStats.angleZ);
 
         // Store rotation after rotating
-        eigen_vectors = eigen_vectors::GetEigenVectors(mesh);
+        eigen_vectors = VertexProperties::GetEigenVectors(map);
         afterStats.angleX = pmp::angle(eigen_vectors.major,  pmp::Point(0,1,0));
         afterStats.angleY = pmp::angle(eigen_vectors.medium, pmp::Point(1,0,0));
         afterStats.angleZ = pmp::angle(eigen_vectors.minor,  pmp::Point(0,0,1));

@@ -1,6 +1,6 @@
 #pragma once
 
-namespace eigen_vectors 
+namespace VertexProperties 
 {
     struct EigenVectors
     {
@@ -14,14 +14,10 @@ namespace eigen_vectors
         float medium;
         float minor;
     };
-    struct EigenIndices
-    {
-        int major;
-        int medium;
-        int minor;
-    };
 
-    EigenValues GetEigenValues(pmp::SurfaceMesh &mesh);
-    EigenVectors GetEigenVectors(pmp::SurfaceMesh &mesh);
-    EigenIndices GetEigenIndices(Eigen::Vector3f eigenvalues);
+    VertexMap GetVertexMap(pmp::SurfaceMesh &mesh);
+    VertexMat RandomVertices(VertexMap &verts);
+
+    EigenValues GetEigenValues(VertexMap &verts);
+    EigenVectors GetEigenVectors(VertexMap &verts);
 }

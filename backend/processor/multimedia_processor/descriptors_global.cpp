@@ -103,7 +103,8 @@ namespace descriptors
     float eccentricity(pmp::SurfaceMesh &mesh)
     {
         printf_debug("Calculating eccentricity... ");
-        eigen_vectors::EigenValues values = eigen_vectors::GetEigenValues(mesh);
+        VertexMap map = VertexProperties::GetVertexMap(mesh);
+        VertexProperties::EigenValues values = VertexProperties::GetEigenValues(map);
 
         cout << '\n' << values.major << '\n' << values.medium << '\n' << values.minor << endl;
 
