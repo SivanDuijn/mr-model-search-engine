@@ -34,10 +34,12 @@ export default function HomePage() {
                             className={clsx("border-2", "border-slate-200", "mx-2", "mt-4")}
                         />
                     </div>
-                    <MemoizedViewGLCanvas
-                        className={clsx("border-2", "border-slate-200", "mx-2", "mt-4")}
-                        onMounted={onCanvasMounted}
-                    />
+                    <div>
+                        <MemoizedViewGLCanvas
+                            className={clsx("border-2", "border-slate-200", "mx-2", "mt-4")}
+                            onMounted={onCanvasMounted}
+                        />
+                    </div>
                     <div className={clsx("grid", "lg:grid-rows-[auto_1fr]")}>
                         <ModelInformation
                             className={clsx("border-2", "border-slate-200", "mx-2", "mt-4")}

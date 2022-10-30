@@ -46,7 +46,7 @@ export default class ThreeJSViewGL {
     private onModelStatsChanged?: (stats: ModelState["modelStats"]) => void;
     currentModel: string | undefined;
 
-    constructor(canvas: HTMLCanvasElement | undefined) {
+    constructor(canvas: HTMLCanvasElement | undefined, width = 600, height = 600) {
         this.renderMaterial = initialState.renderSettings.material;
         this.wireframeEnabled = initialState.renderSettings.showWireframe;
         this.vertexNormalsEnabled = initialState.renderSettings.showVertexNormals;
@@ -61,7 +61,7 @@ export default class ThreeJSViewGL {
         const clippingPlane = [0.1, 1000];
         this.camera = new THREE.PerspectiveCamera(75, 1, ...clippingPlane);
 
-        this.renderer.setSize(600, 600);
+        this.renderer.setSize(width, height);
         if (window) this.renderer.setPixelRatio(window.devicePixelRatio);
 
         const pointLight = new THREE.PointLight(0xffffff, 2.4, 100);

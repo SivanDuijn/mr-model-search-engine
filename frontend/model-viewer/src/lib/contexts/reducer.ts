@@ -4,6 +4,7 @@ export interface ModelState {
     model: {
         file?: string;
         name?: string;
+        secondModel?: string;
         isProcessed?: boolean;
     };
     modelStats?: {

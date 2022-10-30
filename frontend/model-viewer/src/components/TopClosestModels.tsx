@@ -21,7 +21,7 @@ export default function TopClosestModels(props: Props) {
     return (
         <div className={props.className}>
             <p className={clsx("border-b-2", "text-center", "font-bold")}>Top 10 closest models</p>
-            <div className={clsx("flex", "flex-col", "flex-wrap", "mt-2", "ml-2", "h-[9rem]")}>
+            <div className={clsx("flex", "flex-col", "flex-wrap", "mt-2", "ml-2", "h-[7rem]")}>
                 {closestModels.map((cmodel) => (
                     <div className={clsx("flex")} key={cmodel.name}>
                         <div
@@ -33,18 +33,24 @@ export default function TopClosestModels(props: Props) {
                                 "text-white",
                                 "text-center",
                                 "text-sm",
-                                model.name === (cmodel.name as unknown as string)
+                                model.secondModel === (cmodel.name as unknown as string)
                                     ? "bg-slate-500"
                                     : "bg-slate-700 hover:bg-slate-500",
                                 "hover:cursor-pointer",
                             )}
                             onClick={() => {
                                 if (cmodel.name !== undefined)
-                                    changeModel({
-                                        ...model,
-                                        name: cmodel.name as unknown as string,
-                                        file: undefined,
-                                    });
+                                    if (cmodel.name != model.secondModel)
+                                        changeModel({
+                                            ...model,
+                                            secondModel: cmodel.name as unknown as string,
+                                            file: undefined,
+                                        });
+                                    else
+                                        changeModel({
+                                            ...model,
+                                            secondModel: undefined,
+                                        });
                             }}
                         >
                             {(cmodel.name as unknown as string).split(".")[0]}
