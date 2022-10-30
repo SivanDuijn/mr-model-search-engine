@@ -108,10 +108,10 @@ void extractAll(const string database)
 	// Extract features
 	vector<descriptors::GlobalDescriptors> gds;
 	vector<descriptors::ShapeDescriptors> sds;
-	printf_debug("Getting global descriptors\n");
-	descriptors::get_global_descriptors(database, filenames, gds);
 	printf_debug("Getting shape descriptors\n");
 	descriptors::get_shape_descriptors(database, filenames, sds, 10);
+	printf_debug("Getting global descriptors\n");
+	descriptors::get_global_descriptors(database, filenames, gds);
 
 	ifstream ifs(vars::GetAssetPath(database + "/feature_descriptors.json"));
 	nlohmann::json jsonDescriptors;
