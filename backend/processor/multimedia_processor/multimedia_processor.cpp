@@ -128,7 +128,7 @@ void extractAll(const string database)
 			{"D4", sds[i].D4.bins.array()}
 		};
 	ofstream ofs(vars::GetAssetPath(database + "/feature_descriptors.json"));
-	ofs << jsonDescriptors << endl; // TODO: removing setw(4) might improve filesize
+	ofs << setw(4) << jsonDescriptors << endl; // TODO: removing setw(4) might improve filesize
 	ofs.close();
 }
 
@@ -259,7 +259,7 @@ void computeFeatureVectors(const string database)
 	ofs = ofstream(vars::GetAssetPath(database + "/dist_matrix.json"));
 	ofs << json_dists << endl;
 	ofs.close();
-}	
+}
 
 void queryDatabaseModel(const string database, const string in)
 {
@@ -285,7 +285,7 @@ void queryDatabaseModel(const string database, const string in)
 	for (; m_i < n_models; m_i++)
 		if (filenames[m_i] == in)
 			break;
-	cout << m_i << endl;
+
 	vector<float> q_dists(n_models); 
 
 	int d_i = m_i - 1;
@@ -304,44 +304,44 @@ void queryDatabaseModel(const string database, const string in)
 		cout << filenames[index] << " " << q_dists[index] << endl;
 
 	
-	// manually calculate distance between two models to test
-	string ma = "24_processed.off";
-	string mb = "31_processed.off";
+	// // manually calculate distance between two models to test
+	// string ma = "24_processed.off";
+	// string mb = "31_processed.off";
 
-	ifs = ifstream(vars::GetAssetPath(database + "/feature_vectors.json"));
-	nlohmann::json json_feature_vectors = nlohmann::json::parse(ifs);
+	// ifs = ifstream(vars::GetAssetPath(database + "/feature_vectors.json"));
+	// nlohmann::json json_feature_vectors = nlohmann::json::parse(ifs);
 
-	Eigen::VectorXf dists_mean = utils::JSONArrayToVector(json_feature_vectors["shape_dists_mean"]);
-	Eigen::VectorXf dists_sd = utils::JSONArrayToVector(json_feature_vectors["shape_dists_sd"]);
+	// Eigen::VectorXf dists_mean = utils::JSONArrayToVector(json_feature_vectors["shape_dists_mean"]);
+	// Eigen::VectorXf dists_sd = utils::JSONArrayToVector(json_feature_vectors["shape_dists_sd"]);
 
-	auto ma_json = json_feature_vectors["models"][ma];
-	auto mb_json = json_feature_vectors["models"][mb];
-	Eigen::VectorXf ma_global = utils::JSONArrayToVector(ma_json["global"]);
-	Eigen::VectorXf mb_global = utils::JSONArrayToVector(mb_json["global"]);
+	// auto ma_json = json_feature_vectors["models"][ma];
+	// auto mb_json = json_feature_vectors["models"][mb];
+	// Eigen::VectorXf ma_global = utils::JSONArrayToVector(ma_json["global"]);
+	// Eigen::VectorXf mb_global = utils::JSONArrayToVector(mb_json["global"]);
 
-	vector<string> shape_descriptor_names{ "A3", "D1", "D2", "D3", "D4" };
-	vector<Eigen::VectorXf> ma_shape_hists;
-	vector<Eigen::VectorXf> mb_shape_hists;
-	auto mb_json_shape = mb_json["shape"];
-	auto ma_json_shape = ma_json["shape"];
-	for (int j = 0; j < shape_descriptor_names.size(); j++)
-	{
-		ma_shape_hists.push_back(utils::JSONArrayToVector(ma_json_shape[j]));
-		mb_shape_hists.push_back(utils::JSONArrayToVector(mb_json_shape[j]));
-	}
+	// vector<string> shape_descriptor_names{ "A3", "D1", "D2", "D3", "D4" };
+	// vector<Eigen::VectorXf> ma_shape_hists;
+	// vector<Eigen::VectorXf> mb_shape_hists;
+	// auto mb_json_shape = mb_json["shape"];
+	// auto ma_json_shape = ma_json["shape"];
+	// for (int j = 0; j < shape_descriptor_names.size(); j++)
+	// {
+	// 	ma_shape_hists.push_back(utils::JSONArrayToVector(ma_json_shape[j]));
+	// 	mb_shape_hists.push_back(utils::JSONArrayToVector(mb_json_shape[j]));
+	// }
 
-	float global = (ma_global - mb_global).array().square().sum();
-	cout << global << endl;
+	// float global = (ma_global - mb_global).array().square().sum();
+	// cout << global << endl;
 
-	float shape = 0;
-	for (int j = 0; j < shape_descriptor_names.size(); j++)
-	{
-		float emd = utils::EarthMoversDistance(ma_shape_hists[j], mb_shape_hists[j]);
-		// emd = (emd - dists_mean(j)) / dists_sd(j);
-		emd /= dists_sd(j);
-		shape += emd*emd;
-	}
+	// float shape = 0;
+	// for (int j = 0; j < shape_descriptor_names.size(); j++)
+	// {
+	// 	float emd = utils::EarthMoversDistance(ma_shape_hists[j], mb_shape_hists[j]);
+	// 	// emd = (emd - dists_mean(j)) / dists_sd(j);
+	// 	emd /= dists_sd(j);
+	// 	shape += emd*emd;
+	// }
 
-	cout << shape << endl;
-	cout << sqrtf(global + shape) << endl;
+	// cout << shape << endl;
+	// cout << sqrtf(global + shape) << endl;
 }
