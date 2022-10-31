@@ -15,6 +15,7 @@ export function CreateThreeLineBox(width: number, height: number, depth: number,
     return new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color }));
 }
 
+// Gets the render material as enum from a string
 export function getRenderMaterial(material?: string): RenderMaterial | undefined {
     switch (material) {
         case "flat":
