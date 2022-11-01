@@ -100,15 +100,22 @@ namespace descriptors
         return pair.distance;
     }
 
+    // Calculate eccentricity based on the OBB longest and smallest axis
+    // THIS IS ALTERNATIVE TO HOW IT IS DONE ON THE SLIDES
     float eccentricity(pmp::SurfaceMesh &mesh)
     {
         printf_debug("Calculating eccentricity... ");
-        VertexMap map = VertexProperties::GetVertexMap(mesh);
-        VertexProperties::EigenValues values = VertexProperties::GetEigenValues(map);
+        // VertexMap map = VertexProperties::GetVertexMap(mesh);
+        // VertexProperties::EigenValues values = VertexProperties::GetEigenValues(map);
 
-        cout << '\n' << values.major << '\n' << values.medium << '\n' << values.minor << endl;
+        // cout << '\n' << values.major << '\n' << values.medium << '\n' << values.minor << endl;
+        // float eccentricity = values.major / values.minor;
 
-        float eccentricity = values.major / values.minor;
+        auto bounds = mesh.bounds();
+        auto diff = static_cast<Eigen::Matrix<float, 3, 1>>(bounds.max() - bounds.min());
+        float min_c = diff.minCoeff();
+        float max_c = diff.maxCoeff();
+        float eccentricity = max_c / min_c;
 
         printf_debug("%f\n", eccentricity);
         return eccentricity;
