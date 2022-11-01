@@ -73,11 +73,11 @@ namespace VertexProperties
         Eigen::Vector3f values = solver.eigenvalues().real();
         Eigen::Vector3i indices = GetEigenIndices(values);
 
-        return EigenValues(
+        return {
             values(indices(0)),
             values(indices(1)),
             values(indices(2))
-        );
+        };
     }
 
     EigenVectors GetEigenVectors(VertexMap &verts) 
@@ -88,10 +88,10 @@ namespace VertexProperties
         Eigen::Vector3f values = solver.eigenvalues().real();
         Eigen::Vector3i indices = GetEigenIndices(values);
 
-        return EigenVectors(
+        return {
             vectors.col(indices(0)),
             vectors.col(indices(1)),
             vectors.col(indices(2))
-        );
+        };
     }
 }

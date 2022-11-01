@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import Head from "next/head";
 import { useCallback, useRef } from "react";
 import DescriptorHistograms from "src/components/DescriptorHistograms";
 import ModelDescriptors from "src/components/ModelDescriptors";
@@ -19,6 +20,9 @@ export default function HomePage() {
     return (
         <ModelProvider>
             <div className={clsx("flex", "flex-col", "h-full")}>
+                <Head>
+                    <title>Model Go BRRR</title>
+                </Head>
                 <div className={clsx("grid", "lg:grid-cols-[1fr_auto_1fr]")}>
                     <div className={clsx("grid", "lg:grid-rows-[auto_auto_1fr]")}>
                         <ModelSelector
