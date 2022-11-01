@@ -18,7 +18,7 @@
 
 // Must be a power of 2!
 #define VERTEX_COUNT 2048  // 2^11
-#define SAMPLE_COUNT 65536 // 2^16
+#define SAMPLE_COUNT 131072 // 2^16
 
 #define EPSILON 1e-5
 

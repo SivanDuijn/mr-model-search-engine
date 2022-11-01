@@ -189,11 +189,11 @@ namespace descriptors
         {
             pmp::SurfaceMesh mesh = database::read_mesh(database, file);
             descriptors.push_back({
-                rolling_bin(mesh, A3, VERTEX_COUNT, nBins, 0, A3Binsize),
-                rolling_bin(mesh, D1, SAMPLE_COUNT, nBins, 0, A3Binsize),
-                rolling_bin(mesh, D2, SAMPLE_COUNT, nBins, 0, A3Binsize),
-                rolling_bin(mesh, D3, SAMPLE_COUNT, nBins, 0, A3Binsize),
-                rolling_bin(mesh, D4, SAMPLE_COUNT, nBins, 0, A3Binsize),
+                rolling_bin(mesh, A3, SAMPLE_COUNT, nBins, 0, A3Binsize),
+                rolling_bin(mesh, D1, SAMPLE_COUNT, nBins, 0, D1Binsize),
+                rolling_bin(mesh, D2, SAMPLE_COUNT, nBins, 0, D2Binsize),
+                rolling_bin(mesh, D3, SAMPLE_COUNT, nBins, 0, D3Binsize),
+                rolling_bin(mesh, D4, SAMPLE_COUNT, nBins, 0, D4Binsize),
             });
         }
     }
