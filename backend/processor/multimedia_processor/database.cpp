@@ -7,7 +7,7 @@ namespace database
     {
 	    printf_debug("Loading mesh \"%s\" from %s\n", file.c_str(), database.c_str());
 	    pmp::SurfaceMesh mesh;
-	    mesh.read(vars::GetAssetPath(database + "/models/" + file));
+	    mesh.read(database + '/' + file);
         return mesh;
     }
 
@@ -15,14 +15,14 @@ namespace database
     void write_mesh(pmp::SurfaceMesh &mesh, const string database, const string file)
     {
 	    printf_debug("Writing mesh \"%s\" to disk\n", file.c_str());
-	    mesh.write(vars::GetAssetPath(database + "/models/" + file));
+	    mesh.write(database + '/' + file);
     }
 
 	vector<string> get_filenames(const string database, const bool processed)
     {
 		vector<string> filenames = vector<string>();
         // Read filenames
-        ifstream ifs(vars::GetAssetPath(database + "/files.json"));
+        ifstream ifs(database + "/files.json");
         nlohmann::json files = nlohmann::json::parse(ifs);
         for (nlohmann::json::iterator it = files.begin(); it != files.end(); ++it) 
             for (nlohmann::json::iterator it2 = it.value().begin(); it2 != it.value().end(); ++it2)

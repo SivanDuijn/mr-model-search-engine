@@ -5,8 +5,8 @@ cmake_minimum_required(VERSION 3.8)
 
 project("multimedia_processor" VERSION 0.1.0)
 
-set(ASSETS_PATH ${PROJECT_SOURCE_DIR})
-configure_file(variables.h.in ${PROJECT_SOURCE_DIR}/variables.h)
+# set(ASSETS_PATH ${PROJECT_SOURCE_DIR})
+# configure_file(variables.h.in ${PROJECT_SOURCE_DIR}/variables.h)
 
 # compile PMP library
 set(PMP_BUILD_EXAMPLES OFF)

@@ -7,7 +7,7 @@ namespace modelstats
     void WriteNormalizationStatistics(string database, string in, string out, const NormalizationStatistics &beforeStats, const NormalizationStatistics &afterStats)
     {
         // Write the normalization stats to json
-        ifstream ifs(vars::GetAssetPath(database + "/normalization_stats.json"));
+        ifstream ifs(database + "/normalization_stats.json");
         nlohmann::json normStats;
         if (!ifs.fail())
             normStats = nlohmann::json::parse(ifs);
@@ -33,7 +33,7 @@ namespace modelstats
             {"totalAngle", afterStats.totalAngle},
             {"totalFlip", afterStats.totalFlip}
         };
-        ofstream ofs(vars::GetAssetPath(database + "/normalization_stats.json"));
+        ofstream ofs(database + "/normalization_stats.json");
         ofs << setw(4) << normStats << endl;
     }
 }

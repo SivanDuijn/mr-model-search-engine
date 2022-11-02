@@ -108,12 +108,12 @@ void extractAll(const string database)
 	// Extract features
 	vector<descriptors::GlobalDescriptors> gds;
 	vector<descriptors::ShapeDescriptors> sds;
-	printf_debug("Getting shape descriptors\n");
-	descriptors::get_shape_descriptors(database, filenames, sds, 10);
 	printf_debug("Getting global descriptors\n");
 	descriptors::get_global_descriptors(database, filenames, gds);
+	printf_debug("Getting shape descriptors\n");
+	descriptors::get_shape_descriptors(database, filenames, sds, 10);
 
-	ifstream ifs(vars::GetAssetPath(database + "/feature_descriptors.json"));
+	ifstream ifs(database + "/feature_descriptors.json");
 	nlohmann::json jsonDescriptors;
 	if (!ifs.fail())
 		jsonDescriptors = nlohmann::json::parse(ifs);
@@ -133,7 +133,7 @@ void extractAll(const string database)
 			{"D3", sds[i].D3.bins.array()},
 			{"D4", sds[i].D4.bins.array()}
 		};
-	ofstream ofs(vars::GetAssetPath(database + "/feature_descriptors.json"));
+	ofstream ofs(database + "/feature_descriptors.json");
 	ofs << setw(4) << jsonDescriptors << endl; // TODO: removing setw(4) might improve filesize
 	ofs.close();
 }
@@ -154,7 +154,7 @@ void computeFeatureVectors(const string database)
 {
 	vector<string> filenames = database::get_filenames(database, true);
 	int n_models = filenames.size();
-	ifstream ifs(vars::GetAssetPath(database + "/feature_descriptors.json"));
+	ifstream ifs(database + "/feature_descriptors.json");
 	nlohmann::json json_descriptors = nlohmann::json::parse(ifs);
 
 	// Create vectors for shape descriptors
@@ -244,7 +244,7 @@ void computeFeatureVectors(const string database)
 	json_fvs["shape_dists_mean"] = shape_dists_mean.array();
 	json_fvs["shape_dists_sd"] = shape_dists_sd.array();
 	json_fvs["models"] = json_models;
-	ofstream ofs(vars::GetAssetPath(database + "/feature_vectors.json"));
+	ofstream ofs(database + "/feature_vectors.json");
 	ofs << setw(4) << json_fvs << endl; // TODO: removing setw(4) might improve filesize
 	ofs.close();
 
@@ -262,7 +262,7 @@ void computeFeatureVectors(const string database)
 	}
 	
 	nlohmann::json json_dists = dists;
-	ofs = ofstream(vars::GetAssetPath(database + "/dist_matrix.json"));
+	ofs = ofstream(database + "/dist_matrix.json");
 	ofs << json_dists << endl;
 	ofs.close();
 }
@@ -273,7 +273,7 @@ vector<tuple<int,float>> queryDatabaseModel(const string database, const string 
 	int n_models = filenames.size();
 
 	// Read in distance matrix
-	ifstream ifs(vars::GetAssetPath(database + "/dist_matrix.json"));
+	ifstream ifs(database + "/dist_matrix.json");
 	nlohmann::json json_dist_matrix;
 	if (ifs.fail())
 		return {};
@@ -378,7 +378,7 @@ void computeClosestModels(const string database)
 		json_closest[file] = cv;
 	}
 
-	ofstream ofs = ofstream(vars::GetAssetPath(database + "/closest_models.json"));
+	ofstream ofs = ofstream(database + "/closest_models.json");
 	ofs << setw(4) << json_closest << endl;
 	ofs.close();
 }
