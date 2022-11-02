@@ -21,5 +21,5 @@ add_custom_command(
   TARGET "multimedia_processor"
   POST_BUILD
   COMMAND ${CMAKE_COMMAND}
-  ARGS -E copy $<TARGET_FILE:multimedia_processor> ${CMAKE_SOURCE_DIR}/../server/processors/multimedia_processor
+  ARGS -E copy $<TARGET_FILE:multimedia_processor> ${CMAKE_SOURCE_DIR}/../server/processors/multimedia_processor.exe
 )

@@ -48,3 +48,5 @@ next-env.d.ts
 *.dll
 
 package-lock.json
+
+backend/server/query_upload/*

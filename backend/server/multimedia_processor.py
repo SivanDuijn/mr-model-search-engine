@@ -1,7 +1,7 @@
-from encodings import utf_8
 import subprocess
+from os import getcwd
 
-def call(args):
+def _call(args: list):
     """
     Call the multimedia processor with the given args
 
@@ -9,8 +9,18 @@ def call(args):
     """
 
     args.insert(0, "processors/multimedia_processor")
-    popen = subprocess.Popen(args, stdout=subprocess.PIPE, encoding="utf_8")
+    print(getcwd())
+    popen = subprocess.Popen(args, cwd=getcwd(), stdout=subprocess.PIPE, encoding="utf_8")
     popen.wait()
     result = popen.stdout.read()
     print(result)
     return result 
+
+def debug():
+    return _call(["debug"])
+
+def preprocess(filename: str):
+    return _call(["preprocess", "query_upload", filename])
+
+def extract(filename: str):
+    return _call(["extract", "query_upload", filename])
