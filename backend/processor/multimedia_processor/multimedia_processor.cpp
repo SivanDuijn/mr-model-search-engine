@@ -317,7 +317,7 @@ vector<tuple<int,float>> queryDatabaseModel(const string database, const string 
 	string ma = "123_processed.off";
 	string mb = "31_processed.off";
 
-	ifs = ifstream(vars::GetAssetPath(database + "/feature_vectors.json"));
+	ifs = ifstream(database + "/feature_vectors.json");
 	nlohmann::json json_feature_vectors = nlohmann::json::parse(ifs);
 
 	Eigen::VectorXf dists_mean = utils::JSONArrayToVector(json_feature_vectors["shape_dists_mean"]);

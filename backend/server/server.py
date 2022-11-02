@@ -33,6 +33,7 @@ def query():
         # save file on disk
         filename = f"{uuid4().hex}"
         extension = file.filename.split('.')[-1].lower()
+        print(f"User uploaded file {file.filename}, saving as {filename}.{extension}")
         file.save(f"{getcwd()}/{app.config['UPLOAD_FOLDER']}/{filename}.{extension}")
 
         # preprocess the file
