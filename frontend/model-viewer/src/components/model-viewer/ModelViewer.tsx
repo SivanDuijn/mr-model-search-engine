@@ -8,7 +8,7 @@ import ThreeJSViewGL from "./viewGL";
 const database = "PSBDatabase";
 
 type Props = {
-    onMounted: (viewGL: ThreeJSViewGL) => void;
+    onMounted?: (viewGL: ThreeJSViewGL) => void;
     className?: string;
 };
 
@@ -28,7 +28,7 @@ export const MemoizedViewGLCanvas = React.memo((props: Props) => {
     useEffect(() => {
         viewGL.current = new ThreeJSViewGL(canvasRef.current || undefined);
         viewGL.current?.setOnModelStatsChanged((stats) => setModelState(stats));
-        props.onMounted(viewGL.current);
+        if (props.onMounted) props.onMounted(viewGL.current);
     }, []);
 
     useEffect(() => {
@@ -110,7 +110,7 @@ export const MemoizedViewGLCanvas = React.memo((props: Props) => {
 });
 
 // eslint-disable-next-line react/display-name
-export const MemoizedViewGLCanvasSmall = React.memo((props: { className?: string }) => {
+export const MemoizedViewGLCanvasSmall = React.memo((props: Props) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const mouseIsDown = useRef<boolean>(false);
     const viewGL = useRef<ThreeJSViewGL>();
@@ -118,6 +118,7 @@ export const MemoizedViewGLCanvasSmall = React.memo((props: { className?: string
 
     useEffect(() => {
         viewGL.current = new ThreeJSViewGL(canvasRef.current || undefined, 250, 250);
+        if (props.onMounted) props.onMounted(viewGL.current);
     }, []);
 
     useEffect(() => {

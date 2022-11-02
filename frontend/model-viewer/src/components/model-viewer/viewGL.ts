@@ -1,4 +1,6 @@
+import saveAs from "file-saver";
 import * as THREE from "three";
+import { BoxHelper } from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { VertexNormalsHelper } from "three/examples/jsm/helpers/VertexNormalsHelper";
 import { initialState } from "src/lib/contexts";
@@ -27,11 +29,16 @@ export default class ThreeJSViewGL {
     private camera: THREE.PerspectiveCamera;
     private controls: OrbitControls;
 
+    private group: THREE.Group = new THREE.Group();
     private mesh?: THREE.Mesh;
     private wireframe?: THREE.LineSegments;
     private vertexNormalsHelper?: VertexNormalsHelper;
     private pointCloud?: THREE.Points;
-    private group: THREE.Group = new THREE.Group();
+    private boundingBox?: THREE.LineSegments<
+        THREE.EdgesGeometry<THREE.BoxGeometry>,
+        THREE.LineBasicMaterial
+    >;
+    private unitBox?: BoxHelper;
 
     private material: THREE.Material = new THREE.Material();
 
@@ -40,13 +47,21 @@ export default class ThreeJSViewGL {
     private vertexNormalsEnabled: boolean;
     private wireframeEnabled: boolean;
     private autoRotateEnabled: boolean;
+    private boundingBoxEnabled = true;
+    private unitBoxEnabled = true;
 
     private mouseIsDown = true;
 
     private onModelStatsChanged?: (stats: ModelState["modelStats"]) => void;
-    currentModel: string | undefined;
+    private currentModel: string | undefined;
+
+    private captureNextFrame = false;
+
+    public canvas?: HTMLCanvasElement;
 
     constructor(canvas: HTMLCanvasElement | undefined, width = 600, height = 600) {
+        this.canvas = canvas;
+
         this.renderMaterial = initialState.renderSettings.material;
         this.wireframeEnabled = initialState.renderSettings.showWireframe;
         this.vertexNormalsEnabled = initialState.renderSettings.showVertexNormals;
@@ -123,10 +138,15 @@ export default class ThreeJSViewGL {
             this.mesh.visible = false;
         }
 
+        this.boundingBox = CreateThreeLineBox(1, 1, 1, 0x7d7d7d);
+        if (!this.boundingBoxEnabled) this.boundingBox.visible = false;
+        this.unitBox = new THREE.BoxHelper(this.mesh, 0xff0000);
+        if (!this.unitBoxEnabled) this.unitBox.visible = false;
+
         // Add unit bounding box
-        this.group.add(CreateThreeLineBox(1, 1, 1, 0x7d7d7d));
+        this.group.add(this.boundingBox);
         // Add model boundingbox
-        this.group.add(new THREE.BoxHelper(this.mesh, 0xff0000));
+        this.group.add(this.unitBox);
         this.group.add(this.wireframe);
         this.group.add(this.pointCloud);
         this.group.add(this.mesh);
@@ -216,20 +236,32 @@ export default class ThreeJSViewGL {
 
         this.vertexNormalsEnabled = show;
 
-        if (this.vertexNormalsHelper)
-            if (this.vertexNormalsEnabled) this.vertexNormalsHelper.visible = true;
-            else this.vertexNormalsHelper.visible = false;
+        if (this.vertexNormalsHelper) this.vertexNormalsHelper.visible = this.vertexNormalsEnabled;
     }
     showWireframe(show: boolean) {
         if (this.wireframeEnabled == show) return;
 
         this.wireframeEnabled = show;
-        if (this.wireframe)
-            if (this.wireframeEnabled) this.wireframe.visible = true;
-            else this.wireframe.visible = false;
+        if (this.wireframe) this.wireframe.visible = this.wireframeEnabled;
+    }
+    showBoundingBox(show: boolean) {
+        if (this.boundingBoxEnabled == show) return;
+        this.boundingBoxEnabled = show;
+        if (this.boundingBox) this.boundingBox.visible = this.boundingBoxEnabled;
+    }
+    showUnitBox(show: boolean) {
+        if (this.unitBoxEnabled == show) return;
+        this.unitBoxEnabled = show;
+        if (this.unitBox) this.unitBox.visible = this.unitBoxEnabled;
     }
     setAutoRotateEnabled(enabled: boolean) {
         this.autoRotateEnabled = enabled;
+    }
+    setCameraZ(z: number) {
+        this.camera.position.z = z;
+    }
+    capture() {
+        this.captureNextFrame = true;
     }
     // ---
 
@@ -252,6 +284,19 @@ export default class ThreeJSViewGL {
         this.totalTime = time;
 
         this.renderer.render(this.scene, this.camera);
+
+        if (this.captureNextFrame) {
+            this.canvas?.toBlob(
+                (blob) => {
+                    if (blob) saveAs(blob, this.currentModel?.split(".")[0] + ".png");
+                },
+                "image/png",
+                1,
+            );
+
+            this.captureNextFrame = false;
+        }
+
         this.controls.update();
 
         if (this.mesh && this.mouseIsDown && this.autoRotateEnabled)
