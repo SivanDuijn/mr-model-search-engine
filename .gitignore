@@ -45,6 +45,6 @@ next-env.d.ts
 .vscode/
 .vs/
 
-backend/processor/variables.h
-
 *.dll
+
+package-lock.json
