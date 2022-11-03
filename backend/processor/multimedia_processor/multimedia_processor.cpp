@@ -87,8 +87,8 @@ void preprocess(const string database, const string in, const string out)
 	pmp::SurfaceMesh mesh = database::read_mesh(database, in);
 
 	// Preprocess the mesh
-	modelstats::NormalizationStatistics beforeStats;
-	modelstats::NormalizationStatistics afterStats;
+	database::NormalizationStatistics beforeStats;
+	database::NormalizationStatistics afterStats;
 	preprocessor::resample(mesh, beforeStats, afterStats);
 	preprocessor::normalize(mesh, beforeStats, afterStats);
 
@@ -96,7 +96,7 @@ void preprocess(const string database, const string in, const string out)
 	database::write_mesh(mesh, database, out);
 
 	// Write the normalization stats to json
-	modelstats::WriteNormalizationStatistics(database, in, out, beforeStats, afterStats);
+	database::write_stats(database, in, out, beforeStats, afterStats);
 
 	printf("Preprocessed mesh \"%s\" from %s successfully, output: %s\n", in.c_str(), database.c_str(), out.c_str());
 }
