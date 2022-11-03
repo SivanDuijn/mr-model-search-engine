@@ -5,7 +5,7 @@ namespace database
     // Read a mesh from file
     pmp::SurfaceMesh read_mesh(const string file)
     {
-        printf_debug("Loading mesh \"%s\"", file.c_str());
+        printf_debug("Loading mesh \"%s\"\n", file.c_str());
 	    pmp::SurfaceMesh mesh;
 	    mesh.read(file);
         return mesh;

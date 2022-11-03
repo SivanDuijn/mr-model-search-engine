@@ -24,3 +24,6 @@ def preprocess(filename: str):
 
 def extract(filename: str):
     return _call(["extract", "query_upload", filename])
+
+def query_top_k_models(filename: str):
+    return _call(["query-model", "../../frontend/model-viewer/public/PSBDatabase", filename])

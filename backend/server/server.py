@@ -1,5 +1,4 @@
 from flask import Flask, request
-from werkzeug.utils import secure_filename
 from uuid import uuid4
 from os import getcwd
 import multimedia_processor
@@ -34,16 +33,13 @@ def query():
         filename = uuid4().hex
         extension = file.filename.split('.')[-1].lower()
         print(f"User uploaded file {file.filename}, saving as {filename}.{extension}")
-        file.save(f"{getcwd()}/{app.config['UPLOAD_FOLDER']}/{filename}.{extension}")
+        model_location = f"{getcwd()}/{app.config['UPLOAD_FOLDER']}/{filename}.{extension}"
+        file.save(model_location)
 
         # preprocess the file
-        rv = multimedia_processor.preprocess(f"{filename}.{extension}")
-        print(rv)
+        result = multimedia_processor.query_top_k_models(model_location)
 
-        # extract file features
-        multimedia_processor.extract(f"{filename}_processed.{extension}")
-
-        response = {"message": "File upload successful"}
+        response = result;
         return response, 200
 
     # give a small upload form for debugging

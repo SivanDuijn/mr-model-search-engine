@@ -375,7 +375,6 @@ void query_top_k_models(const string database, const string file, const int k)
 	pmp::SurfaceMesh mesh = database::read_mesh(file);
 
 	// Preprocess the mesh
-	
 	database::NormalizationStatistics beforeStats; // TODO don't calculate these stats
 	database::NormalizationStatistics afterStats; 
 	preprocessor::resample(mesh, beforeStats, afterStats);
@@ -386,9 +385,9 @@ void query_top_k_models(const string database, const string file, const int k)
 	descriptors::ShapeDescriptors sd = descriptors::get_shape_descriptors(mesh, 10);
 
 	// Create a matrix for each shape descriptor where the rows represent the models
-	vector<Eigen::Vector<float, 10>> shape_fv;
+	vector<Eigen::Vector<float, 10>> q_shape_fv;
 	// Create global descriptors matrix
-	Eigen::Vector<float, 8> global_fv(
+	Eigen::Vector<float, 8> q_global_fv(
 		gd.surfaceArea,
 		gd.AABBVolume,
 		gd.volume,
@@ -399,19 +398,61 @@ void query_top_k_models(const string database, const string file, const int k)
 		gd.rectangularity
 	);
 
-	shape_fv.push_back(sd.A3.bins);
-	shape_fv.push_back(sd.D1.bins);
-	shape_fv.push_back(sd.D2.bins);
-	shape_fv.push_back(sd.D3.bins);
-	shape_fv.push_back(sd.D4.bins);
+	q_shape_fv.push_back(sd.A3.bins);
+	q_shape_fv.push_back(sd.D1.bins);
+	q_shape_fv.push_back(sd.D2.bins);
+	q_shape_fv.push_back(sd.D3.bins);
+	q_shape_fv.push_back(sd.D4.bins);
 
 	// Get global mean and global SD
 	ifstream ifs = ifstream(database + "/feature_vectors.json");
-	if (ifs.fail()) cout << "{error:\"Something went wrong when loading the feature vectors!\"}" << endl;
+	if (ifs.fail()) {
+		cout << "{error:\"Something went wrong when loading the feature vectors!\"}" << endl;
+		return;
+	}
 	nlohmann::json json_feature_vectors = nlohmann::json::parse(ifs);
 	Eigen::VectorXf global_mean = utils::JSONArrayToVector(json_feature_vectors["global_mean"]);
 	Eigen::VectorXf global_sd = utils::JSONArrayToVector(json_feature_vectors["global_sd"]);
-	global_fv = (global_fv - global_mean).array() / global_sd.array();
+	q_global_fv = (q_global_fv - global_mean).array() / global_sd.array();
 
+	Eigen::VectorXf dists_sd = utils::JSONArrayToVector(json_feature_vectors["shape_dists_sd"]);
 
+	// Go through all models and calculate all distances
+	auto filenames = database::get_filenames(database, true);
+	vector<float> dists;
+	for (string file : filenames)
+	{
+		Eigen::VectorXf m_global_fv = utils::JSONArrayToVector(json_feature_vectors["models"][file]["global"]);
+
+		// Go through all shape descriptors
+		size_t i = 0;
+		float shape_dist_2 = 0;
+		for (auto it = json_feature_vectors["models"][file]["shape"].begin(); it != json_feature_vectors["models"][file]["shape"].end(); ++it, i++)
+		{
+			Eigen::VectorXf m_shape_fv = utils::JSONArrayToVector(it.value());
+			// if (file == "5_processed.off") {
+			// 	cout << m_shape_fv.transpose() << endl;
+			// 	cout << q_shape_fv[i].transpose() << endl << endl;
+			// }
+			float emd = utils::EarthMoversDistance(q_shape_fv[i], m_shape_fv);
+			emd /= dists_sd(i);
+			shape_dist_2 += emd*emd;
+		}
+
+		float global_dist_2 = (q_global_fv - m_global_fv).array().square().sum();
+		// if (file == "5_processed.off")
+		// {
+		// 	cout << global_dist_2 << " " << shape_dist_2 << endl;
+		// }
+		dists.push_back(sqrtf(global_dist_2 + shape_dist_2));
+	}
+
+	auto indices = n_smallest_indices(dists.begin(), dists.end(), k +1);
+
+	cout << "[\n";
+	size_t i;
+	for (i = 0; i < indices.size() - 2; i++)
+		cout << "{\"m\":\"" << filenames[indices[i]] << "\", \"d\":" << dists[indices[i]] << "},\n";
+	i++;
+	cout << "{\"m\":\"" << filenames[indices[i]] << "\", \"d\":" << dists[indices[i]] << "}\n]" << endl;
 }
