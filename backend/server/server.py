@@ -7,7 +7,7 @@ import file_validation
 
 app = Flask(__name__)
 app.config["UPLOAD_FOLDER"] = "query_upload"
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1000 * 1000
+app.config["MAX_CONTENT_LENGTH"] = 16 * 1000 * 1000
 
 @app.route("/api/debug", methods=['GET'])
 def debug():
@@ -31,7 +31,7 @@ def query():
             return response, 400
 
         # save file on disk
-        filename = f"{uuid4().hex}"
+        filename = uuid4().hex
         extension = file.filename.split('.')[-1].lower()
         print(f"User uploaded file {file.filename}, saving as {filename}.{extension}")
         file.save(f"{getcwd()}/{app.config['UPLOAD_FOLDER']}/{filename}.{extension}")

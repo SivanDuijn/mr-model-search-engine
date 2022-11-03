@@ -24,7 +24,7 @@ int main(int argc, char *argv[])
 
 	else if (!strcmp(argv[1], "debug")) debug();
 
-	else if (!strcmp(argv[1], "preprocess-all")) preprocessAll();
+	else if (!strcmp(argv[1], "preprocess-all")) preprocess_all();
 
 	else if (!strcmp(argv[1], "preprocess"))  
 		if (out != "")
@@ -34,7 +34,7 @@ int main(int argc, char *argv[])
 		else 
 			preprocess();
 
-	else if (!strcmp(argv[1], "extract-all")) extractAll();
+	else if (!strcmp(argv[1], "extract-all")) extract_all();
 
 	else if (!strcmp(argv[1], "extract"))
 		if (in != "")
@@ -43,25 +43,25 @@ int main(int argc, char *argv[])
 			extract();
 
 	else if (!strcmp(argv[1], "compute-fvs") || !strcmp(argv[1], "compute-feature-vectors"))
-		computeFeatureVectors();
+		compute_feature_vectors();
 
 	else if (!strcmp(argv[1], "query-database-model"))
 		if (in != "")
-			queryDatabaseModel(database, in);
+			query_database_model(database, in);
 		else
-			queryDatabaseModel();
+			query_database_model();
 
 	else if (!strcmp(argv[1], "query-model"))
 		if (in != "" && database != "")
-			queryTopKModels(database, in, 10);
+			query_top_k_models(database, in, 10);
 		else 
 			cout << "{error: \"Wrong arguments!\"}";
 
 	else if (!strcmp(argv[1], "compute-all-closest"))
 		if (database != "")
-			computeClosestModels(database);
+			compute_closest_models(database);
 		else
-			computeClosestModels();
+			compute_closest_models();
 
 	else printf("Unknown argument");
 
@@ -73,7 +73,7 @@ void debug()
 	printf("Echoing debug call\n");
 }
 
-void preprocessAll(const string database)
+void preprocess_all(const string database)
 {
 	vector<string> filenames = database::get_filenames(database);
 	// Process every file in the database
@@ -93,8 +93,8 @@ void preprocess(const string database, const string in, const string out)
 	pmp::SurfaceMesh mesh = database::read_mesh(database, in);
 
 	// Preprocess the mesh
-	modelstats::NormalizationStatistics beforeStats;
-	modelstats::NormalizationStatistics afterStats;
+	database::NormalizationStatistics beforeStats;
+	database::NormalizationStatistics afterStats;
 	preprocessor::resample(mesh, beforeStats, afterStats);
 	preprocessor::normalize(mesh, beforeStats, afterStats);
 
@@ -102,12 +102,12 @@ void preprocess(const string database, const string in, const string out)
 	database::write_mesh(mesh, database, out);
 
 	// Write the normalization stats to json
-	modelstats::WriteNormalizationStatistics(database, in, out, beforeStats, afterStats);
+	database::write_stats(database, in, out, beforeStats, afterStats);
 
 	printf("Preprocessed mesh \"%s\" from %s successfully, output: %s\n", in.c_str(), database.c_str(), out.c_str());
 }
 
-void extractAll(const string database)
+void extract_all(const string database)
 {
 	vector<string> filenames = database::get_filenames(database, true);
 
@@ -117,31 +117,9 @@ void extractAll(const string database)
 	printf_debug("Getting global descriptors\n");
 	descriptors::get_global_descriptors(database, filenames, gds);
 	printf_debug("Getting shape descriptors\n");
-	descriptors::get_shape_descriptors(database, filenames, sds, 10);
+	descriptors::get_shape_descriptors(database, filenames, sds);
 
-	ifstream ifs(database + "/feature_descriptors.json");
-	nlohmann::json jsonDescriptors;
-	if (!ifs.fail())
-		jsonDescriptors = nlohmann::json::parse(ifs);
-	for (size_t i = 0, nFiles = filenames.size(); i < nFiles; i++)
-		jsonDescriptors[filenames[i]] = {
-			{"area", gds[i].surfaceArea}, 
-			{"AABBVolume", gds[i].AABBVolume},
-			{"volume", gds[i].volume},
-			{"compactness", gds[i].compactness},
-			{"eccentricity", gds[i].eccentricity},
-			{"diameter", gds[i].diameter},
-			{"sphericity", gds[i].sphericity},
-			{"rectangularity", gds[i].rectangularity},
-			{"A3", sds[i].A3.bins.array()},
-			{"D1", sds[i].D1.bins.array()},
-			{"D2", sds[i].D2.bins.array()},
-			{"D3", sds[i].D3.bins.array()},
-			{"D4", sds[i].D4.bins.array()}
-		};
-	ofstream ofs(database + "/feature_descriptors.json");
-	ofs << setw(4) << jsonDescriptors << endl; // TODO: removing setw(4) might improve filesize
-	ofs.close();
+	database::write_descriptors(database, filenames, gds, sds);
 }
 
 void extract(const string database, const string in)
@@ -153,10 +131,12 @@ void extract(const string database, const string in)
 	printf_debug("Getting global descriptors\n");
 	descriptors::get_global_descriptors(mesh);
 	printf_debug("Getting shape descriptors\n");
-	descriptors::get_shape_descriptors(mesh, 10);
+	descriptors::get_shape_descriptors(mesh);
+
+	// TODO write?
 }
 
-void computeFeatureVectors(const string database)
+void compute_feature_vectors(const string database)
 {
 	vector<string> filenames = database::get_filenames(database, true);
 	int n_models = filenames.size();
@@ -273,7 +253,7 @@ void computeFeatureVectors(const string database)
 	ofs.close();
 }
 
-vector<tuple<int,float>> queryDatabaseModel(const string database, const string in, size_t k)
+vector<tuple<int,float>> query_database_model(const string database, const string in, size_t k)
 {
 	vector<string> filenames = database::get_filenames(database, true);
 	int n_models = filenames.size();
@@ -364,7 +344,7 @@ vector<tuple<int,float>> queryDatabaseModel(const string database, const string 
 	return closest;
 }
 
-void computeClosestModels(const string database)
+void compute_closest_models(const string database)
 {
 	auto filenames = database::get_filenames(database);
 
@@ -375,7 +355,7 @@ void computeClosestModels(const string database)
 		string name = file.substr(0, pos);
 		string ext = file.substr(pos + 1);
 
-		auto closest = queryDatabaseModel(database, name + "_processed." + ext, 11);
+		auto closest = query_database_model(database, name + "_processed." + ext, 11);
 	
 		closest.erase(closest.begin());
 		vector<tuple<string,float>> cv;
@@ -390,13 +370,14 @@ void computeClosestModels(const string database)
 }
 
 // Calculate the top k closest models 
-void queryTopKModels(const string database, const string file, const int k)
+void query_top_k_models(const string database, const string file, const int k)
 {
 	pmp::SurfaceMesh mesh = database::read_mesh(file);
 
 	// Preprocess the mesh
-	modelstats::NormalizationStatistics beforeStats; // TODO don't calculate these stats
-	modelstats::NormalizationStatistics afterStats; 
+	
+	database::NormalizationStatistics beforeStats; // TODO don't calculate these stats
+	database::NormalizationStatistics afterStats; 
 	preprocessor::resample(mesh, beforeStats, afterStats);
 	preprocessor::normalize(mesh, beforeStats, afterStats);
 
@@ -432,5 +413,5 @@ void queryTopKModels(const string database, const string file, const int k)
 	Eigen::VectorXf global_sd = utils::JSONArrayToVector(json_feature_vectors["global_sd"]);
 	global_fv = (global_fv - global_mean).array() / global_sd.array();
 
-	
+
 }

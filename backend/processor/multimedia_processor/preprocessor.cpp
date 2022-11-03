@@ -10,7 +10,7 @@ namespace preprocessor
     }
 
     // Resample a mesh at the given path
-    void resample(pmp::SurfaceMesh &mesh, modelstats::NormalizationStatistics &beforeStats, modelstats::NormalizationStatistics &afterStats)
+    void resample(pmp::SurfaceMesh &mesh, database::NormalizationStatistics &beforeStats, database::NormalizationStatistics &afterStats)
     {
         printf_debug("Mesh has %zu vertices\n", mesh.n_vertices());
 
@@ -56,7 +56,7 @@ namespace preprocessor
     // * Align with coordinate frame
     // * Flip based on moment test
     // * Scale to unit volume
-    void normalize(pmp::SurfaceMesh &mesh, modelstats::NormalizationStatistics &beforeStats, modelstats::NormalizationStatistics &afterStats)
+    void normalize(pmp::SurfaceMesh &mesh, database::NormalizationStatistics &beforeStats, database::NormalizationStatistics &afterStats)
     {
         // Get the vertices as an Eigen map
         VertexMap map = VertexProperties::GetVertexMap(mesh);
