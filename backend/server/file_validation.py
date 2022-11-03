@@ -1,5 +1,3 @@
-from flask import Flask
-
 UPLOAD_EXTENSIONS = {"off"}
 
 def validate_file(file):
