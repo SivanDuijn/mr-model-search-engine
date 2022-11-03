@@ -28,7 +28,7 @@ namespace descriptors
     const float D4Max = 0.693361274;   // max volume of tetrahedron in unit cube, (0,0,0) (1,1,0) (1,0,1) (0,1,1)
 
     // Gets the non normalized histogram shape descriptors for one mesh
-    ShapeDescriptors get_shape_descriptors(pmp::SurfaceMesh &mesh, int nBins);
+    ShapeDescriptors get_shape_descriptors(pmp::SurfaceMesh &mesh, int nBins = 10);
     // Gets the normalized histogram, where min max is used over the all the files
-    void get_shape_descriptors(std::string database, std::vector<std::string>& filenames, std::vector<ShapeDescriptors> &descriptors, int nBins);
+    void get_shape_descriptors(std::string database, std::vector<std::string>& filenames, std::vector<ShapeDescriptors> &descriptors, int nBins = 10);
 }

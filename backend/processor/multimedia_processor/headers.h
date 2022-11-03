@@ -17,8 +17,8 @@
 #include "../lib/libgdiam/gdiam.hpp"
 
 // Must be a power of 2!
-#define VERTEX_COUNT 2048  // 2^11
-#define SAMPLE_COUNT 131072 // 2^16
+#define VERTEX_COUNT 2048   // 2^11
+#define SAMPLE_COUNT 131072 // 2^17
 
 #define EPSILON 1e-5
 
@@ -32,6 +32,7 @@ typedef Eigen::Map<VertexMat>                 VertexMap;
     #define printf_debug 0 && printf
 #endif
 
+// TODO move
 template<typename Iterator>
 std::vector<size_t> n_smallest_indices(Iterator it, Iterator end, size_t n) {
     struct Element {
@@ -57,10 +58,10 @@ std::vector<size_t> n_smallest_indices(Iterator it, Iterator end, size_t n) {
     return result;
 }
 
-#include "database.h"
 #include "utils.h"
-#include "vertex_properties.h"
 #include "descriptors_global.h"
 #include "descriptors_shape.h"
+#include "database.h"
+#include "vertex_properties.h"
 #include "preprocessor.h"
 #include "multimedia_processor.h"

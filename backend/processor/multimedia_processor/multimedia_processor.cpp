@@ -111,31 +111,9 @@ void extract_all(const string database)
 	printf_debug("Getting global descriptors\n");
 	descriptors::get_global_descriptors(database, filenames, gds);
 	printf_debug("Getting shape descriptors\n");
-	descriptors::get_shape_descriptors(database, filenames, sds, 10);
+	descriptors::get_shape_descriptors(database, filenames, sds);
 
-	ifstream ifs(database + "/feature_descriptors.json");
-	nlohmann::json jsonDescriptors;
-	if (!ifs.fail())
-		jsonDescriptors = nlohmann::json::parse(ifs);
-	for (size_t i = 0, nFiles = filenames.size(); i < nFiles; i++)
-		jsonDescriptors[filenames[i]] = {
-			{"area", gds[i].surfaceArea}, 
-			{"AABBVolume", gds[i].AABBVolume},
-			{"volume", gds[i].volume},
-			{"compactness", gds[i].compactness},
-			{"eccentricity", gds[i].eccentricity},
-			{"diameter", gds[i].diameter},
-			{"sphericity", gds[i].sphericity},
-			{"rectangularity", gds[i].rectangularity},
-			{"A3", sds[i].A3.bins.array()},
-			{"D1", sds[i].D1.bins.array()},
-			{"D2", sds[i].D2.bins.array()},
-			{"D3", sds[i].D3.bins.array()},
-			{"D4", sds[i].D4.bins.array()}
-		};
-	ofstream ofs(database + "/feature_descriptors.json");
-	ofs << setw(4) << jsonDescriptors << endl; // TODO: removing setw(4) might improve filesize
-	ofs.close();
+	database::write_descriptors(database, filenames, gds, sds);
 }
 
 void extract(const string database, const string in)
@@ -147,7 +125,9 @@ void extract(const string database, const string in)
 	printf_debug("Getting global descriptors\n");
 	descriptors::get_global_descriptors(mesh);
 	printf_debug("Getting shape descriptors\n");
-	descriptors::get_shape_descriptors(mesh, 10);
+	descriptors::get_shape_descriptors(mesh);
+
+	// TODO write?
 }
 
 void compute_feature_vectors(const string database)
