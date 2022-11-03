@@ -17,9 +17,15 @@ if(CMAKE_VERSION VERSION_GREATER 3.12)
 endif()
 
 # Copy executable to server
+if (UNIX)
+  set(EXEC_FILE "multimedia_processor")
+else()
+  set(EXEC_FILE "multimedia_processor.exe")
+endif (UNIX)
+
 add_custom_command(
   TARGET "multimedia_processor"
   POST_BUILD
   COMMAND ${CMAKE_COMMAND}
-  ARGS -E copy $<TARGET_FILE:multimedia_processor> ${CMAKE_SOURCE_DIR}/../server/processors/multimedia_processor.exe
+  ARGS -E copy $<TARGET_FILE:multimedia_processor> ${CMAKE_SOURCE_DIR}/../server/processors/${EXEC_FILE}
 )

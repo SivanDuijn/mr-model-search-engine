@@ -6,7 +6,7 @@ import multimedia_processor
 import file_validation
 
 app = Flask(__name__)
-app.config["UPLOAD_FOLDER"] = "/query_upload"
+app.config["UPLOAD_FOLDER"] = "query_upload"
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1000 * 1000
 
 @app.route("/api/debug", methods=['GET'])
