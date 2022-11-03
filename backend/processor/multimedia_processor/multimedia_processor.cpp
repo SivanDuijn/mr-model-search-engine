@@ -45,11 +45,17 @@ int main(int argc, char *argv[])
 	else if (!strcmp(argv[1], "compute-fvs") || !strcmp(argv[1], "compute-feature-vectors"))
 		computeFeatureVectors();
 
-	else if (!strcmp(argv[1], "query-model"))
+	else if (!strcmp(argv[1], "query-database-model"))
 		if (in != "")
 			queryDatabaseModel(database, in);
 		else
 			queryDatabaseModel();
+
+	else if (!strcmp(argv[1], "query-model"))
+		if (in != "" && database != "")
+			queryTopKModels(database, in, 10);
+		else 
+			cout << "{error: \"Wrong arguments!\"}";
 
 	else if (!strcmp(argv[1], "compute-all-closest"))
 		if (database != "")
@@ -381,4 +387,50 @@ void computeClosestModels(const string database)
 	ofstream ofs = ofstream(database + "/closest_models.json");
 	ofs << setw(4) << json_closest << endl;
 	ofs.close();
+}
+
+// Calculate the top k closest models 
+void queryTopKModels(const string database, const string file, const int k)
+{
+	pmp::SurfaceMesh mesh = database::read_mesh(file);
+
+	// Preprocess the mesh
+	modelstats::NormalizationStatistics beforeStats; // TODO don't calculate these stats
+	modelstats::NormalizationStatistics afterStats; 
+	preprocessor::resample(mesh, beforeStats, afterStats);
+	preprocessor::normalize(mesh, beforeStats, afterStats);
+
+	// Extract features
+	descriptors::GlobalDescriptors gd = descriptors::get_global_descriptors(mesh);
+	descriptors::ShapeDescriptors sd = descriptors::get_shape_descriptors(mesh, 10);
+
+	// Create a matrix for each shape descriptor where the rows represent the models
+	vector<Eigen::Vector<float, 10>> shape_fv;
+	// Create global descriptors matrix
+	Eigen::Vector<float, 8> global_fv(
+		gd.surfaceArea,
+		gd.AABBVolume,
+		gd.volume,
+		gd.compactness,
+		gd.eccentricity,
+		gd.diameter,
+		gd.sphericity,
+		gd.rectangularity
+	);
+
+	shape_fv.push_back(sd.A3.bins);
+	shape_fv.push_back(sd.D1.bins);
+	shape_fv.push_back(sd.D2.bins);
+	shape_fv.push_back(sd.D3.bins);
+	shape_fv.push_back(sd.D4.bins);
+
+	// Get global mean and global SD
+	ifstream ifs = ifstream(database + "/feature_vectors.json");
+	if (ifs.fail()) cout << "{error:\"Something went wrong when loading the feature vectors!\"}" << endl;
+	nlohmann::json json_feature_vectors = nlohmann::json::parse(ifs);
+	Eigen::VectorXf global_mean = utils::JSONArrayToVector(json_feature_vectors["global_mean"]);
+	Eigen::VectorXf global_sd = utils::JSONArrayToVector(json_feature_vectors["global_sd"]);
+	global_fv = (global_fv - global_mean).array() / global_sd.array();
+
+	
 }

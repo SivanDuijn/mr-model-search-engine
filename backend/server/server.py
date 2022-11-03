@@ -37,7 +37,8 @@ def query():
         file.save(f"{getcwd()}/{app.config['UPLOAD_FOLDER']}/{filename}.{extension}")
 
         # preprocess the file
-        multimedia_processor.preprocess(f"{filename}.{extension}")
+        rv = multimedia_processor.preprocess(f"{filename}.{extension}")
+        print(rv)
 
         # extract file features
         multimedia_processor.extract(f"{filename}_processed.{extension}")

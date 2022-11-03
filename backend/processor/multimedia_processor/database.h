@@ -2,6 +2,8 @@
 
 namespace database 
 {
+    // Read a mesh from file
+    pmp::SurfaceMesh read_mesh(const std::string file);
     // Read a mesh from a database
     pmp::SurfaceMesh read_mesh(const std::string database, const std::string file);
 

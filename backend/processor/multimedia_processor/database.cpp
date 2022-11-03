@@ -2,13 +2,19 @@
 
 namespace database 
 {
+    // Read a mesh from file
+    pmp::SurfaceMesh read_mesh(const string file)
+    {
+        printf_debug("Loading mesh \"%s\" from %s\n", file.c_str());
+	    pmp::SurfaceMesh mesh;
+	    mesh.read(file);
+        return mesh;
+    }
     // Read a mesh from a database
     pmp::SurfaceMesh read_mesh(const string database, const string file)
     {
-	    printf_debug("Loading mesh \"%s\" from %s\n", file.c_str(), database.c_str());
-	    pmp::SurfaceMesh mesh;
-	    mesh.read(database + '/' + file);
-        return mesh;
+	    printf_debug("Loading mesh \"%s\"", file.c_str(), database.c_str());
+        return read_mesh(database + '/' + file);
     }
 
     // Write a mesh to a database

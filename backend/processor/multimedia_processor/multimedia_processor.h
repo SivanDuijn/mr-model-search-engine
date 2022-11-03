@@ -12,5 +12,6 @@ void preprocessAll(const string database = "PSBDatabase");
 void extract(const string database = "PSBDatabase", const string in = "69_processed.off");
 void extractAll(const string database = "PSBDatabase");
 void computeFeatureVectors(const string database = "PSBDatabase");
-vector<tuple<int,float>>  queryDatabaseModel(const string database = "PSBDatabase", const string in = "125_processed.off", size_t k = 10);
+vector<tuple<int,float>> queryDatabaseModel(const string database = "PSBDatabase", const string in = "125_processed.off", size_t k = 10);
 void computeClosestModels(const string database = "PSBDatabase");
+void queryTopKModels(const string database, const string file, int k);

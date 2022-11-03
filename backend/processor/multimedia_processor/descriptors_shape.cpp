@@ -167,13 +167,19 @@ namespace descriptors
     // Gets the non normalized histogram shape descriptors for one mesh
     ShapeDescriptors get_shape_descriptors(pmp::SurfaceMesh &mesh, int nBins)
     {
+        const float A3Binsize = (A3Max + EPSILON) / nBins;
+        const float D1Binsize = (D1Max + EPSILON) / nBins;
+        const float D2Binsize = (D2Max + EPSILON) / nBins;
+        const float D3Binsize = (D3Max + EPSILON) / nBins;
+        const float D4Binsize = (D4Max + EPSILON) / nBins;
+
         return ShapeDescriptors
         {
-            bin(A3(mesh), nBins),
-            bin(D1(mesh), nBins),
-            bin(D2(mesh), nBins),
-            bin(D3(mesh), nBins),
-            bin(D4(mesh), nBins)
+            bin(A3(mesh), nBins, 0, A3Binsize),
+            bin(D1(mesh), nBins, 0, D1Binsize),
+            bin(D2(mesh), nBins, 0, D2Binsize),
+            bin(D3(mesh), nBins, 0, D3Binsize),
+            bin(D4(mesh), nBins, 0, D4Binsize)
         };
     }
 
