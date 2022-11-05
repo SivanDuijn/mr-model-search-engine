@@ -58,6 +58,7 @@ export default function ModelSelector(props: ModelSelectorProps) {
                                     changeModel({
                                         ...model,
                                         file: m[m.length - 1],
+                                        text,
                                         name: undefined,
                                     });
                                 });
@@ -120,7 +121,12 @@ export default function ModelSelector(props: ModelSelectorProps) {
                             )}
                             onClick={() => {
                                 if (subgroup !== undefined && file !== undefined)
-                                    changeModel({ ...model, name: file, file: undefined });
+                                    changeModel({
+                                        ...model,
+                                        name: file,
+                                        file: undefined,
+                                        text: undefined,
+                                    });
                             }}
                         >
                             {file.split(".")[0]}

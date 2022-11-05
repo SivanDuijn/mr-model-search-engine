@@ -24,15 +24,12 @@ export default function HomePage() {
                     <title>Model Go BRRR</title>
                 </Head>
                 <div className={clsx("grid", "lg:grid-cols-[1fr_auto_1fr]")}>
-                    <div className={clsx("grid", "lg:grid-rows-[auto_auto_1fr]")}>
+                    <div className={clsx("grid", "lg:grid-rows-[auto_1fr]")}>
                         <ModelSelector
                             className={clsx("border-2", "border-slate-200", "mx-2", "mt-4")}
                             onFileSelected={(textContent, filetype) =>
                                 viewGL.current?.loadModelByText(textContent, filetype)
                             }
-                        />
-                        <TopClosestModels
-                            className={clsx("border-2", "border-slate-200", "mx-2", "mt-4")}
                         />
                         <Settings
                             className={clsx("border-2", "border-slate-200", "mx-2", "mt-4")}
@@ -53,6 +50,9 @@ export default function HomePage() {
                         />
                     </div>
                 </div>
+                <TopClosestModels
+                    className={clsx("border-2", "border-slate-200", "mx-2", "mt-4")}
+                />
                 <DescriptorHistograms
                     className={clsx(
                         "border-2",

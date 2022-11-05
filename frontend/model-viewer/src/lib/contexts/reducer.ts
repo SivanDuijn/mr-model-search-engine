@@ -3,6 +3,7 @@ import { RenderMaterial } from "src/components/model-viewer/viewGL";
 export interface ModelState {
     model: {
         file?: string;
+        text?: string;
         name?: string;
         secondModel?: string;
         isProcessed?: boolean;

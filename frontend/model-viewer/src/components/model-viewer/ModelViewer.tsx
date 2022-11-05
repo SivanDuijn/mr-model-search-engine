@@ -5,7 +5,7 @@ import { ActionKind, ModelState } from "src/lib/contexts/reducer";
 import GetModelDescriptors from "src/lib/getModelDescriptors";
 import ThreeJSViewGL from "./viewGL";
 
-const database = "PSBDatabase";
+export const database = "PSBDatabase";
 
 type Props = {
     onMounted?: (viewGL: ThreeJSViewGL) => void;
