@@ -1,10 +1,13 @@
 from flask import Flask, request
+from flask_cors import CORS, cross_origin
 from uuid import uuid4
 from os import getcwd
 import multimedia_processor
 import file_validation
 
 app = Flask(__name__)
+cors = CORS(app)
+app.config["CORS_HEADERS"] = "Content-Type"
 app.config["UPLOAD_FOLDER"] = "query_upload"
 app.config["MAX_CONTENT_LENGTH"] = 16 * 1000 * 1000
 
@@ -15,6 +18,7 @@ def debug():
     return response, 200
 
 @app.route("/api/query", methods=['GET', 'POST'])
+@cross_origin
 def query():
     if request.method == 'POST':
         # check file validity
