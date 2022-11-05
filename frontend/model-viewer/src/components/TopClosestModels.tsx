@@ -10,7 +10,6 @@ type Props = {
 
 export default function TopClosestModels(props: Props) {
     const { model, changeModel } = useModel();
-
     const [closestModels, setClosestModels] = useState<{ name: string; dist: number }[]>();
 
     useEffect(() => {
@@ -20,15 +19,28 @@ export default function TopClosestModels(props: Props) {
             ].map((cm) => ({ name: cm[0] as string, dist: cm[1] as number }));
             setClosestModels(closests);
             if (model.secondModel) changeModel({ ...model, secondModel: closests[0].name });
-        } else if (model.text)
+        } else if (model.text && model.file) {
+            const formData = new FormData();
+            formData.append(
+                "file",
+                new Blob([model.text], { type: "application/octet-stream" }),
+                model.file,
+            );
             fetch("http://localhost:5000/api/query", {
                 method: "POST",
-                // mode: "same-origin",
-                // headers: {
-                //     "Content-Type": "application/text",
-                // },
-                body: model.text,
-            }).then((r) => r.json().then((r) => console.log(r)));
+                body: formData,
+                mode: "cors",
+            }).then((r) =>
+                r.json().then((r: { m: string; d: number }[]) => {
+                    setClosestModels(
+                        r.map((m) => ({
+                            name: m.m.split("_processed")[0] + m.m.split("_processed")[1],
+                            dist: m.d,
+                        })),
+                    );
+                }),
+            );
+        }
     }, [model.name, model.text]);
 
     return (
