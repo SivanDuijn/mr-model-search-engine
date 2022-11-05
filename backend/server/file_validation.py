@@ -1,4 +1,4 @@
-UPLOAD_EXTENSIONS = {"off"}
+UPLOAD_EXTENSIONS = {"off", "obj"}
 
 def validate_file(file):
     """
@@ -13,11 +13,11 @@ def validate_file(file):
     file_extension = file_name.split('.')[-1].lower()
     if not file_extension in UPLOAD_EXTENSIONS: return False
 
-    if file_extension == "off":
-        # TODO file verification
-        # print(file.stream.read())
-        # file.seek(0)
+    # if file_extension == "off":
+    #     # TODO file verification
+    #     # print(file.stream.read())
+    #     # file.seek(0)
 
-        return True
+    #     return True
 
-    return False
+    return True
