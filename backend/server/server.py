@@ -1,4 +1,4 @@
-from flask import Flask, request
+from flask import Flask, request, make_response
 from uuid import uuid4
 from os import getcwd
 import multimedia_processor
@@ -33,14 +33,14 @@ def query():
         filename = uuid4().hex
         extension = file.filename.split('.')[-1].lower()
         print(f"User uploaded file {file.filename}, saving as {filename}.{extension}")
-        model_location = f"{getcwd()}/{app.config['UPLOAD_FOLDER']}/{filename}.{extension}"
-        file.save(model_location)
+        model_path = f"{getcwd()}/{app.config['UPLOAD_FOLDER']}/{filename}.{extension}"
+        file.save(model_path)
 
-        # preprocess the file
-        result = multimedia_processor.query_top_k_models(model_location)
+        # query the database
+        result = multimedia_processor.query_top_k_models(model_path)
+        print(f"Result:\n{result}")
 
-        response = result;
-        return response, 200
+        return result, 200, {"Content-Type": "application/json"}
 
     # give a small upload form for debugging
     return '''
