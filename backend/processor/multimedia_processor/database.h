@@ -32,4 +32,7 @@ namespace database
     void write_descriptors(std::string database, std::vector<std::string> filenames, std::vector<descriptors::GlobalDescriptors> gds, std::vector<descriptors::ShapeDescriptors> sds);
     // Get the filenames of all models in a database
 	std::vector<std::string> get_filenames(const std::string database, const bool processed = false);
+
+    Eigen::MatrixXf read_all_global_fvs(const std::string database, const std::vector<std::string> &filenames);
+    std::vector<Eigen::MatrixXf> read_all_shape_fvs(const std::string database, const std::vector<std::string> &filenames);
 }

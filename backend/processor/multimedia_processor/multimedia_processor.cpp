@@ -4,7 +4,9 @@ int main(int argc, char *argv[])
 {
 	// try to get databasename, in and out filenames
 	string database = "", in = "", inWithoutExt = "", ext = "", out = "";
-	if (argc == 4) 
+	if (argc == 3)
+		database = argv[2];
+	else if (argc == 4) 
 	{
 		database = argv[2];
 		in = argv[3];
@@ -43,7 +45,10 @@ int main(int argc, char *argv[])
 			extract();
 
 	else if (!strcmp(argv[1], "compute-fvs") || !strcmp(argv[1], "compute-feature-vectors"))
-		compute_feature_vectors();
+		if (database != "")
+			compute_feature_vectors(database);
+		else
+			compute_feature_vectors();
 
 	else if (!strcmp(argv[1], "query-database-model"))
 		if (in != "")
@@ -140,47 +145,9 @@ void compute_feature_vectors(const string database)
 {
 	vector<string> filenames = database::get_filenames(database, true);
 	int n_models = filenames.size();
-	ifstream ifs(database + "/feature_descriptors.json");
-	nlohmann::json json_descriptors = nlohmann::json::parse(ifs);
 
-	// Create vectors for shape descriptors
-	vector<string> shape_descriptor_names{ "A3", "D1", "D2", "D3", "D4" };
-	// Use the first model in the json to determine the binsize for each shape descriptor
-	vector<size_t> shape_descriptor_bincount;
-	auto firstModel = json_descriptors.begin().value();
-	for (string sd : shape_descriptor_names)
-		shape_descriptor_bincount.push_back(firstModel[sd].size());
-	// Create a matrix for each shape descriptor where the rows represent the models
-	vector<Eigen::MatrixXf> shape_fvs;
-	for (size_t i = 0; i < shape_descriptor_names.size(); i++)
-		shape_fvs.push_back(Eigen::MatrixXf(n_models, shape_descriptor_bincount[i]));
-
-	// Create global descriptors matrix
-	Eigen::MatrixXf global_fvs(n_models, 8);
-
-	size_t i = 0;
-	for (int i = 0; i < n_models; i++)
-	{
-		auto descriptors = json_descriptors[filenames[i]];
-		global_fvs.row(i) = Eigen::Matrix<float, 8, 1>(
-			descriptors["area"].get<float>(),
-			descriptors["AABBVolume"].get<float>(),
-			descriptors["volume"].get<float>(),
-			descriptors["compactness"].get<float>(),
-			descriptors["eccentricity"].get<float>(),
-			descriptors["diameter"].get<float>(),
-			descriptors["sphericity"].get<float>(),
-			descriptors["rectangularity"].get<float>()
-		);
-
-		for (size_t sd_i = 0; sd_i < shape_descriptor_names.size(); sd_i++) 
-		{
-			auto descriptor = descriptors[shape_descriptor_names[sd_i]];
-			size_t sdj = 0;
-			for (auto it2 = descriptor.begin(); it2 != descriptor.end(); ++it2, sdj++)
-				shape_fvs[sd_i](i,sdj) = it2.value().get<float>();
-		}
-	}
+	Eigen::MatrixXf global_fvs = database::read_all_global_fvs(database, filenames);
+	vector<Eigen::MatrixXf> shape_fvs = database::read_all_shape_fvs(database, filenames);
 
 	// Standardize global descriptors using the standard deviation
 	Eigen::Matrix<float, 1, 8> global_mean = global_fvs.colwise().mean();
@@ -191,7 +158,8 @@ void compute_feature_vectors(const string database)
 	cout << global_sd << endl;
 
 	// Calculate mean and SD of shape descriptor distance
-	Eigen::MatrixXf shape_dists(shape_descriptor_names.size(), (n_models*(n_models - 1)) / 2); // shape descriptor distances, row for each shape descriptor
+	// shape descriptor distances, row for each shape descriptor
+	Eigen::MatrixXf shape_dists(shape_fvs.size(), (n_models*(n_models - 1)) / 2);
 	for (size_t sd_i = 0, n_fvs = shape_fvs.size(); sd_i < n_fvs; sd_i++) 
 		for (int i = 0, d_i = 0; i < n_models; i++) 
 			for (int j = i + 1; j < n_models; j++, d_i++)
@@ -299,46 +267,46 @@ vector<tuple<int,float>> query_database_model(const string database, const strin
 	}
 
 	
-	// manually calculate distance between two models to test
-	string ma = "123_processed.off";
-	string mb = "31_processed.off";
+	// // manually calculate distance between two models to test
+	// string ma = "123_processed.off";
+	// string mb = "31_processed.off";
 
-	ifs = ifstream(database + "/feature_vectors.json");
-	nlohmann::json json_feature_vectors = nlohmann::json::parse(ifs);
+	// ifs = ifstream(database + "/feature_vectors.json");
+	// nlohmann::json json_feature_vectors = nlohmann::json::parse(ifs);
 
-	Eigen::VectorXf dists_mean = utils::JSONArrayToVector(json_feature_vectors["shape_dists_mean"]);
-	Eigen::VectorXf dists_sd = utils::JSONArrayToVector(json_feature_vectors["shape_dists_sd"]);
+	// Eigen::VectorXf dists_mean = utils::JSONArrayToVector(json_feature_vectors["shape_dists_mean"]);
+	// Eigen::VectorXf dists_sd = utils::JSONArrayToVector(json_feature_vectors["shape_dists_sd"]);
 
-	auto ma_json = json_feature_vectors["models"][ma];
-	auto mb_json = json_feature_vectors["models"][mb];
-	Eigen::VectorXf ma_global = utils::JSONArrayToVector(ma_json["global"]);
-	Eigen::VectorXf mb_global = utils::JSONArrayToVector(mb_json["global"]);
+	// auto ma_json = json_feature_vectors["models"][ma];
+	// auto mb_json = json_feature_vectors["models"][mb];
+	// Eigen::VectorXf ma_global = utils::JSONArrayToVector(ma_json["global"]);
+	// Eigen::VectorXf mb_global = utils::JSONArrayToVector(mb_json["global"]);
 
-	vector<string> shape_descriptor_names{ "A3", "D1", "D2", "D3", "D4" };
-	vector<Eigen::VectorXf> ma_shape_hists;
-	vector<Eigen::VectorXf> mb_shape_hists;
-	auto mb_json_shape = mb_json["shape"];
-	auto ma_json_shape = ma_json["shape"];
-	for (int j = 0; j < shape_descriptor_names.size(); j++)
-	{
-		ma_shape_hists.push_back(utils::JSONArrayToVector(ma_json_shape[j]));
-		mb_shape_hists.push_back(utils::JSONArrayToVector(mb_json_shape[j]));
-	}
+	// vector<string> shape_descriptor_names{ "A3", "D1", "D2", "D3", "D4" };
+	// vector<Eigen::VectorXf> ma_shape_hists;
+	// vector<Eigen::VectorXf> mb_shape_hists;
+	// auto mb_json_shape = mb_json["shape"];
+	// auto ma_json_shape = ma_json["shape"];
+	// for (int j = 0; j < shape_descriptor_names.size(); j++)
+	// {
+	// 	ma_shape_hists.push_back(utils::JSONArrayToVector(ma_json_shape[j]));
+	// 	mb_shape_hists.push_back(utils::JSONArrayToVector(mb_json_shape[j]));
+	// }
 
-	float global = (ma_global - mb_global).array().square().sum();
-	cout << global << endl;
+	// float global = (ma_global - mb_global).array().square().sum();
+	// cout << global << endl;
 
-	float shape = 0;
-	for (int j = 0; j < shape_descriptor_names.size(); j++)
-	{
-		float emd = utils::EarthMoversDistance(ma_shape_hists[j], mb_shape_hists[j]);
-		// emd = (emd - dists_mean(j)) / dists_sd(j);
-		emd /= dists_sd(j);
-		shape += emd*emd;
-	}
+	// float shape = 0;
+	// for (int j = 0; j < shape_descriptor_names.size(); j++)
+	// {
+	// 	float emd = utils::EarthMoversDistance(ma_shape_hists[j], mb_shape_hists[j]);
+	// 	// emd = (emd - dists_mean(j)) / dists_sd(j);
+	// 	emd /= dists_sd(j);
+	// 	shape += emd*emd;
+	// }
 
-	cout << shape << endl;
-	cout << sqrtf(global + shape) << endl;
+	// cout << shape << endl;
+	// cout << sqrtf(global + shape) << endl;
 
 
 	return closest;
@@ -430,20 +398,12 @@ void query_top_k_models(const string database, const string file, const int k)
 		for (auto it = json_feature_vectors["models"][file]["shape"].begin(); it != json_feature_vectors["models"][file]["shape"].end(); ++it, i++)
 		{
 			Eigen::VectorXf m_shape_fv = utils::JSONArrayToVector(it.value());
-			// if (file == "5_processed.off") {
-			// 	cout << m_shape_fv.transpose() << endl;
-			// 	cout << q_shape_fv[i].transpose() << endl << endl;
-			// }
 			float emd = utils::EarthMoversDistance(q_shape_fv[i], m_shape_fv);
 			emd /= dists_sd(i);
 			shape_dist_2 += emd*emd;
 		}
 
 		float global_dist_2 = (q_global_fv - m_global_fv).array().square().sum();
-		// if (file == "5_processed.off")
-		// {
-		// 	cout << global_dist_2 << " " << shape_dist_2 << endl;
-		// }
 		dists.push_back(sqrtf(global_dist_2 + shape_dist_2));
 	}
 

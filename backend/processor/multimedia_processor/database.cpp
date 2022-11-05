@@ -87,6 +87,7 @@ namespace database
 	vector<string> get_filenames(const string database, const bool processed)
     {
 		vector<string> filenames = vector<string>();
+        cout << database + "/files.json" << endl;
         // Read filenames
         ifstream ifs(database + "/files.json");
         nlohmann::json files = nlohmann::json::parse(ifs);
@@ -106,4 +107,63 @@ namespace database
             }
 		return filenames;
     }
+
+    // Retrieves the global descriptors in a matrix where each row is model
+    Eigen::MatrixXf read_all_global_fvs(const string database, const vector<string> &filenames)
+    {
+	    int n_models = filenames.size();
+        ifstream ifs(database + "/feature_descriptors.json");
+	    nlohmann::json json_ds = nlohmann::json::parse(ifs);
+
+        Eigen::MatrixXf global_fvs(n_models, 8);
+
+        for (int i = 0; i < n_models; i++)
+        {
+            auto ds = json_ds[filenames[i]];
+            global_fvs.row(i) = Eigen::Matrix<float, 8, 1>(
+                ds["area"].get<float>(),
+                ds["AABBVolume"].get<float>(),
+                ds["volume"].get<float>(),
+                ds["compactness"].get<float>(),
+                ds["eccentricity"].get<float>(),
+                ds["diameter"].get<float>(),
+                ds["sphericity"].get<float>(),
+                ds["rectangularity"].get<float>()
+            );
+        }
+        return global_fvs;
+    }
+
+    // Retrieves the shape descriptors, for each descriptor a matrix where each row represents a model
+    vector<Eigen::MatrixXf> read_all_shape_fvs(const string database, const vector<string> &filenames)
+    {
+	    int n_models = filenames.size();
+        ifstream ifs(database + "/feature_descriptors.json");
+	    nlohmann::json json_ds = nlohmann::json::parse(ifs);
+
+        vector<string> shape_descriptor_names{ "A3", "D1", "D2", "D3", "D4" };
+        // Use the first model in the json to determine the binsize for each shape descriptor
+        vector<size_t> shape_descriptor_bincount;
+        auto firstModel = json_ds.begin().value();
+        for (string sd : shape_descriptor_names)
+            shape_descriptor_bincount.push_back(firstModel[sd].size());
+        // Create a matrix for each shape descriptor where the rows represent the models
+        vector<Eigen::MatrixXf> shape_fvs;
+        for (size_t i = 0; i < shape_descriptor_names.size(); i++)
+            shape_fvs.push_back(Eigen::MatrixXf(n_models, shape_descriptor_bincount[i]));
+
+        for (int i = 0; i < n_models; i++)
+        {
+            auto descriptors = json_ds[filenames[i]];
+            for (size_t sd_i = 0; sd_i < shape_descriptor_names.size(); sd_i++) 
+            {
+                auto descriptor = descriptors[shape_descriptor_names[sd_i]];
+                size_t sdj = 0;
+                for (auto it2 = descriptor.begin(); it2 != descriptor.end(); ++it2, sdj++)
+                    shape_fvs[sd_i](i,sdj) = it2.value().get<float>();
+            }
+        }
+        return shape_fvs;
+    }
+    
 }
