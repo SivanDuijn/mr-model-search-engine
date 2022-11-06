@@ -3,6 +3,7 @@ import { useRouter } from "next/router";
 import { useState, useMemo, useEffect } from "react";
 import filenames from "public/PSBDatabase/files.json";
 import { useModel, useModelStats } from "src/lib/contexts/hooks";
+import GetTopK from "src/lib/getTopK";
 
 type ModelSelectorProps = {
     className?: string;
@@ -66,15 +67,19 @@ export default function ModelSelector(props: ModelSelectorProps) {
                                             descriptors,
                                         }: {
                                             processed_model: string;
-                                            top_k: { model: string; dist: number }[];
+                                            top_k: { name: string; dist: number }[];
                                             stats: any;
                                             descriptors: any;
                                         }) => {
-                                            console.log(top_k, stats, descriptors);
                                             setSubgroup(undefined);
+                                            console.log(top_k, stats, descriptors);
                                             changeModel({
                                                 ...model,
                                                 text: processed_model,
+                                                top_k,
+                                                secondModel: model.secondModel
+                                                    ? top_k[0].name
+                                                    : undefined,
                                                 name: undefined,
                                             });
                                         },
@@ -102,7 +107,17 @@ export default function ModelSelector(props: ModelSelectorProps) {
                             const files = (filenames as unknown as Record<string, string[]>)[
                                 e.currentTarget.value
                             ];
-                            if (files) changeModel({ ...model, name: files[0], text: undefined });
+                            if (files) {
+                                const file = files[0];
+                                const top_k = GetTopK(file);
+                                changeModel({
+                                    ...model,
+                                    name: files[0],
+                                    text: undefined,
+                                    top_k,
+                                    secondModel: model.secondModel ? top_k[0].name : undefined,
+                                });
+                            }
                         }}
                         value={subgroup ?? ""}
                     >
@@ -149,12 +164,16 @@ export default function ModelSelector(props: ModelSelectorProps) {
                                 "hover:cursor-pointer",
                             )}
                             onClick={() => {
-                                if (subgroup !== undefined && file !== undefined)
+                                if (subgroup !== undefined && file !== undefined) {
+                                    const top_k = GetTopK(file);
                                     changeModel({
                                         ...model,
                                         name: file,
                                         text: undefined,
+                                        top_k,
+                                        secondModel: model.secondModel ? top_k[0].name : undefined,
                                     });
+                                }
                             }}
                         >
                             {file.split(".")[0]}

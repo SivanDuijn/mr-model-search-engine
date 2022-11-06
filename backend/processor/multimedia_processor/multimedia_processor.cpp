@@ -394,9 +394,9 @@ void query_top_k_models(const string database, const string file, const int k)
 	Eigen::VectorXf dists_sd = utils::json_array_to_vector(json_feature_vectors["shape_dists_sd"]);
 
 	// Go through all models and calculate all distances
-	auto filenames = database::get_filenames(database, true);
+	auto processed_filenames = database::get_filenames(database, true);
 	vector<float> dists;
-	for (string file : filenames)
+	for (string file : processed_filenames)
 	{
 		Eigen::VectorXf m_global_fv = utils::json_array_to_vector(json_feature_vectors["models"][file]["global"]);
 
@@ -420,8 +420,9 @@ void query_top_k_models(const string database, const string file, const int k)
 	// Create output json
 	nlohmann::json output_json;
 	nlohmann::json top_k;
+	auto filenames = database::get_filenames(database, false);
 	for (size_t i = 0; i < indices.size(); i++)
-		top_k.push_back({ {"model", filenames[indices[i]]}, {"dist", dists[indices[i]]} });
+		top_k.push_back({ {"name", filenames[indices[i]]}, {"dist", dists[indices[i]]} });
 	output_json["top_k"] = top_k;
 	output_json["stats"] = database::stats_to_json(afterStats);
 	output_json["descriptors"] = database::descriptors_to_json(gd, sd);

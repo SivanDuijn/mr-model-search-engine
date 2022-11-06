@@ -1,6 +1,4 @@
 import clsx from "clsx";
-import { useEffect, useState } from "react";
-import topClosest from "public/PSBDatabase/closest_models.json";
 import { useModel } from "src/lib/contexts/hooks";
 import { database } from "./model-viewer/ModelViewer";
 
@@ -10,24 +8,12 @@ type Props = {
 
 export default function TopClosestModels(props: Props) {
     const { model, changeModel } = useModel();
-    const [closestModels, setClosestModels] = useState<{ name: string; dist: number }[]>();
-
-    useEffect(() => {
-        if (model.name) {
-            const closests = (topClosest as unknown as Record<string, (string | number)[][]>)[
-                model.name
-            ].map((cm) => ({ name: cm[0] as string, dist: cm[1] as number }));
-            setClosestModels(closests);
-            if (model.secondModel) changeModel({ ...model, secondModel: closests[0].name });
-        }
-    }, [model.name, model.text]);
-
     return (
         <div className={props.className}>
             <p className={clsx("border-b-2", "text-center", "font-bold")}>Top 10 closest models</p>
             <div className={clsx("flex", "justify-around", "my-2")}>
-                {closestModels &&
-                    closestModels.map((cm) => (
+                {model.top_k &&
+                    model.top_k.map((cm) => (
                         <div
                             key={cm.name}
                             className={clsx("flex", "flex-col", "items-center", "w-32")}
