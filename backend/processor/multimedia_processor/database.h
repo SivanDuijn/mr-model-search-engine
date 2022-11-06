@@ -28,8 +28,10 @@ namespace database
     void write_mesh(pmp::SurfaceMesh &mesh, const std::string database, const std::string file);
     // Write normalization stats to a database
     void write_stats(std::string database, std::string in, std::string out, const NormalizationStatistics &beforeStats, const NormalizationStatistics &afterStats);
+    nlohmann::json stats_to_json(const NormalizationStatistics &stats);
     // Write model descriptors to database
     void write_descriptors(std::string database, std::vector<std::string> filenames, std::vector<descriptors::GlobalDescriptors> gds, std::vector<descriptors::ShapeDescriptors> sds);
+    nlohmann::json descriptors_to_json(descriptors::GlobalDescriptors &gd, descriptors::ShapeDescriptors &sd);
     // Get the filenames of all models in a database
 	std::vector<std::string> get_filenames(const std::string database, const bool processed = false);
 

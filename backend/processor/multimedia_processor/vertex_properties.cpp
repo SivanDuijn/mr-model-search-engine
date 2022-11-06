@@ -52,7 +52,7 @@ namespace VertexProperties
                 else
                     major = 0, medium = 2, minor = 1;
             else
-                major = 2, medium = 0, minor = 1;
+                major = 2, medium = 0, minor = 1; // 2 > 0 > 1
 
         else if (v[1] > v[2])
             if (v[0] > v[2])
@@ -61,7 +61,7 @@ namespace VertexProperties
                 major = 1, medium = 2, minor = 0;
 
         else 
-            major = 2, medium = 1, minor = 0;
+            major = 2, medium = 1, minor = 0; // 2 > 1 > 0
 
         return Eigen::Vector3i(major, medium, minor);
     }
@@ -88,10 +88,14 @@ namespace VertexProperties
         Eigen::Vector3f values = solver.eigenvalues().real();
         Eigen::Vector3i indices = GetEigenIndices(values);
 
+        auto major = vectors.col(indices(0));
+        auto medium = vectors.col(indices(1));
+        auto minor = major.cross(medium);
+
         return {
-            vectors.col(indices(0)),
-            vectors.col(indices(1)),
-            vectors.col(indices(2))
+            major,
+            medium,
+            minor
         };
     }
 }

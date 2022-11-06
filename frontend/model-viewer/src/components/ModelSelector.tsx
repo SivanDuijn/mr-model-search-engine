@@ -5,7 +5,6 @@ import filenames from "public/PSBDatabase/files.json";
 import { useModel, useModelStats } from "src/lib/contexts/hooks";
 
 type ModelSelectorProps = {
-    onFileSelected: (textContent: string, fileName: string) => void;
     className?: string;
 };
 
@@ -21,7 +20,7 @@ export default function ModelSelector(props: ModelSelectorProps) {
                 ...model,
                 name: modelNameFromUrl.replace("_processed", ""),
                 isProcessed: modelNameFromUrl.includes("_processed"),
-                file: undefined,
+                text: undefined,
             });
     }, [modelNameFromUrl]);
 
@@ -39,10 +38,10 @@ export default function ModelSelector(props: ModelSelectorProps) {
 
     return (
         <div className={props.className}>
-            <p className={clsx("border-b-2", "text-center", "font-bold")}>Load Model</p>
+            <p className={clsx("border-b-2", "text-center", "font-bold")}>Query Model</p>
             <div className={clsx("p-2")}>
                 <div className="flex flex-col">
-                    <label htmlFor="model">Load model from file</label>
+                    <label htmlFor="model">Query model from file</label>
                     <input
                         id="model"
                         type="file"
@@ -50,22 +49,52 @@ export default function ModelSelector(props: ModelSelectorProps) {
                         onChange={(e) => {
                             if (!e.currentTarget.files) return;
                             const file = e.currentTarget.files[0];
-                            if (file)
-                                file.text().then((text) => {
-                                    const m = file.name.split("/");
-                                    props.onFileSelected(text, m[m.length - 1]);
-                                    setSubgroup(undefined);
-                                    changeModel({
-                                        ...model,
-                                        file: m[m.length - 1],
-                                        text,
-                                        name: undefined,
-                                    });
-                                });
+                            const data = new FormData();
+                            data.append("file", file, file.name);
+                            fetch("http://localhost:5000/api/query", {
+                                method: "POST",
+                                body: data,
+                                mode: "cors",
+                            }).then((r) =>
+                                r
+                                    .json()
+                                    .then(
+                                        ({
+                                            top_k,
+                                            processed_model,
+                                            stats,
+                                            descriptors,
+                                        }: {
+                                            processed_model: string;
+                                            top_k: { model: string; dist: number }[];
+                                            stats: any;
+                                            descriptors: any;
+                                        }) => {
+                                            console.log(top_k, stats, descriptors);
+                                            setSubgroup(undefined);
+                                            changeModel({
+                                                ...model,
+                                                text: processed_model,
+                                                name: undefined,
+                                            });
+                                        },
+                                    ),
+                            );
+                            // file.text().then((text) => {
+                            //     const m = file.name.split("/");
+                            //     props.onFileSelected(text, m[m.length - 1]);
+                            //     setSubgroup(undefined);
+                            //     changeModel({
+                            //         ...model,
+                            //         file: m[m.length - 1],
+                            //         text,
+                            //         name: undefined,
+                            //     });
+                            // });
                         }}
                     />
                 </div>
-                <p className="mt-5">Select file from database</p>
+                <p className="mt-5">Query model from database</p>
                 <div className="flex flex-row">
                     <select
                         onChange={(e) => {
@@ -73,7 +102,7 @@ export default function ModelSelector(props: ModelSelectorProps) {
                             const files = (filenames as unknown as Record<string, string[]>)[
                                 e.currentTarget.value
                             ];
-                            if (files) changeModel({ ...model, name: files[0], file: undefined });
+                            if (files) changeModel({ ...model, name: files[0], text: undefined });
                         }}
                         value={subgroup ?? ""}
                     >
@@ -124,7 +153,6 @@ export default function ModelSelector(props: ModelSelectorProps) {
                                     changeModel({
                                         ...model,
                                         name: file,
-                                        file: undefined,
                                         text: undefined,
                                     });
                             }}

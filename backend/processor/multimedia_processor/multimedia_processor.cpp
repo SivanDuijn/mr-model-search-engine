@@ -26,7 +26,11 @@ int main(int argc, char *argv[])
 
 	else if (!strcmp(argv[1], "debug")) debug();
 
-	else if (!strcmp(argv[1], "preprocess-all")) preprocess_all();
+	else if (!strcmp(argv[1], "preprocess-all")) 
+		if (database != "")
+			preprocess_all(database);
+		else 
+			preprocess_all();
 
 	else if (!strcmp(argv[1], "preprocess"))  
 		if (out != "")
@@ -36,7 +40,11 @@ int main(int argc, char *argv[])
 		else 
 			preprocess();
 
-	else if (!strcmp(argv[1], "extract-all")) extract_all();
+	else if (!strcmp(argv[1], "extract-all"))
+		if (database != "")
+			extract_all(database);
+		else 
+			extract_all();
 
 	else if (!strcmp(argv[1], "extract"))
 		if (in != "")
@@ -274,13 +282,13 @@ vector<tuple<int,float>> query_database_model(const string database, const strin
 	// ifs = ifstream(database + "/feature_vectors.json");
 	// nlohmann::json json_feature_vectors = nlohmann::json::parse(ifs);
 
-	// Eigen::VectorXf dists_mean = utils::JSONArrayToVector(json_feature_vectors["shape_dists_mean"]);
-	// Eigen::VectorXf dists_sd = utils::JSONArrayToVector(json_feature_vectors["shape_dists_sd"]);
+	// Eigen::VectorXf dists_mean = utils::json_array_to_vector(json_feature_vectors["shape_dists_mean"]);
+	// Eigen::VectorXf dists_sd = utils::json_array_to_vector(json_feature_vectors["shape_dists_sd"]);
 
 	// auto ma_json = json_feature_vectors["models"][ma];
 	// auto mb_json = json_feature_vectors["models"][mb];
-	// Eigen::VectorXf ma_global = utils::JSONArrayToVector(ma_json["global"]);
-	// Eigen::VectorXf mb_global = utils::JSONArrayToVector(mb_json["global"]);
+	// Eigen::VectorXf ma_global = utils::json_array_to_vector(ma_json["global"]);
+	// Eigen::VectorXf mb_global = utils::json_array_to_vector(mb_json["global"]);
 
 	// vector<string> shape_descriptor_names{ "A3", "D1", "D2", "D3", "D4" };
 	// vector<Eigen::VectorXf> ma_shape_hists;
@@ -289,8 +297,8 @@ vector<tuple<int,float>> query_database_model(const string database, const strin
 	// auto ma_json_shape = ma_json["shape"];
 	// for (int j = 0; j < shape_descriptor_names.size(); j++)
 	// {
-	// 	ma_shape_hists.push_back(utils::JSONArrayToVector(ma_json_shape[j]));
-	// 	mb_shape_hists.push_back(utils::JSONArrayToVector(mb_json_shape[j]));
+	// 	ma_shape_hists.push_back(utils::json_array_to_vector(ma_json_shape[j]));
+	// 	mb_shape_hists.push_back(utils::json_array_to_vector(mb_json_shape[j]));
 	// }
 
 	// float global = (ma_global - mb_global).array().square().sum();
@@ -343,7 +351,7 @@ void query_top_k_models(const string database, const string file, const int k)
 	pmp::SurfaceMesh mesh = database::read_mesh(file);
 
 	// Preprocess the mesh
-	database::NormalizationStatistics beforeStats; // TODO don't calculate these stats
+	database::NormalizationStatistics beforeStats;
 	database::NormalizationStatistics afterStats; 
 	preprocessor::resample(mesh, beforeStats, afterStats);
 	preprocessor::normalize(mesh, beforeStats, afterStats);
@@ -379,25 +387,25 @@ void query_top_k_models(const string database, const string file, const int k)
 		return;
 	}
 	nlohmann::json json_feature_vectors = nlohmann::json::parse(ifs);
-	Eigen::VectorXf global_mean = utils::JSONArrayToVector(json_feature_vectors["global_mean"]);
-	Eigen::VectorXf global_sd = utils::JSONArrayToVector(json_feature_vectors["global_sd"]);
+	Eigen::VectorXf global_mean = utils::json_array_to_vector(json_feature_vectors["global_mean"]);
+	Eigen::VectorXf global_sd = utils::json_array_to_vector(json_feature_vectors["global_sd"]);
 	q_global_fv = (q_global_fv - global_mean).array() / global_sd.array();
 
-	Eigen::VectorXf dists_sd = utils::JSONArrayToVector(json_feature_vectors["shape_dists_sd"]);
+	Eigen::VectorXf dists_sd = utils::json_array_to_vector(json_feature_vectors["shape_dists_sd"]);
 
 	// Go through all models and calculate all distances
 	auto filenames = database::get_filenames(database, true);
 	vector<float> dists;
 	for (string file : filenames)
 	{
-		Eigen::VectorXf m_global_fv = utils::JSONArrayToVector(json_feature_vectors["models"][file]["global"]);
+		Eigen::VectorXf m_global_fv = utils::json_array_to_vector(json_feature_vectors["models"][file]["global"]);
 
 		// Go through all shape descriptors
 		size_t i = 0;
 		float shape_dist_2 = 0;
 		for (auto it = json_feature_vectors["models"][file]["shape"].begin(); it != json_feature_vectors["models"][file]["shape"].end(); ++it, i++)
 		{
-			Eigen::VectorXf m_shape_fv = utils::JSONArrayToVector(it.value());
+			Eigen::VectorXf m_shape_fv = utils::json_array_to_vector(it.value());
 			float emd = utils::EarthMoversDistance(q_shape_fv[i], m_shape_fv);
 			emd /= dists_sd(i);
 			shape_dist_2 += emd*emd;
@@ -407,12 +415,17 @@ void query_top_k_models(const string database, const string file, const int k)
 		dists.push_back(sqrtf(global_dist_2 + shape_dist_2));
 	}
 
-	auto indices = n_smallest_indices(dists.begin(), dists.end(), k +1);
+	auto indices = n_smallest_indices(dists.begin(), dists.end(), k);
 
-	cout << "[\n";
-	size_t i;
-	for (i = 0; i < indices.size() - 2; i++)
-		cout << "{\"m\":\"" << filenames[indices[i]] << "\", \"d\":" << dists[indices[i]] << "},\n";
-	i++;
-	cout << "{\"m\":\"" << filenames[indices[i]] << "\", \"d\":" << dists[indices[i]] << "}\n]" << endl;
+	// Create output json
+	nlohmann::json output_json;
+	nlohmann::json top_k;
+	for (size_t i = 0; i < indices.size(); i++)
+		top_k.push_back({ {"model", filenames[indices[i]]}, {"dist", dists[indices[i]]} });
+	output_json["top_k"] = top_k;
+	output_json["stats"] = database::stats_to_json(afterStats);
+	output_json["descriptors"] = database::descriptors_to_json(gd, sd);
+	output_json["processed_model"] = utils::mesh_to_off_string(mesh);
+
+	cout << setw(4) << output_json << endl;
 }

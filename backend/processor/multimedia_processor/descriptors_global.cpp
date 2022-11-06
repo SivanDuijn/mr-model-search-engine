@@ -49,26 +49,6 @@ namespace descriptors
     float volume(pmp::SurfaceMesh &mesh)
     {
         printf_debug("Calculating volume...\n");
-        printf_debug("  Filling holes...\n");
-        // Fill holes, i think it's not necessary for PSBDatabase though
-        int nBoundaryHalfEdges = 1;
-        while (nBoundaryHalfEdges > 0)
-        {
-            for (pmp::Halfedge he : mesh.halfedges())
-            {
-                if (mesh.is_boundary(he))
-                {
-                    pmp::HoleFilling hf = pmp::HoleFilling(mesh);
-                    hf.fill_hole(he);
-                    break;
-                }
-            }
-
-            nBoundaryHalfEdges = 0;
-            for (pmp::Halfedge he : mesh.halfedges())
-                if (mesh.is_boundary(he))
-                    nBoundaryHalfEdges++;
-        }
 
         pmp::VertexProperty<pmp::Point> points = mesh.get_vertex_property<pmp::Point>("v:point");
 

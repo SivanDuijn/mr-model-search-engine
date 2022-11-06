@@ -24,12 +24,38 @@ namespace utils
         return emd;
     }
 
-    Eigen::VectorXf JSONArrayToVector(nlohmann::json json_array)
+    Eigen::VectorXf json_array_to_vector(nlohmann::json json_array)
     {
         Eigen::VectorXf v(json_array.size());
         size_t i = 0;
         for (auto it = json_array.begin(); it != json_array.end(); ++it, i++)
             v(i) = *it;
         return v;
+    }
+
+    string mesh_to_off_string(const pmp::SurfaceMesh &mesh)
+    {
+        string out = "OFF\n";
+        out += to_string(mesh.n_vertices()) + " " + to_string(mesh.n_faces()) + " " + to_string(mesh.n_edges()) + "\n";
+        auto points = mesh.get_vertex_property<pmp::Point>("v:point");
+        for (auto v: mesh.vertices())
+        {
+            auto p = points[v];
+            out += to_string(p[0]) + " " + to_string(p[1]) + " " + to_string(p[2]) + "\n";
+        }
+
+        for (auto f: mesh.faces())
+        {
+            auto fv = mesh.vertices(f);
+            auto fvend = fv;
+            out += "3 ";
+            do
+            {
+                out += to_string((*fv).idx()) + " ";
+            } while (++fv != fvend);
+            out += "\n";
+        }
+
+        return out;
     }
 }

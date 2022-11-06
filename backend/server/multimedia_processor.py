@@ -9,11 +9,13 @@ def _call(args: list):
     """
 
     args.insert(0, "processors/multimedia_processor")
-    print(getcwd())
+    s = "";
+    for arg in args:
+        s += arg + " ";
+    print(s)
     popen = subprocess.Popen(args, cwd=getcwd(), stdout=subprocess.PIPE, encoding="utf_8")
-    popen.wait()
-    result = popen.stdout.read()
-    print(result)
+    # popen.wait()
+    result = popen.communicate()[0]
     return result 
 
 def debug():

@@ -39,7 +39,9 @@ export const MemoizedViewGLCanvas = React.memo((props: Props) => {
     }, [state.renderSettings]);
 
     useEffect(() => {
-        if (state.model.name) {
+        if (state.model.text) {
+            viewGL.current?.loadModelByText(state.model.text, "something.off");
+        } else if (state.model.name) {
             dispatch({
                 type: ActionKind.ChangeModelDescriptors,
                 payload: GetModelDescriptors(state.model.name, state.model.isProcessed),
@@ -53,7 +55,7 @@ export const MemoizedViewGLCanvas = React.memo((props: Props) => {
                     ws[1],
             );
         }
-    }, [state.model.name, state.model.isProcessed]);
+    }, [state.model.text, state.model.name, state.model.isProcessed]);
 
     const prevXY = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
 

@@ -13,7 +13,7 @@ app.config["MAX_CONTENT_LENGTH"] = 16 * 1000 * 1000
 
 @app.route("/api/debug", methods=['GET'])
 def debug():
-    result = multimedia_processor.debug
+    result = multimedia_processor.debug()
     response = {"message": result}
     return response, 200
 

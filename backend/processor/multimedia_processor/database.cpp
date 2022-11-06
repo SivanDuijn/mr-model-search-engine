@@ -14,14 +14,14 @@ namespace database
     pmp::SurfaceMesh read_mesh(const string database, const string file)
     {
 	    printf_debug("Loading mesh \"%s\" from %s\n", file.c_str(), database.c_str());
-        return read_mesh(database + '/' + file);
+        return read_mesh(database + "/models/" + file);
     }
 
     // Write a mesh to a database
     void write_mesh(pmp::SurfaceMesh &mesh, const string database, const string file)
     {
 	    printf_debug("Writing mesh \"%s\" to disk\n", file.c_str());
-	    mesh.write(database + '/' + file);
+	    mesh.write(database + "/models/" + file);
     }
     
     void write_stats(string database, string in, string out, const NormalizationStatistics &beforeStats, const NormalizationStatistics &afterStats)
@@ -31,30 +31,27 @@ namespace database
         nlohmann::json normStats;
         if (!ifs.fail())
             normStats = nlohmann::json::parse(ifs);
-        normStats[in] = { 
-            {"nVertices", beforeStats.nVertices}, 
-            {"nFaces", beforeStats.nFaces},
-            {"aabbSize", beforeStats.boundingBoxSize},
-            {"position", beforeStats.distBarycenterToOrigin},
-            {"angleX", beforeStats.angleX},
-            {"angleY", beforeStats.angleY},
-            {"angleZ", beforeStats.angleZ},
-            {"totalAngle", beforeStats.totalAngle},
-            {"totalFlip", beforeStats.totalFlip}
-        };
-        normStats[out] = { 
-            {"nVertices", afterStats.nVertices}, 
-            {"nFaces", afterStats.nFaces},
-            {"aabbSize", afterStats.boundingBoxSize},
-            {"position", afterStats.distBarycenterToOrigin},
-            {"angleX", afterStats.angleX},
-            {"angleY", afterStats.angleY},
-            {"angleZ", afterStats.angleZ},
-            {"totalAngle", afterStats.totalAngle},
-            {"totalFlip", afterStats.totalFlip}
-        };
+        normStats[in] = stats_to_json(beforeStats);
+        normStats[out] = stats_to_json(afterStats);
         ofstream ofs(database + "/normalization_stats.json");
         ofs << setw(4) << normStats << endl;
+    }
+    
+    nlohmann::json stats_to_json(const NormalizationStatistics &stats)
+    {
+        nlohmann::json json_stats =
+        { 
+            {"nVertices", stats.nVertices}, 
+            {"nFaces", stats.nFaces},
+            {"aabbSize", stats.boundingBoxSize},
+            {"position", stats.distBarycenterToOrigin},
+            {"angleX", stats.angleX},
+            {"angleY", stats.angleY},
+            {"angleZ", stats.angleZ},
+            {"totalAngle", stats.totalAngle},
+            {"totalFlip", stats.totalFlip}
+        };
+        return json_stats;
     }
 
     void write_descriptors(string database, vector<string> filenames, vector<descriptors::GlobalDescriptors> gds, vector<descriptors::ShapeDescriptors> sds)
@@ -64,30 +61,36 @@ namespace database
 	    if (!ifs.fail())
 	    	jsonDescriptors = nlohmann::json::parse(ifs);
 	    for (size_t i = 0, nFiles = filenames.size(); i < nFiles; i++)
-	    	jsonDescriptors[filenames[i]] = {
-	    		{"area", gds[i].surfaceArea}, 
-	    		{"AABBVolume", gds[i].AABBVolume},
-	    		{"volume", gds[i].volume},
-	    		{"compactness", gds[i].compactness},
-	    		{"eccentricity", gds[i].eccentricity},
-	    		{"diameter", gds[i].diameter},
-	    		{"sphericity", gds[i].sphericity},
-	    		{"rectangularity", gds[i].rectangularity},
-	    		{"A3", sds[i].A3.bins.array()},
-	    		{"D1", sds[i].D1.bins.array()},
-	    		{"D2", sds[i].D2.bins.array()},
-	    		{"D3", sds[i].D3.bins.array()},
-	    		{"D4", sds[i].D4.bins.array()}
-	    	};
+	    	jsonDescriptors[filenames[i]] = descriptors_to_json(gds[i], sds[i]);
 	    ofstream ofs(database + "/feature_descriptors.json");
 	    ofs << setw(4) << jsonDescriptors << endl; // TODO: removing setw(4) might improve filesize
 	    ofs.close();
+    }
+    
+    nlohmann::json descriptors_to_json(descriptors::GlobalDescriptors &gd, descriptors::ShapeDescriptors &sd)
+    {
+        nlohmann::json json;
+        json = {
+            {"area", gd.surfaceArea}, 
+            {"AABBVolume", gd.AABBVolume},
+            {"volume", gd.volume},
+            {"compactness", gd.compactness},
+            {"eccentricity", gd.eccentricity},
+            {"diameter", gd.diameter},
+            {"sphericity", gd.sphericity},
+            {"rectangularity", gd.rectangularity},
+            {"A3", sd.A3.bins.array()},
+            {"D1", sd.D1.bins.array()},
+            {"D2", sd.D2.bins.array()},
+            {"D3", sd.D3.bins.array()},
+            {"D4", sd.D4.bins.array()}
+        };
+        return json;
     }
 
 	vector<string> get_filenames(const string database, const bool processed)
     {
 		vector<string> filenames = vector<string>();
-        cout << database + "/files.json" << endl;
         // Read filenames
         ifstream ifs(database + "/files.json");
         nlohmann::json files = nlohmann::json::parse(ifs);

@@ -26,6 +26,27 @@ namespace preprocessor
             tri.triangulate();
         }
 
+        printf_debug("Filling holes...\n");
+        // Fill holes, i think it's not necessary for PSBDatabase though
+        int nBoundaryHalfEdges = 1;
+        while (nBoundaryHalfEdges > 0)
+        {
+            for (pmp::Halfedge he : mesh.halfedges())
+            {
+                if (mesh.is_boundary(he))
+                {
+                    pmp::HoleFilling hf = pmp::HoleFilling(mesh);
+                    hf.fill_hole(he);
+                    break;
+                }
+            }
+
+            nBoundaryHalfEdges = 0;
+            for (pmp::Halfedge he : mesh.halfedges())
+                if (mesh.is_boundary(he))
+                    nBoundaryHalfEdges++;
+        }
+
         // Subdivide and/or decimate depending on the vertex count
         while (mesh.n_vertices() < VERTEX_COUNT)
         {
@@ -89,15 +110,15 @@ namespace preprocessor
         beforeStats.angleY = pmp::angle(eigen_vectors.major,  pmp::Point(0,1,0));
         beforeStats.angleZ = pmp::angle(eigen_vectors.minor,  pmp::Point(0,0,1));
         beforeStats.totalAngle = beforeStats.angleX + beforeStats.angleY + beforeStats.angleZ;
+        printf_debug(" ([%f, %f, %f])\n", beforeStats.angleX, beforeStats.angleY, beforeStats.angleZ);
 
         // Rotate the model
         map = rot * map;
-        printf_debug(" ([%f, %f, %f])\n", -beforeStats.angleX, -beforeStats.angleY, -beforeStats.angleZ);
 
         // Store rotation after rotating
         eigen_vectors = VertexProperties::GetEigenVectors(map);
-        afterStats.angleX = pmp::angle(eigen_vectors.major,  pmp::Point(0,1,0));
-        afterStats.angleY = pmp::angle(eigen_vectors.medium, pmp::Point(1,0,0));
+        afterStats.angleX = pmp::angle(eigen_vectors.medium, pmp::Point(1,0,0));
+        afterStats.angleY = pmp::angle(eigen_vectors.major,  pmp::Point(0,1,0));
         afterStats.angleZ = pmp::angle(eigen_vectors.minor,  pmp::Point(0,0,1));
         afterStats.totalAngle = afterStats.angleX + afterStats.angleY + afterStats.angleZ;
 
