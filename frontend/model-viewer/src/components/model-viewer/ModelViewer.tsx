@@ -40,7 +40,7 @@ export const MemoizedViewGLCanvas = React.memo((props: Props) => {
 
     useEffect(() => {
         if (state.model.text) {
-            viewGL.current?.loadModelByText(state.model.text, "something.off");
+            viewGL.current?.loadModelByText(state.model.text);
         } else if (state.model.name) {
             dispatch({
                 type: ActionKind.ChangeModelDescriptors,

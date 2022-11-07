@@ -3,7 +3,6 @@ import { useRef, useCallback, useEffect } from "react";
 import filenames from "public/PSBDatabase/files.json";
 import { MemoizedViewGLCanvasSmall } from "src/components/model-viewer/ModelViewer";
 import ThreeJSViewGL, { RenderMaterial } from "src/components/model-viewer/viewGL";
-import { ModelProvider } from "src/lib/contexts";
 
 const files = Object.keys(filenames).reduce<string[]>(
     (prev, key) => [...prev, ...(filenames as { [key: string]: string[] })[key]],
@@ -41,30 +40,28 @@ export default function GenerateImages() {
     };
 
     return (
-        <ModelProvider>
-            <div className={clsx("flex", "flex-col", "items-center", "m-4")}>
-                <p
-                    className={clsx(
-                        "cursor-pointer",
-                        "border-2",
-                        "w-max",
-                        "px-1",
-                        "m-2",
-                        "border-slate-200",
-                        "hover:text-slate-300",
-                        "hover:border-slate-300",
-                    )}
-                    onClick={onStart}
-                >
-                    START
-                </p>
-                <div className={clsx("w-max")}>
-                    <MemoizedViewGLCanvasSmall
-                        className={clsx("border-2", "border-slate-200", "mx-2", "mt-4")}
-                        onMounted={onCanvasMounted}
-                    />
-                </div>
+        <div className={clsx("flex", "flex-col", "items-center", "m-4")}>
+            <p
+                className={clsx(
+                    "cursor-pointer",
+                    "border-2",
+                    "w-max",
+                    "px-1",
+                    "m-2",
+                    "border-slate-200",
+                    "hover:text-slate-300",
+                    "hover:border-slate-300",
+                )}
+                onClick={onStart}
+            >
+                START
+            </p>
+            <div className={clsx("w-max")}>
+                <MemoizedViewGLCanvasSmall
+                    className={clsx("border-2", "border-slate-200", "mx-2", "mt-4")}
+                    onMounted={onCanvasMounted}
+                />
             </div>
-        </ModelProvider>
+        </div>
     );
 }

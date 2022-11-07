@@ -103,8 +103,9 @@ export default class ThreeJSViewGL {
         this.onModelStatsChanged = onModelStatsChanged;
     }
 
-    loadModelByText(text: string, modelName: string) {
-        const filetype = GetModelfiletype(modelName);
+    loadModelByText(text: string, modelName?: string) {
+        let filetype: string | null = "OFF";
+        if (modelName) filetype = GetModelfiletype(modelName);
         if (filetype === null) alert("Model file type not supported!");
         this.currentModel = modelName;
 
@@ -116,7 +117,8 @@ export default class ThreeJSViewGL {
 
         const geometry = filetype == "OFF" ? LoadOFFModel(text) : LoadOBJModel(text);
         this.mesh = new THREE.Mesh(geometry, this.material);
-        if (this.onModelStatsChanged) this.onModelStatsChanged(GetModelStats(modelName, this.mesh));
+        if (this.onModelStatsChanged && modelName)
+            this.onModelStatsChanged(GetModelStats(modelName, this.mesh));
 
         this.vertexNormalsHelper = new VertexNormalsHelper(this.mesh, 0.05, 0xff0000);
         if (!this.vertexNormalsEnabled) this.vertexNormalsHelper.visible = false;

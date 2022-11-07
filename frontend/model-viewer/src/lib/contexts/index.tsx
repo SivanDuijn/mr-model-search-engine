@@ -1,6 +1,6 @@
 import { createContext, ReactElement, useReducer, Dispatch } from "react";
 import { RenderMaterial } from "src/components/model-viewer/viewGL";
-import GetTopK from "../getTopK";
+import GetTopK from "../getTopKClosest";
 import { Actions, modelReducer, ModelState } from "./reducer";
 
 const initialModel = "125.off";

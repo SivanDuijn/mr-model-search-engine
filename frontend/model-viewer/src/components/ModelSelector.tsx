@@ -1,9 +1,10 @@
 import clsx from "clsx";
 import { useRouter } from "next/router";
 import { useState, useMemo, useEffect } from "react";
+import toast from "react-hot-toast";
 import filenames from "public/PSBDatabase/files.json";
-import { useModel, useModelStats } from "src/lib/contexts/hooks";
-import GetTopK from "src/lib/getTopK";
+import { useModel, useModelDescriptors, useModelStats } from "src/lib/contexts/hooks";
+import GetTopKClosest from "src/lib/getTopKClosest";
 
 type ModelSelectorProps = {
     className?: string;
@@ -11,6 +12,8 @@ type ModelSelectorProps = {
 
 export default function ModelSelector(props: ModelSelectorProps) {
     const { model, changeModel } = useModel();
+    const { changeModelStats } = useModelStats();
+    const { changeModelDescriptors } = useModelDescriptors();
     const { stats } = useModelStats();
 
     const router = useRouter();
@@ -37,6 +40,60 @@ export default function ModelSelector(props: ModelSelectorProps) {
         return [];
     }, [subgroup]);
 
+    const queryFileOutsideDatabase = (f: File) => {
+        const data = new FormData();
+        data.append("file", f, f.name);
+        toast.promise(
+            fetch("http://localhost:5000/api/query", {
+                method: "POST",
+                body: data,
+                mode: "cors",
+            }).then((r) =>
+                r.json().then(
+                    ({
+                        top_k,
+                        processed_model,
+                        stats,
+                        descriptors,
+                    }: {
+                        processed_model: string;
+                        top_k: { name: string; dist: number }[];
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        stats: any;
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        descriptors: any;
+                    }) => {
+                        if (!top_k || !top_k[0].name) toast.error("Didn't receive top_k correctly");
+                        if (!processed_model)
+                            toast.error("Didn't receive processed model correctly");
+                        if (!stats) toast.error("Didn't receive stats correctly");
+                        if (!descriptors) toast.error("Didn't receive descriptors correctly");
+
+                        setSubgroup(undefined);
+                        changeModel({
+                            ...model,
+                            text: processed_model,
+                            top_k,
+                            secondModel: model.secondModel ? top_k[0].name : undefined,
+                            name: undefined,
+                        });
+                        changeModelStats({
+                            ...stats,
+                            boundingBoxSize: stats["aabbSize"],
+                            distBarycenterToOrigin: stats["position"],
+                        });
+                        changeModelDescriptors({ ...descriptors });
+                    },
+                ),
+            ),
+            {
+                loading: "Querying your model",
+                success: "Success 🔥",
+                error: "Something went wrong while processing your model!",
+            },
+        );
+    };
+
     return (
         <div className={props.className}>
             <p className={clsx("border-b-2", "text-center", "font-bold")}>Query Model</p>
@@ -49,53 +106,7 @@ export default function ModelSelector(props: ModelSelectorProps) {
                         accept=".obj,.off"
                         onChange={(e) => {
                             if (!e.currentTarget.files) return;
-                            const file = e.currentTarget.files[0];
-                            const data = new FormData();
-                            data.append("file", file, file.name);
-                            fetch("http://localhost:5000/api/query", {
-                                method: "POST",
-                                body: data,
-                                mode: "cors",
-                            }).then((r) =>
-                                r
-                                    .json()
-                                    .then(
-                                        ({
-                                            top_k,
-                                            processed_model,
-                                            stats,
-                                            descriptors,
-                                        }: {
-                                            processed_model: string;
-                                            top_k: { name: string; dist: number }[];
-                                            stats: any;
-                                            descriptors: any;
-                                        }) => {
-                                            setSubgroup(undefined);
-                                            console.log(top_k, stats, descriptors);
-                                            changeModel({
-                                                ...model,
-                                                text: processed_model,
-                                                top_k,
-                                                secondModel: model.secondModel
-                                                    ? top_k[0].name
-                                                    : undefined,
-                                                name: undefined,
-                                            });
-                                        },
-                                    ),
-                            );
-                            // file.text().then((text) => {
-                            //     const m = file.name.split("/");
-                            //     props.onFileSelected(text, m[m.length - 1]);
-                            //     setSubgroup(undefined);
-                            //     changeModel({
-                            //         ...model,
-                            //         file: m[m.length - 1],
-                            //         text,
-                            //         name: undefined,
-                            //     });
-                            // });
+                            queryFileOutsideDatabase(e.currentTarget.files[0]);
                         }}
                     />
                 </div>
@@ -109,7 +120,7 @@ export default function ModelSelector(props: ModelSelectorProps) {
                             ];
                             if (files) {
                                 const file = files[0];
-                                const top_k = GetTopK(file);
+                                const top_k = GetTopKClosest(file);
                                 changeModel({
                                     ...model,
                                     name: files[0],
@@ -165,7 +176,7 @@ export default function ModelSelector(props: ModelSelectorProps) {
                             )}
                             onClick={() => {
                                 if (subgroup !== undefined && file !== undefined) {
-                                    const top_k = GetTopK(file);
+                                    const top_k = GetTopKClosest(file);
                                     changeModel({
                                         ...model,
                                         name: file,

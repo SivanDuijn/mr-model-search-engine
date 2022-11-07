@@ -3,6 +3,10 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+    --toastify-toast-width: 30rem;
+}
+
 html,
 body {
     padding: 0;
