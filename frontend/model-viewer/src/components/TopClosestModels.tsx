@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import Image from "next/image";
 import { useModel } from "src/lib/contexts/hooks";
 import { database } from "./model-viewer/ModelViewer";
 
@@ -18,14 +19,17 @@ export default function TopClosestModels(props: Props) {
                             key={cm.name}
                             className={clsx("flex", "flex-col", "items-center", "w-32")}
                         >
-                            <img
-                                alt={cm.name}
+                            <Image
                                 src={
+                                    "/" +
                                     database +
                                     "/model_images/" +
                                     cm.name.split(".")[0] +
                                     "_processed.png"
                                 }
+                                alt={cm.name}
+                                width={128}
+                                height={128}
                             />
                             <div
                                 className={clsx(
