@@ -23,6 +23,14 @@ namespace database
 	    printf_debug("Writing mesh \"%s\" to disk\n", file.c_str());
 	    mesh.write(database + "/models/" + file);
     }
+
+    // Get the class a file belongs to
+    string file_class(const string database, const string file)
+    {
+        ifstream ifs(database + "/classes.json");
+        nlohmann::json classes = nlohmann::json::parse(ifs);
+        return classes[file];
+    }
     
     void write_stats(string database, string in, string out, const NormalizationStatistics &beforeStats, const NormalizationStatistics &afterStats)
     {

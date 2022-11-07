@@ -76,6 +76,12 @@ int main(int argc, char *argv[])
 		else
 			compute_closest_models();
 
+	else if (!strcmp(argv[1], "evaluate"))
+		if (database != "")
+			evaluate(database);
+		else
+			evaluate();
+
 	else printf("Unknown argument");
 
 	return 0;
@@ -429,4 +435,60 @@ void query_top_k_models(const string database, const string file, const int k)
 	output_json["processed_model"] = utils::mesh_to_off_string(mesh);
 
 	cout << setw(4) << output_json << endl;
+}
+
+void evaluate(const string database, const size_t k)
+{
+	printf_debug("Evaluating performance on database %s\n", database.c_str());
+	map<string, int>   count_class;
+	int                count_total = 0;
+	map<string, float> quality_class;
+	float			   quality_total = 0;
+
+	// Go over all files in the database
+	auto filenames = database::get_filenames(database);
+	for (string file : filenames)
+	{
+		printf_debug("Evaluating for file %s", file.c_str());
+		string ground_truth = database::file_class(database, file);
+		size_t positive_true = 0,
+			   positive_false = 0,
+			   negative_true = 0,
+			   negative_false = 0;
+		count_class[ground_truth]++;
+		count_total++;
+		printf_debug(" (class %s)\n", ground_truth.c_str());
+	
+		// TODO gracefully obtain top k models
+		std::vector<string> top_k_models = {"1.off", "2.off", "3.off", "4.off", "5.off", "6.off", "7.off", "8.off", "9.off", "10.off"};
+
+		// Go over all the top k models
+		printf_debug("Returned ");
+		for (string i : top_k_models)
+		{
+			string result = database::file_class(database, i);
+			printf_debug("%s, ", result.c_str());
+
+			// Obtain result stats
+			if (result == ground_truth) positive_true++;
+			else positive_false++;
+		}
+
+		// Apply the quality metric
+		// Ratio of negative/k for now
+		float quality = (float)positive_false / k;
+		quality_class[ground_truth] += quality;
+		quality_total               += quality;
+		printf_debug("quality: %f\n", quality);
+	}
+
+	// Normalize the quality
+	for (auto iter = quality_class.begin(), end = quality_class.end(); iter != end; iter++)
+		iter->second /= (float)count_class[iter->first];
+	quality_total /= count_total;
+
+	printf_debug("Class performance: ");
+	for (auto iter = quality_class.begin(), end = quality_class.end(); iter != end; iter++)
+		printf_debug("%s=%f, ", iter->first.c_str(), iter->second);
+	printf_debug("\nTotal performance: %f\n", quality_total);
 }

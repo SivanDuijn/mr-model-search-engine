@@ -26,6 +26,8 @@ namespace database
     pmp::SurfaceMesh read_mesh(const std::string database, const std::string file);
     // Write a mesh to a database
     void write_mesh(pmp::SurfaceMesh &mesh, const std::string database, const std::string file);
+    // Get the class a file belongs to
+    std::string file_class(const std::string database, const std::string file);
     // Write normalization stats to a database
     void write_stats(std::string database, std::string in, std::string out, const NormalizationStatistics &beforeStats, const NormalizationStatistics &afterStats);
     nlohmann::json stats_to_json(const NormalizationStatistics &stats);
