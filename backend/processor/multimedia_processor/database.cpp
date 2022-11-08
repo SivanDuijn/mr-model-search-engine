@@ -180,29 +180,32 @@ namespace database
     void write_confusion(const string database, const map<string, map<string, int>> confusion)
     {
         vector<string> classes;
-
         for (auto it = confusion.begin(), end = confusion.end(); it != end; it++)
             classes.push_back(it->first);
 
         int size = confusion.size();
-
-        string out = "[";
+        vector<vector<int>> output;
         for (auto it = confusion.begin(), end = confusion.end(); it != end; it++)
         {
-            out += "[";
+            vector<int> row;
             for (int i = 0; i < size; i++)
             {
-                int v = 0;
                 if (it->second.count(classes[i]) == 1)
                 {
                     auto mapmap = it->second;
-                    v = mapmap[classes[i]];
+                    row.push_back(mapmap[classes[i]]);
                 }
-                out += to_string(v) + ",";
+                else 
+                    row.push_back(0);
             }
-            out += "],\n";
+            output.push_back(row);
         }
-        out += "]";
-        printf_debug(out.c_str());
+
+        nlohmann::json output_json;
+        output_json["matrix"] = output;
+        output_json["class_names"] = classes;
+        ofstream ofs(database + "/confusion_matrix.json");
+	    ofs << output_json << endl;
+	    ofs.close();
     }
 }
