@@ -34,6 +34,7 @@ namespace database
     // Write model descriptors to database
     void write_descriptors(std::string database, std::vector<std::string> filenames, std::vector<descriptors::GlobalDescriptors> gds, std::vector<descriptors::ShapeDescriptors> sds);
     nlohmann::json descriptors_to_json(descriptors::GlobalDescriptors &gd, descriptors::ShapeDescriptors &sd);
+    void write_confusion(const std::string database, const std::map<std::string, std::map<std::string, int>> confusion);
     // Get the filenames of all models in a database
 	std::vector<std::string> get_filenames(const std::string database, const bool processed = false);
 

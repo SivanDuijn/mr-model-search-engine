@@ -176,5 +176,33 @@ namespace database
         }
         return shape_fvs;
     }
-    
+
+    void write_confusion(const string database, const map<string, map<string, int>> confusion)
+    {
+        vector<string> classes;
+
+        for (auto it = confusion.begin(), end = confusion.end(); it != end; it++)
+            classes.push_back(it->first);
+
+        int size = confusion.size();
+
+        string out = "[";
+        for (auto it = confusion.begin(), end = confusion.end(); it != end; it++)
+        {
+            out += "[";
+            for (int i = 0; i < size; i++)
+            {
+                int v = 0;
+                if (it->second.count(classes[i]) == 1)
+                {
+                    auto mapmap = it->second;
+                    v = mapmap[classes[i]];
+                }
+                out += to_string(v) + ",";
+            }
+            out += "],\n";
+        }
+        out += "]";
+        printf_debug(out.c_str());
+    }
 }

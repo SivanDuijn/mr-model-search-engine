@@ -58,4 +58,13 @@ namespace utils
 
         return out;
     }
+
+    string toProcessed(const string file) 
+    {
+        size_t pos = file.find('.');
+        string name = file.substr(0, pos);
+        string ext = file.substr(pos + 1);
+        // Calculate descriptors for all the processed models
+        return name + "_processed." + ext;
+    }
 }

@@ -26,19 +26,16 @@ namespace preprocessor
             tri.triangulate();
         }
 
-        printf_debug("Filling holes...\n");
-        // Fill holes, i think it's not necessary for PSBDatabase though
+        // Fill holes if necessary
+        printf_debug("Filling holes\n");
         int nBoundaryHalfEdges = 1;
         while (nBoundaryHalfEdges > 0)
         {
-            for (pmp::Halfedge he : mesh.halfedges())
+            for (pmp::Halfedge he : mesh.halfedges()) if (mesh.is_boundary(he))
             {
-                if (mesh.is_boundary(he))
-                {
-                    pmp::HoleFilling hf = pmp::HoleFilling(mesh);
-                    hf.fill_hole(he);
-                    break;
-                }
+                pmp::HoleFilling hf = pmp::HoleFilling(mesh);
+                hf.fill_hole(he);
+                break;
             }
 
             nBoundaryHalfEdges = 0;

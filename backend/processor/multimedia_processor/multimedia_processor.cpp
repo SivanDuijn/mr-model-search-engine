@@ -264,8 +264,9 @@ vector<tuple<int,float>> query_database_model(const string database, const strin
 
 	int d_i = m_i - 1;
 	i = 0;
-	for (int j = n_models - 2; i < m_i; d_i += j, j--, i++) 
+	for (int j = n_models - 2; i < m_i; d_i += j, j--, i++) {
 		q_dists[i] = dists[d_i]; 
+	}
 
 	d_i++;
 	i++;	
@@ -275,53 +276,8 @@ vector<tuple<int,float>> query_database_model(const string database, const strin
 	auto indices = n_smallest_indices(q_dists.begin(), q_dists.end(), k);
 
 	vector<tuple<int,float>> closest;
-	for (auto index : indices) {
-		cout << filenames[index] << " " << q_dists[index] << endl;
+	for (auto index : indices)
 		closest.push_back(std::make_pair(index,q_dists[index]));
-	}
-
-	
-	// // manually calculate distance between two models to test
-	// string ma = "123_processed.off";
-	// string mb = "31_processed.off";
-
-	// ifs = ifstream(database + "/feature_vectors.json");
-	// nlohmann::json json_feature_vectors = nlohmann::json::parse(ifs);
-
-	// Eigen::VectorXf dists_mean = utils::json_array_to_vector(json_feature_vectors["shape_dists_mean"]);
-	// Eigen::VectorXf dists_sd = utils::json_array_to_vector(json_feature_vectors["shape_dists_sd"]);
-
-	// auto ma_json = json_feature_vectors["models"][ma];
-	// auto mb_json = json_feature_vectors["models"][mb];
-	// Eigen::VectorXf ma_global = utils::json_array_to_vector(ma_json["global"]);
-	// Eigen::VectorXf mb_global = utils::json_array_to_vector(mb_json["global"]);
-
-	// vector<string> shape_descriptor_names{ "A3", "D1", "D2", "D3", "D4" };
-	// vector<Eigen::VectorXf> ma_shape_hists;
-	// vector<Eigen::VectorXf> mb_shape_hists;
-	// auto mb_json_shape = mb_json["shape"];
-	// auto ma_json_shape = ma_json["shape"];
-	// for (int j = 0; j < shape_descriptor_names.size(); j++)
-	// {
-	// 	ma_shape_hists.push_back(utils::json_array_to_vector(ma_json_shape[j]));
-	// 	mb_shape_hists.push_back(utils::json_array_to_vector(mb_json_shape[j]));
-	// }
-
-	// float global = (ma_global - mb_global).array().square().sum();
-	// cout << global << endl;
-
-	// float shape = 0;
-	// for (int j = 0; j < shape_descriptor_names.size(); j++)
-	// {
-	// 	float emd = utils::EarthMoversDistance(ma_shape_hists[j], mb_shape_hists[j]);
-	// 	// emd = (emd - dists_mean(j)) / dists_sd(j);
-	// 	emd /= dists_sd(j);
-	// 	shape += emd*emd;
-	// }
-
-	// cout << shape << endl;
-	// cout << sqrtf(global + shape) << endl;
-
 
 	return closest;
 }
@@ -440,38 +396,46 @@ void query_top_k_models(const string database, const string file, const int k)
 void evaluate(const string database, const size_t k)
 {
 	printf_debug("Evaluating performance on database %s\n", database.c_str());
-	map<string, int>   count_class;
-	int                count_total = 0;
-	map<string, float> quality_class;
-	float			   quality_total = 0;
+	map<string, int>              count_class;
+	int                           count_total = 0;
+	map<string, float>            quality_class;
+	float			              quality_total = 0;
+	map<string, map<string, int>> confusion;
+
+	// Get the closest models
+	ifstream ifs(database + "/closest_models.json");
+	nlohmann::json closest_json = nlohmann::json::parse(ifs);
+	ifs.close();
+
+	// Get the model classes
+	ifs = ifstream(database + "/classes.json");
+	nlohmann::json classes = nlohmann::json::parse(ifs);
+	ifs.close();
 
 	// Go over all files in the database
 	auto filenames = database::get_filenames(database);
 	for (string file : filenames)
 	{
 		printf_debug("Evaluating for file %s", file.c_str());
-		string ground_truth = database::file_class(database, file);
+		string ground_truth = classes[file];
 		size_t positive_true = 0,
-			   positive_false = 0,
-			   negative_true = 0,
-			   negative_false = 0;
+			   positive_false = 0;
 		count_class[ground_truth]++;
 		count_total++;
 		printf_debug(" (class %s)\n", ground_truth.c_str());
-	
-		// TODO gracefully obtain top k models
-		std::vector<string> top_k_models = {"1.off", "2.off", "3.off", "4.off", "5.off", "6.off", "7.off", "8.off", "9.off", "10.off"};
 
 		// Go over all the top k models
 		printf_debug("Returned ");
-		for (string i : top_k_models)
+		nlohmann::json top_10_closest_json = closest_json[file];
+		for (auto it = top_10_closest_json.begin(), end = top_10_closest_json.end(); it < end; ++it) 
 		{
-			string result = database::file_class(database, i);
+			string result = classes[it.value()[0]];
 			printf_debug("%s, ", result.c_str());
 
 			// Obtain result stats
 			if (result == ground_truth) positive_true++;
 			else positive_false++;
+			confusion[ground_truth][result]++;
 		}
 
 		// Apply the quality metric
@@ -487,8 +451,18 @@ void evaluate(const string database, const size_t k)
 		iter->second /= (float)count_class[iter->first];
 	quality_total /= count_total;
 
+	// Print some information
 	printf_debug("Class performance: ");
 	for (auto iter = quality_class.begin(), end = quality_class.end(); iter != end; iter++)
 		printf_debug("%s=%f, ", iter->first.c_str(), iter->second);
-	printf_debug("\nTotal performance: %f\n", quality_total);
+	printf_debug("total performance: %f\n", quality_total);
+	printf_debug("Confusion:\n");
+	for (auto iter1 = confusion.begin(), end1 = confusion.end(); iter1 != end1; iter1++)
+	{
+		printf_debug("%s: ", iter1->first.c_str());
+		for (auto iter2 = iter1->second.begin(), end2 = iter1->second.end(); iter2 != end2; iter2++)
+			printf_debug("%s=%i, ", iter2->first.c_str(), iter2->second);
+		printf_debug("\n");
+	}
+	database::write_confusion(database, confusion);
 }
