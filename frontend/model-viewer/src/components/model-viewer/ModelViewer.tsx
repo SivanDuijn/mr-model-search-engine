@@ -36,6 +36,8 @@ export const MemoizedViewGLCanvas = React.memo((props: Props) => {
         viewGL.current?.showWireframe(state.renderSettings.showWireframe);
         viewGL.current?.showVertexNormals(state.renderSettings.showVertexNormals);
         viewGL.current?.setAutoRotateEnabled(state.renderSettings.autoRotateEnabled);
+        viewGL.current?.showUnitBox(state.renderSettings.showUnitBox);
+        viewGL.current?.showBoundingBox(state.renderSettings.showBoundingBox);
     }, [state.renderSettings]);
 
     useEffect(() => {

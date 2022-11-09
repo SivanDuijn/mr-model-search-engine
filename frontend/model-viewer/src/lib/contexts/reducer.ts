@@ -40,6 +40,8 @@ export interface ModelState {
         showWireframe: boolean;
         showVertexNormals: boolean;
         autoRotateEnabled: boolean;
+        showUnitBox: boolean;
+        showBoundingBox: boolean;
     };
 }
 

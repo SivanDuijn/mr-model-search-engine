@@ -108,6 +108,38 @@ export default function Settings(props: SettingsProps) {
                         checked={settings.autoRotateEnabled}
                     />
                 </div>
+                <div>
+                    <label htmlFor="unitcube" className="mr-2">
+                        Unit Cube
+                    </label>
+                    <input
+                        type="checkbox"
+                        id="unitcube"
+                        onChange={(e) =>
+                            changeRenderSettings({
+                                ...settings,
+                                showUnitBox: e.currentTarget.checked,
+                            })
+                        }
+                        checked={settings.showUnitBox}
+                    />
+                </div>
+                <div>
+                    <label htmlFor="boundingbox" className="mr-2">
+                        Bounding Box
+                    </label>
+                    <input
+                        type="checkbox"
+                        id="boundingbox"
+                        onChange={(e) =>
+                            changeRenderSettings({
+                                ...settings,
+                                showBoundingBox: e.currentTarget.checked,
+                            })
+                        }
+                        checked={settings.showBoundingBox}
+                    />
+                </div>
             </div>
         </div>
     );

@@ -34,11 +34,11 @@ export default class ThreeJSViewGL {
     private wireframe?: THREE.LineSegments;
     private vertexNormalsHelper?: VertexNormalsHelper;
     private pointCloud?: THREE.Points;
-    private boundingBox?: THREE.LineSegments<
+    private unitBox?: THREE.LineSegments<
         THREE.EdgesGeometry<THREE.BoxGeometry>,
         THREE.LineBasicMaterial
     >;
-    private unitBox?: BoxHelper;
+    private boundingBox?: BoxHelper;
 
     private material: THREE.Material = new THREE.Material();
 
@@ -87,6 +87,8 @@ export default class ThreeJSViewGL {
         this.scene.add(ambientLight);
 
         this.scene.add(this.group);
+
+        this.scene.background = new THREE.Color(0x000000);
 
         this.controls = new OrbitControls(this.camera, canvas);
         this.controls.enableRotate = false;
@@ -140,9 +142,9 @@ export default class ThreeJSViewGL {
             this.mesh.visible = false;
         }
 
-        this.boundingBox = CreateThreeLineBox(1, 1, 1, 0x7d7d7d);
+        this.boundingBox = new THREE.BoxHelper(this.mesh, 0xff0000);
         if (!this.boundingBoxEnabled) this.boundingBox.visible = false;
-        this.unitBox = new THREE.BoxHelper(this.mesh, 0xff0000);
+        this.unitBox = CreateThreeLineBox(1, 1, 1, 0x7d7d7d);
         if (!this.unitBoxEnabled) this.unitBox.visible = false;
 
         // Add unit bounding box

@@ -17,6 +17,8 @@ export const initialState: ModelState = {
         showWireframe: true,
         showVertexNormals: false,
         autoRotateEnabled: true,
+        showUnitBox: true,
+        showBoundingBox: true,
     },
 };
 
