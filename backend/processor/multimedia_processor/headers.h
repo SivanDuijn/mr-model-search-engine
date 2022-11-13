@@ -16,6 +16,7 @@
 #include <pmp/SurfaceMesh.h>
 #include "../lib/nlohmann-json/json.hpp"
 #include "../lib/libgdiam/gdiam.hpp"
+#include <annoylib.h>
 
 // Must be a power of 2!
 #define VERTEX_COUNT 2048   // 2^11
