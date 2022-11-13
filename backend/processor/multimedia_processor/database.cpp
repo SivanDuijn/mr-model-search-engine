@@ -15,6 +15,7 @@ void Database::SetDatabase(const std::string database)
     {
         filenames_ = vector<string>();
         p_filenames_ = vector<string>();
+        classes_ = nlohmann::json();
         global_fvs_ = Eigen::MatrixXf();
         shape_fvs_ = vector<Eigen::MatrixXf>();
         dist_matrix_ = vector<float>();
