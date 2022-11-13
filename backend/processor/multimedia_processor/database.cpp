@@ -181,6 +181,50 @@ void Database::WriteMesh(pmp::SurfaceMesh &mesh, const string file)
     mesh.write(GetDatabase() + "/models/" + file);
 }
 
+void Database::WriteFVS(
+        Eigen::VectorXf global_mean,
+        Eigen::VectorXf global_sd,
+        Eigen::VectorXf shape_dists_mean,
+        Eigen::VectorXf shape_dists_sd,
+        std::vector<Eigen::MatrixXf> shape_fvs,
+        Eigen::MatrixXf global_fvs
+    )
+{
+    vector<string> filenames = GetFilenames(true);
+    size_t n_models = filenames.size();
+
+    // Write feature vectors and mean and sd to json
+	// separate global descriptors and shape descriptors
+	nlohmann::json json_fvs;
+	nlohmann::json json_models;
+	for (int i = 0; i < n_models; i++)
+	{
+		vector<Eigen::ArrayXf> s;
+		for (auto a : shape_fvs)
+			s.push_back(a.row(i).array());
+		json_models[filenames[i]] = {
+			{"global", global_fvs.row(i).array()},
+			{"shape", s}
+		};
+	}
+	json_fvs["global_mean"] = global_mean.array();
+	json_fvs["global_sd"] = global_sd.array();
+	json_fvs["shape_dists_mean"] = shape_dists_mean.array();
+	json_fvs["shape_dists_sd"] = shape_dists_sd.array();
+	json_fvs["models"] = json_models;
+	ofstream ofs(GetDatabase() + "/feature_vectors.json");
+	ofs << setw(4) << json_fvs << endl;
+	ofs.close();
+}
+
+void Database::WriteDistMatrix(vector<float>& dist_matrix)
+{
+    nlohmann::json json_dists = dist_matrix;
+	ofstream ofs(GetDatabase() + "/dist_matrix.json");
+	ofs << json_dists << endl;
+	ofs.close();
+}
+
 void Database::WriteStats(string in, string out, const NormalizationStatistics &beforeStats, const NormalizationStatistics &afterStats)
 {
     string database = GetDatabase();

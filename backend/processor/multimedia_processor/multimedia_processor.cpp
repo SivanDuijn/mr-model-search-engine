@@ -2,8 +2,6 @@
 
 int main(int argc, char *argv[])
 {
-	Database::SetDatabase("../../frontend/model-viewer/public/PSBDatabase");
-
 	// try to get databasename, in and out filenames
 	string database = "", in = "", inWithoutExt = "", ext = "", out = "";
 	if (argc == 3)
@@ -24,65 +22,50 @@ int main(int argc, char *argv[])
 		out = argv[4];
 	}
 
+	if (database != "")
+		Database::SetDatabase(database);
+	else
+		Database::SetDatabase("../../frontend/model-viewer/public/PSBDatabase");
+
+
 	if (argc < 2) printf("Please supply an argument");
 
 	else if (!strcmp(argv[1], "debug")) debug();
 
 	else if (!strcmp(argv[1], "preprocess-all")) 
-		if (database != "")
-			preprocess_all(database);
-		else 
-			preprocess_all();
+		preprocess_all();
 
 	else if (!strcmp(argv[1], "preprocess"))  
 		if (out != "")
-			preprocess(database, in, out);
+			preprocess(in, out);
 		else if (ext != "")
-			preprocess(database, in, inWithoutExt + "_processed." + ext);
+			preprocess(in, inWithoutExt + "_processed." + ext);
 		else 
 			preprocess();
 
 	else if (!strcmp(argv[1], "extract-all"))
-		if (database != "")
-			extract_all(database);
-		else 
-			extract_all();
+		extract_all();
 
 	else if (!strcmp(argv[1], "extract"))
-		if (in != "")
-			extract(database, in);
-		else 
-			extract();
+		extract();
 
 	else if (!strcmp(argv[1], "compute-fvs") || !strcmp(argv[1], "compute-feature-vectors"))
-		if (database != "")
-			compute_feature_vectors(database);
-		else
-			compute_feature_vectors();
-
-	else if (!strcmp(argv[1], "query-database-model"))
-		if (in != "")
-			query_database_model(database, in);
-		else
-			query_database_model();
-
-	else if (!strcmp(argv[1], "query-model"))
-		if (in != "" && database != "")
-			query_top_k_models(database, in, 10);
-		else 
-			cout << "{error: \"Wrong arguments!\"}";
+		compute_feature_vectors();
 
 	else if (!strcmp(argv[1], "compute-all-closest"))
-		if (database != "")
-			compute_closest_models(database);
-		else
-			compute_closest_models();
+		compute_closest_models();
 
 	else if (!strcmp(argv[1], "evaluate"))
-		if (database != "")
-			evaluate(database);
-		else
-			evaluate();
+		evaluate();
+
+	else if (!strcmp(argv[1], "query-database-model"))
+		query_database_model();
+
+	else if (!strcmp(argv[1], "query-model"))
+		if (in != "")
+			query_top_k_models(in, 10);
+		else 
+			cout << "{\"error\": \"Wrong arguments!\"}";
 
 	else printf("Unknown argument");
 
@@ -94,21 +77,16 @@ void debug()
 	printf("Echoing debug call\n");
 }
 
-void preprocess_all(const string database)
+void preprocess_all()
 {
 	vector<string> filenames = Database::GetFilenames();
 	// Process every file in the database
 	for (string file : filenames)
-	{
-		size_t pos = file.find('.');
-		string name = file.substr(0, pos);
-		string ext = file.substr(pos + 1);
 		 // Process all the unprocessed models
-		preprocess(database, file, name + "_processed." + ext);
-	}
+		preprocess(file, utils::to_processed(file));
 }
 
-void preprocess(const string database, const string in, const string out)
+void preprocess(const string in, const string out)
 {
 	// Get the mesh
 	pmp::SurfaceMesh mesh = Database::ReadMeshFromDatabase(in);
@@ -125,10 +103,10 @@ void preprocess(const string database, const string in, const string out)
 	// Write the normalization stats to json
 	Database::WriteStats(in, out, beforeStats, afterStats);
 
-	printf("Preprocessed mesh \"%s\" from %s successfully, output: %s\n", in.c_str(), database.c_str(), out.c_str());
+	printf("Preprocessed mesh \"%s\" from %s successfully, output: %s\n", in.c_str(), Database::GetDatabase().c_str(), out.c_str());
 }
 
-void extract_all(const string database)
+void extract_all()
 {
 	vector<string> filenames = Database::GetFilenames(true);
 
@@ -136,14 +114,14 @@ void extract_all(const string database)
 	vector<descriptors::GlobalDescriptors> gds;
 	vector<descriptors::ShapeDescriptors> sds;
 	printf_debug("Getting global descriptors\n");
-	descriptors::get_global_descriptors(database, filenames, gds);
+	descriptors::get_global_descriptors(filenames, gds);
 	printf_debug("Getting shape descriptors\n");
-	descriptors::get_shape_descriptors(database, filenames, sds);
+	descriptors::get_shape_descriptors(filenames, sds);
 
 	Database::WriteDescriptors(filenames, gds, sds);
 }
 
-void extract(const string database, const string in)
+void extract(const string in)
 {
 	// Get the mesh
 	pmp::SurfaceMesh mesh = Database::ReadMeshFromDatabase(in);
@@ -157,7 +135,7 @@ void extract(const string database, const string in)
 	// TODO write?
 }
 
-void compute_feature_vectors(const string database)
+void compute_feature_vectors()
 {
 	vector<string> filenames = Database::GetFilenames(true);
 	int n_models = filenames.size();
@@ -195,28 +173,8 @@ void compute_feature_vectors(const string database)
 	cout << shape_dists_mean.transpose() << endl;
 	cout << shape_dists_sd.transpose() << endl;
 
-	// Write feature vectors and mean and sd to json
-	// separate global descriptors and shape descriptors
-	nlohmann::json json_fvs;
-	nlohmann::json json_models;
-	for (int i = 0; i < n_models; i++)
-	{
-		vector<Eigen::ArrayXf> s;
-		for (auto a : shape_fvs)
-			s.push_back(a.row(i).array());
-		json_models[filenames[i]] = {
-			{"global", standardized_global_fvs.row(i).array()},
-			{"shape", s}
-		};
-	}
-	json_fvs["global_mean"] = global_mean.array();
-	json_fvs["global_sd"] = global_sd.array();
-	json_fvs["shape_dists_mean"] = shape_dists_mean.array();
-	json_fvs["shape_dists_sd"] = shape_dists_sd.array();
-	json_fvs["models"] = json_models;
-	ofstream ofs(database + "/feature_vectors.json");
-	ofs << setw(4) << json_fvs << endl; // TODO: removing setw(4) might improve filesize
-	ofs.close();
+	// Write feature vectors to database as json
+	Database::WriteFVS(global_mean, global_sd, shape_dists_mean, shape_dists_sd, shape_fvs, standardized_global_fvs);
 
 	// Calculate distance matrix
 	vector<float> dists((n_models*(n_models - 1)) / 2);
@@ -231,13 +189,11 @@ void compute_feature_vectors(const string database)
 		}
 	}
 	
-	nlohmann::json json_dists = dists;
-	ofs = ofstream(database + "/dist_matrix.json");
-	ofs << json_dists << endl;
-	ofs.close();
+	// Write distance matrix to database as json
+	Database::WriteDistMatrix(dists);
 }
 
-vector<tuple<int,float>> query_database_model(const string database, const string in, size_t k)
+vector<tuple<int,float>> query_database_model(const string in, size_t k)
 {
 	vector<string> filenames = Database::GetFilenames(true);
 	int n_models = filenames.size();
@@ -273,7 +229,7 @@ vector<tuple<int,float>> query_database_model(const string database, const strin
 	return closest;
 }
 
-void compute_closest_models(const string database)
+void compute_closest_models()
 {
 	auto filenames = Database::GetFilenames();
 
@@ -284,7 +240,7 @@ void compute_closest_models(const string database)
 		string name = file.substr(0, pos);
 		string ext = file.substr(pos + 1);
 
-		auto closest = query_database_model(database, name + "_processed." + ext, 11);
+		auto closest = query_database_model(name + "_processed." + ext, 11);
 	
 		closest.erase(closest.begin());
 		vector<tuple<string,float>> cv;
@@ -293,13 +249,13 @@ void compute_closest_models(const string database)
 		json_closest[file] = cv;
 	}
 
-	ofstream ofs = ofstream(database + "/closest_models.json");
+	ofstream ofs = ofstream(Database::GetDatabase() + "/closest_models.json");
 	ofs << setw(4) << json_closest << endl;
 	ofs.close();
 }
 
 // Calculate the top k closest models 
-void query_top_k_models(const string database, const string file, const int k)
+void query_top_k_models(const string file, const int k)
 {
 	pmp::SurfaceMesh mesh = Database::ReadMesh(file);
 
@@ -334,9 +290,9 @@ void query_top_k_models(const string database, const string file, const int k)
 	q_shape_fv.push_back(sd.D4.bins);
 
 	// Get global mean and global SD
-	ifstream ifs = ifstream(database + "/feature_vectors.json");
+	ifstream ifs = ifstream(Database::GetDatabase() + "/feature_vectors.json");
 	if (ifs.fail()) {
-		cout << "{error:\"Something went wrong when loading the feature vectors!\"}" << endl;
+		cout << "{\"error\":\"Something went wrong when loading the feature vectors!\"}" << endl;
 		return;
 	}
 	nlohmann::json json_feature_vectors = nlohmann::json::parse(ifs);
@@ -384,9 +340,9 @@ void query_top_k_models(const string database, const string file, const int k)
 	cout << setw(4) << output_json << endl;
 }
 
-void evaluate(const string database, const size_t k)
+void evaluate(const size_t k)
 {
-	printf_debug("Evaluating performance on database %s\n", database.c_str());
+	printf_debug("Evaluating performance on database %s\n", Database::GetDatabase().c_str());
 	map<string, int>              count_class;
 	int                           count_total = 0;
 	map<string, float>            quality_class;
@@ -394,7 +350,7 @@ void evaluate(const string database, const size_t k)
 	map<string, map<string, int>> confusion;
 
 	// Get the closest models
-	ifstream ifs(database + "/closest_models.json");
+	ifstream ifs(Database::GetDatabase() + "/closest_models.json");
 	nlohmann::json closest_json = nlohmann::json::parse(ifs);
 	ifs.close();
 

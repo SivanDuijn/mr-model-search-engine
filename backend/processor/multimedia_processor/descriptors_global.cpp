@@ -120,7 +120,7 @@ namespace descriptors
         return gd;
     }
     
-    void get_global_descriptors(string database, vector<string>& filenames, vector<GlobalDescriptors> &descriptors)
+    void get_global_descriptors(vector<string>& filenames, vector<GlobalDescriptors> &descriptors)
     {
         for (string file : filenames)
         {

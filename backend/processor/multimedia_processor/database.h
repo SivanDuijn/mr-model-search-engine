@@ -53,6 +53,16 @@ public:
     // Write a mesh to a database
     static void WriteMesh(pmp::SurfaceMesh &mesh, const std::string file);
 
+    static void WriteFVS(
+            Eigen::VectorXf global_mean,
+            Eigen::VectorXf global_sd,
+            Eigen::VectorXf shape_dists_mean,
+            Eigen::VectorXf shape_dists_sd,
+            std::vector<Eigen::MatrixXf> shape_fvs,
+            Eigen::MatrixXf global_fvs
+        );
+    static void WriteDistMatrix(std::vector<float>& dist_matrix);
+
     // Write normalization stats to a database
     static void WriteStats(std::string in, std::string out, const NormalizationStatistics &beforeStats, const NormalizationStatistics &afterStats);
     static void WriteDescriptors(std::vector<std::string> filenames, std::vector<descriptors::GlobalDescriptors> gds, std::vector<descriptors::ShapeDescriptors> sds);

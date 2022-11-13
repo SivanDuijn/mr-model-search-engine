@@ -183,7 +183,7 @@ namespace descriptors
         };
     }
 
-    void get_shape_descriptors(string database, vector<string> &filenames, vector<ShapeDescriptors> &descriptors, int nBins)
+    void get_shape_descriptors(vector<string> &filenames, vector<ShapeDescriptors> &descriptors, int nBins)
     {
         const float A3Binsize = (A3Max + EPSILON) / nBins;
         const float D1Binsize = (D1Max + EPSILON) / nBins;
