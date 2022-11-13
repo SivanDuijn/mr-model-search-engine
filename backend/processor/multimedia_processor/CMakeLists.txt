@@ -3,7 +3,11 @@
 #
 cmake_minimum_required(VERSION 3.8)
 
-# add include directories
+# Nuke all warnings out of orbit
+# Only necessary because CMake won't listen to anything else >:(
+add_definitions(-w)
+
+# Add include directories
 include_directories(${PROJECT_SOURCE_DIR}/submodules/pmp-library/src)
 include_directories(${PROJECT_SOURCE_DIR}/submodules/pmp-library/external/eigen)
 
