@@ -36,8 +36,8 @@ public:
         int totalFlip; // The summed up flip coefficients (which are between either -1 or 1) 
     };
 
-    static void SetDatabase(const std::string database);
-    static std::string GetDatabase();
+    static void SetDatabaseDir(const std::string database);
+    static std::string GetDatabaseDir();
     static std::vector<std::string>& GetFilenames(bool processed = false);
     static std::string GetClass(const std::string);
     // The global descriptors in a matrix where each row is model

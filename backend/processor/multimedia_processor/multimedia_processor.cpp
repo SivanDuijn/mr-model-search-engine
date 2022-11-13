@@ -23,9 +23,9 @@ int main(int argc, char *argv[])
 	}
 
 	if (database != "")
-		Database::SetDatabase(database);
+		Database::SetDatabaseDir(database);
 	else
-		Database::SetDatabase("../../frontend/model-viewer/public/PSBDatabase");
+		Database::SetDatabaseDir("../../frontend/model-viewer/public/PSBDatabase");
 
 
 	if (argc < 2) printf("Please supply an argument");
@@ -103,7 +103,7 @@ void preprocess(const string in, const string out)
 	// Write the normalization stats to json
 	Database::WriteStats(in, out, beforeStats, afterStats);
 
-	printf("Preprocessed mesh \"%s\" from %s successfully, output: %s\n", in.c_str(), Database::GetDatabase().c_str(), out.c_str());
+	printf("Preprocessed mesh \"%s\" from %s successfully, output: %s\n", in.c_str(), Database::GetDatabaseDir().c_str(), out.c_str());
 }
 
 void extract_all()
@@ -249,7 +249,7 @@ void compute_closest_models()
 		json_closest[file] = cv;
 	}
 
-	ofstream ofs = ofstream(Database::GetDatabase() + "/closest_models.json");
+	ofstream ofs = ofstream(Database::GetDatabaseDir() + "/closest_models.json");
 	ofs << setw(4) << json_closest << endl;
 	ofs.close();
 }
@@ -290,7 +290,7 @@ void query_top_k_models(const string file, const int k)
 	q_shape_fv.push_back(sd.D4.bins);
 
 	// Get global mean and global SD
-	ifstream ifs = ifstream(Database::GetDatabase() + "/feature_vectors.json");
+	ifstream ifs = ifstream(Database::GetDatabaseDir() + "/feature_vectors.json");
 	if (ifs.fail()) {
 		cout << "{\"error\":\"Something went wrong when loading the feature vectors!\"}" << endl;
 		return;
@@ -342,7 +342,7 @@ void query_top_k_models(const string file, const int k)
 
 void evaluate(const size_t k)
 {
-	printf_debug("Evaluating performance on database %s\n", Database::GetDatabase().c_str());
+	printf_debug("Evaluating performance on database %s\n", Database::GetDatabaseDir().c_str());
 	map<string, int>              count_class;
 	int                           count_total = 0;
 	map<string, float>            quality_class;
@@ -350,7 +350,7 @@ void evaluate(const size_t k)
 	map<string, map<string, int>> confusion;
 
 	// Get the closest models
-	ifstream ifs(Database::GetDatabase() + "/closest_models.json");
+	ifstream ifs(Database::GetDatabaseDir() + "/closest_models.json");
 	nlohmann::json closest_json = nlohmann::json::parse(ifs);
 	ifs.close();
 

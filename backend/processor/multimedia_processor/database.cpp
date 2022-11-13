@@ -8,7 +8,7 @@ Eigen::MatrixXf Database::global_fvs_ = Eigen::MatrixXf();
 vector<Eigen::MatrixXf> Database::shape_fvs_ = vector<Eigen::MatrixXf>();
 vector<float> Database::dist_matrix_ = vector<float>();
 
-void Database::SetDatabase(const std::string database) 
+void Database::SetDatabaseDir(const std::string database) 
 {   
     // Reset everything whend database changes
     if (database_ != database)
@@ -23,10 +23,10 @@ void Database::SetDatabase(const std::string database)
 
     database_ = database;
 }
-string Database::GetDatabase()
+string Database::GetDatabaseDir()
 {
     if (database_ == "")
-        cout << "WARNING: Database not set! Use Database::SetDatabase({your_database_location})" << endl;
+        cout << "WARNING: Database not set! Use Database::SetDatabaseDir({your_database_location})" << endl;
     return database_;
 }
 
@@ -35,7 +35,7 @@ vector<string>& Database::GetFilenames(bool processed)
     if (filenames_.size() == 0)
     {
         // Read filenames
-        ifstream ifs(GetDatabase() + "/files.json");
+        ifstream ifs(GetDatabaseDir() + "/files.json");
         nlohmann::json files = nlohmann::json::parse(ifs);
         for (nlohmann::json::iterator it = files.begin(); it != files.end(); ++it) 
             for (nlohmann::json::iterator it2 = it.value().begin(); it2 != it.value().end(); ++it2)
@@ -58,7 +58,7 @@ string Database::GetClass(const std::string file)
 {
     if (classes_.size() == 0)
     {
-        ifstream ifs(GetDatabase() + "/classes.json");
+        ifstream ifs(GetDatabaseDir() + "/classes.json");
         classes_ = nlohmann::json::parse(ifs);
     }
         
@@ -88,7 +88,7 @@ void Database::LoadFVS()
 {
     vector<string> filenames = GetFilenames(true);
     int n_models = filenames.size();
-    ifstream ifs(GetDatabase() + "/feature_descriptors.json");
+    ifstream ifs(GetDatabaseDir() + "/feature_descriptors.json");
     nlohmann::json json_ds = nlohmann::json::parse(ifs);
 
     // Load the global feature vectors
@@ -141,7 +141,7 @@ vector<float>& Database::GetDistMatrix()
         size_t n_models = GetFilenames().size();
 
         // Read in distance matrix
-        ifstream ifs(GetDatabase() + "/dist_matrix.json");
+        ifstream ifs(GetDatabaseDir() + "/dist_matrix.json");
         nlohmann::json json_dist_matrix;
         if (ifs.fail())
         {
@@ -171,7 +171,7 @@ pmp::SurfaceMesh Database::ReadMesh(const string file)
 // Read a mesh from a database
 pmp::SurfaceMesh Database::ReadMeshFromDatabase(const string file)
 {
-    string database = GetDatabase();
+    string database = GetDatabaseDir();
     printf_debug("Loading mesh \"%s\" from %s\n", file.c_str(), database.c_str());
     return ReadMesh(database + "/models/" + file);
 }
@@ -179,7 +179,7 @@ pmp::SurfaceMesh Database::ReadMeshFromDatabase(const string file)
 void Database::WriteMesh(pmp::SurfaceMesh &mesh, const string file)
 {
     printf_debug("Writing mesh \"%s\" to disk\n", file.c_str());
-    mesh.write(GetDatabase() + "/models/" + file);
+    mesh.write(GetDatabaseDir() + "/models/" + file);
 }
 
 void Database::WriteFVS(
@@ -213,7 +213,7 @@ void Database::WriteFVS(
 	json_fvs["shape_dists_mean"] = shape_dists_mean.array();
 	json_fvs["shape_dists_sd"] = shape_dists_sd.array();
 	json_fvs["models"] = json_models;
-	ofstream ofs(GetDatabase() + "/feature_vectors.json");
+	ofstream ofs(GetDatabaseDir() + "/feature_vectors.json");
 	ofs << setw(4) << json_fvs << endl;
 	ofs.close();
 }
@@ -221,14 +221,14 @@ void Database::WriteFVS(
 void Database::WriteDistMatrix(vector<float>& dist_matrix)
 {
     nlohmann::json json_dists = dist_matrix;
-	ofstream ofs(GetDatabase() + "/dist_matrix.json");
+	ofstream ofs(GetDatabaseDir() + "/dist_matrix.json");
 	ofs << json_dists << endl;
 	ofs.close();
 }
 
 void Database::WriteStats(string in, string out, const NormalizationStatistics &beforeStats, const NormalizationStatistics &afterStats)
 {
-    string database = GetDatabase();
+    string database = GetDatabaseDir();
     // Write the normalization stats to json
     ifstream ifs(database + "/normalization_stats.json");
     nlohmann::json normStats;
@@ -242,7 +242,7 @@ void Database::WriteStats(string in, string out, const NormalizationStatistics &
 
 void Database::WriteDescriptors(vector<string> filenames, vector<descriptors::GlobalDescriptors> gds, vector<descriptors::ShapeDescriptors> sds)
 {
-    string database = GetDatabase();
+    string database = GetDatabaseDir();
     ifstream ifs(database + "/feature_descriptors.json");
     nlohmann::json jsonDescriptors;
     if (!ifs.fail())
@@ -281,7 +281,7 @@ void Database::WriteConfusionMatrix(const map<string, map<string, int>> confusio
     nlohmann::json output_json;
     output_json["matrix"] = output;
     output_json["class_names"] = classes;
-    ofstream ofs(GetDatabase() + "/confusion_matrix.json");
+    ofstream ofs(GetDatabaseDir() + "/confusion_matrix.json");
     ofs << output_json << endl;
     ofs.close();
 }
