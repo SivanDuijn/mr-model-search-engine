@@ -59,7 +59,7 @@ namespace utils
         return out;
     }
 
-    string toProcessed(const string file) 
+    string to_processed(const string file) 
     {
         size_t pos = file.find('.');
         string name = file.substr(0, pos);

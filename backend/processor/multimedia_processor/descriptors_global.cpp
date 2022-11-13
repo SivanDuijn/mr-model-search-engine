@@ -124,7 +124,7 @@ namespace descriptors
     {
         for (string file : filenames)
         {
-            pmp::SurfaceMesh mesh = database::read_mesh(database, file);
+            pmp::SurfaceMesh mesh = Database::ReadMeshFromDatabase(file);
             descriptors.push_back(get_global_descriptors(mesh));
         }
     }

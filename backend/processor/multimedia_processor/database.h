@@ -1,7 +1,22 @@
 #pragma once
 
-namespace database 
+class Database 
 {
+protected:
+    Database() {}
+
+    static std::string database_;
+
+    static std::vector<std::string> filenames_;
+    static std::vector<std::string> p_filenames_;
+    static nlohmann::json classes_;
+    static Eigen::MatrixXf global_fvs_;
+    static std::vector<Eigen::MatrixXf> shape_fvs_;
+
+    // Load both the global and shape feature vectors at once, so we only have to read the json once! 
+    static void LoadFVS();
+
+public:
     struct NormalizationStatistics
     {
         // number of sampling points
@@ -20,24 +35,27 @@ namespace database
         int totalFlip; // The summed up flip coefficients (which are between either -1 or 1) 
     };
 
-    // Read a mesh from file
-    pmp::SurfaceMesh read_mesh(const std::string file);
-    // Read a mesh from a database
-    pmp::SurfaceMesh read_mesh(const std::string database, const std::string file);
-    // Write a mesh to a database
-    void write_mesh(pmp::SurfaceMesh &mesh, const std::string database, const std::string file);
-    // Get the class a file belongs to
-    std::string file_class(const std::string database, const std::string file);
-    // Write normalization stats to a database
-    void write_stats(std::string database, std::string in, std::string out, const NormalizationStatistics &beforeStats, const NormalizationStatistics &afterStats);
-    nlohmann::json stats_to_json(const NormalizationStatistics &stats);
-    // Write model descriptors to database
-    void write_descriptors(std::string database, std::vector<std::string> filenames, std::vector<descriptors::GlobalDescriptors> gds, std::vector<descriptors::ShapeDescriptors> sds);
-    nlohmann::json descriptors_to_json(descriptors::GlobalDescriptors &gd, descriptors::ShapeDescriptors &sd);
-    void write_confusion(const std::string database, const std::map<std::string, std::map<std::string, int>> confusion);
-    // Get the filenames of all models in a database
-	std::vector<std::string> get_filenames(const std::string database, const bool processed = false);
+    static void SetDatabase(const std::string database);
+    static std::string GetDatabase();
+    static std::vector<std::string>& GetFilenames(bool processed = false);
+    static std::string GetClass(const std::string);
+    // The global descriptors in a matrix where each row is model
+    static Eigen::MatrixXf& GetGlobalFVS();
+    // The shape descriptors, for each descriptor a matrix where each row represents a model 
+    static std::vector<Eigen::MatrixXf>& GetShapeFVS();
 
-    Eigen::MatrixXf read_all_global_fvs(const std::string database, const std::vector<std::string> &filenames);
-    std::vector<Eigen::MatrixXf> read_all_shape_fvs(const std::string database, const std::vector<std::string> &filenames);
-}
+    // Read a mesh from file
+    static pmp::SurfaceMesh ReadMesh(const std::string file);
+    // Read a mesh from a database
+    static pmp::SurfaceMesh ReadMeshFromDatabase(const std::string file);
+    // Write a mesh to a database
+    static void WriteMesh(pmp::SurfaceMesh &mesh, const std::string file);
+
+    // Write normalization stats to a database
+    static void WriteStats(std::string in, std::string out, const NormalizationStatistics &beforeStats, const NormalizationStatistics &afterStats);
+    static void WriteDescriptors(std::vector<std::string> filenames, std::vector<descriptors::GlobalDescriptors> gds, std::vector<descriptors::ShapeDescriptors> sds);
+    static void WriteConfusionMatrix(const std::map<std::string, std::map<std::string, int>> confusion);
+
+    static nlohmann::json StatsToJSON(const NormalizationStatistics &stats);
+    static nlohmann::json DescriptorsToJSON(descriptors::GlobalDescriptors &gd, descriptors::ShapeDescriptors &sd);
+};

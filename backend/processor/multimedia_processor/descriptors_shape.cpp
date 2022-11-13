@@ -193,7 +193,7 @@ namespace descriptors
 
         for (string file : filenames)
         {
-            pmp::SurfaceMesh mesh = database::read_mesh(database, file);
+            pmp::SurfaceMesh mesh = Database::ReadMeshFromDatabase(file);
             descriptors.push_back({
                 rolling_bin(mesh, A3, SAMPLE_COUNT, nBins, 0, A3Binsize),
                 rolling_bin(mesh, D1, SAMPLE_COUNT, nBins, 0, D1Binsize),

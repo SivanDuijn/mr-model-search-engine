@@ -2,6 +2,8 @@
 
 int main(int argc, char *argv[])
 {
+	Database::SetDatabase("../../frontend/model-viewer/public/PSBDatabase");
+
 	// try to get databasename, in and out filenames
 	string database = "", in = "", inWithoutExt = "", ext = "", out = "";
 	if (argc == 3)
@@ -94,7 +96,7 @@ void debug()
 
 void preprocess_all(const string database)
 {
-	vector<string> filenames = database::get_filenames(database);
+	vector<string> filenames = Database::GetFilenames();
 	// Process every file in the database
 	for (string file : filenames)
 	{
@@ -109,26 +111,26 @@ void preprocess_all(const string database)
 void preprocess(const string database, const string in, const string out)
 {
 	// Get the mesh
-	pmp::SurfaceMesh mesh = database::read_mesh(database, in);
+	pmp::SurfaceMesh mesh = Database::ReadMeshFromDatabase(in);
 
 	// Preprocess the mesh
-	database::NormalizationStatistics beforeStats;
-	database::NormalizationStatistics afterStats;
+	Database::NormalizationStatistics beforeStats;
+	Database::NormalizationStatistics afterStats;
 	preprocessor::resample(mesh, beforeStats, afterStats);
 	preprocessor::normalize(mesh, beforeStats, afterStats);
 
 	// Write resampled mesh to disk
-	database::write_mesh(mesh, database, out);
+	Database::WriteMesh(mesh, out);
 
 	// Write the normalization stats to json
-	database::write_stats(database, in, out, beforeStats, afterStats);
+	Database::WriteStats(in, out, beforeStats, afterStats);
 
 	printf("Preprocessed mesh \"%s\" from %s successfully, output: %s\n", in.c_str(), database.c_str(), out.c_str());
 }
 
 void extract_all(const string database)
 {
-	vector<string> filenames = database::get_filenames(database, true);
+	vector<string> filenames = Database::GetFilenames(true);
 
 	// Extract features
 	vector<descriptors::GlobalDescriptors> gds;
@@ -138,13 +140,13 @@ void extract_all(const string database)
 	printf_debug("Getting shape descriptors\n");
 	descriptors::get_shape_descriptors(database, filenames, sds);
 
-	database::write_descriptors(database, filenames, gds, sds);
+	Database::WriteDescriptors(filenames, gds, sds);
 }
 
 void extract(const string database, const string in)
 {
 	// Get the mesh
-	pmp::SurfaceMesh mesh = database::read_mesh(database, in);
+	pmp::SurfaceMesh mesh = Database::ReadMeshFromDatabase(in);
 
 	// Extract features
 	printf_debug("Getting global descriptors\n");
@@ -157,11 +159,11 @@ void extract(const string database, const string in)
 
 void compute_feature_vectors(const string database)
 {
-	vector<string> filenames = database::get_filenames(database, true);
+	vector<string> filenames = Database::GetFilenames(true);
 	int n_models = filenames.size();
 
-	Eigen::MatrixXf global_fvs = database::read_all_global_fvs(database, filenames);
-	vector<Eigen::MatrixXf> shape_fvs = database::read_all_shape_fvs(database, filenames);
+	Eigen::MatrixXf global_fvs = Database::GetGlobalFVS();
+	vector<Eigen::MatrixXf> shape_fvs = Database::GetShapeFVS();
 
 	// Standardize global descriptors using the standard deviation
 	Eigen::Matrix<float, 1, 8> global_mean = global_fvs.colwise().mean();
@@ -237,7 +239,7 @@ void compute_feature_vectors(const string database)
 
 vector<tuple<int,float>> query_database_model(const string database, const string in, size_t k)
 {
-	vector<string> filenames = database::get_filenames(database, true);
+	vector<string> filenames = Database::GetFilenames(true);
 	int n_models = filenames.size();
 
 	// Read in distance matrix
@@ -284,7 +286,7 @@ vector<tuple<int,float>> query_database_model(const string database, const strin
 
 void compute_closest_models(const string database)
 {
-	auto filenames = database::get_filenames(database);
+	auto filenames = Database::GetFilenames();
 
 	nlohmann::json json_closest;
 	for (string file : filenames)
@@ -310,11 +312,11 @@ void compute_closest_models(const string database)
 // Calculate the top k closest models 
 void query_top_k_models(const string database, const string file, const int k)
 {
-	pmp::SurfaceMesh mesh = database::read_mesh(file);
+	pmp::SurfaceMesh mesh = Database::ReadMesh(file);
 
 	// Preprocess the mesh
-	database::NormalizationStatistics beforeStats;
-	database::NormalizationStatistics afterStats; 
+	Database::NormalizationStatistics beforeStats;
+	Database::NormalizationStatistics afterStats; 
 	preprocessor::resample(mesh, beforeStats, afterStats);
 	preprocessor::normalize(mesh, beforeStats, afterStats);
 
@@ -356,7 +358,7 @@ void query_top_k_models(const string database, const string file, const int k)
 	Eigen::VectorXf dists_sd = utils::json_array_to_vector(json_feature_vectors["shape_dists_sd"]);
 
 	// Go through all models and calculate all distances
-	auto processed_filenames = database::get_filenames(database, true);
+	auto processed_filenames = Database::GetFilenames(true);
 	vector<float> dists;
 	for (string file : processed_filenames)
 	{
@@ -382,12 +384,12 @@ void query_top_k_models(const string database, const string file, const int k)
 	// Create output json
 	nlohmann::json output_json;
 	nlohmann::json top_k;
-	auto filenames = database::get_filenames(database, false);
+	auto filenames = Database::GetFilenames(false);
 	for (size_t i = 0; i < indices.size(); i++)
 		top_k.push_back({ {"name", filenames[indices[i]]}, {"dist", dists[indices[i]]} });
 	output_json["top_k"] = top_k;
-	output_json["stats"] = database::stats_to_json(afterStats);
-	output_json["descriptors"] = database::descriptors_to_json(gd, sd);
+	output_json["stats"] = Database::StatsToJSON(afterStats);
+	output_json["descriptors"] = Database::DescriptorsToJSON(gd, sd);
 	output_json["processed_model"] = utils::mesh_to_off_string(mesh);
 
 	cout << setw(4) << output_json << endl;
@@ -407,17 +409,12 @@ void evaluate(const string database, const size_t k)
 	nlohmann::json closest_json = nlohmann::json::parse(ifs);
 	ifs.close();
 
-	// Get the model classes
-	ifs = ifstream(database + "/classes.json");
-	nlohmann::json classes = nlohmann::json::parse(ifs);
-	ifs.close();
-
 	// Go over all files in the database
-	auto filenames = database::get_filenames(database);
+	auto filenames = Database::GetFilenames();
 	for (string file : filenames)
 	{
 		printf_debug("Evaluating for file %s", file.c_str());
-		string ground_truth = classes[file];
+		string ground_truth = Database::GetClass(file);
 		size_t positive_true = 0,
 			   positive_false = 0;
 		count_class[ground_truth]++;
@@ -429,7 +426,7 @@ void evaluate(const string database, const size_t k)
 		nlohmann::json top_10_closest_json = closest_json[file];
 		for (auto it = top_10_closest_json.begin(), end = top_10_closest_json.end(); it < end; ++it) 
 		{
-			string result = classes[it.value()[0]];
+			string result = Database::GetClass(it.value()[0]);
 			printf_debug("%s, ", result.c_str());
 
 			// Obtain result stats
@@ -455,7 +452,7 @@ void evaluate(const string database, const size_t k)
 	printf_debug("Class performance: ");
 	for (auto iter = quality_class.begin(), end = quality_class.end(); iter != end; iter++)
 		printf_debug("%s=%f, ", iter->first.c_str(), iter->second);
-	printf_debug("total performance: %f\n", quality_total);
+	cout << "total performance: " << to_string(quality_total) << endl;
 	printf_debug("Confusion:\n");
 	for (auto iter1 = confusion.begin(), end1 = confusion.end(); iter1 != end1; iter1++)
 	{
@@ -464,5 +461,5 @@ void evaluate(const string database, const size_t k)
 			printf_debug("%s=%i, ", iter2->first.c_str(), iter2->second);
 		printf_debug("\n");
 	}
-	database::write_confusion(database, confusion);
+	Database::WriteConfusionMatrix(confusion);
 }
