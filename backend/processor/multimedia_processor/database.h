@@ -12,6 +12,7 @@ protected:
     static nlohmann::json classes_;
     static Eigen::MatrixXf global_fvs_;
     static std::vector<Eigen::MatrixXf> shape_fvs_;
+    static std::vector<float> dist_matrix_;
 
     // Load both the global and shape feature vectors at once, so we only have to read the json once! 
     static void LoadFVS();
@@ -43,6 +44,7 @@ public:
     static Eigen::MatrixXf& GetGlobalFVS();
     // The shape descriptors, for each descriptor a matrix where each row represents a model 
     static std::vector<Eigen::MatrixXf>& GetShapeFVS();
+    static std::vector<float>& GetDistMatrix();
 
     // Read a mesh from file
     static pmp::SurfaceMesh ReadMesh(const std::string file);

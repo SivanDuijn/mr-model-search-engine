@@ -242,18 +242,7 @@ vector<tuple<int,float>> query_database_model(const string database, const strin
 	vector<string> filenames = Database::GetFilenames(true);
 	int n_models = filenames.size();
 
-	// Read in distance matrix
-	ifstream ifs(database + "/dist_matrix.json");
-	nlohmann::json json_dist_matrix;
-	if (ifs.fail())
-		return {};
-	json_dist_matrix = nlohmann::json::parse(ifs);
-	ifs.close();
-
-	vector<float> dists((n_models * (n_models-1)) / 2);
-	int i = 0;
-	for (auto it = json_dist_matrix.begin(); it != json_dist_matrix.end(); ++it, i++) 
-  		dists[i] = *it;
+	vector<float> dists = Database::GetDistMatrix();
 
 	// Give top n models for model x
 	// get index of model
@@ -265,7 +254,7 @@ vector<tuple<int,float>> query_database_model(const string database, const strin
 	vector<float> q_dists(n_models); 
 
 	int d_i = m_i - 1;
-	i = 0;
+	int i = 0;
 	for (int j = n_models - 2; i < m_i; d_i += j, j--, i++) {
 		q_dists[i] = dists[d_i]; 
 	}

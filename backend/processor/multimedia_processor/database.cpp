@@ -6,6 +6,7 @@ vector<string> Database::p_filenames_ = vector<string>();
 nlohmann::json Database::classes_ = nlohmann::json(); 
 Eigen::MatrixXf Database::global_fvs_ = Eigen::MatrixXf();
 vector<Eigen::MatrixXf> Database::shape_fvs_ = vector<Eigen::MatrixXf>();
+vector<float> Database::dist_matrix_ = vector<float>();
 
 void Database::SetDatabase(const std::string database) 
 {   
@@ -16,6 +17,7 @@ void Database::SetDatabase(const std::string database)
         p_filenames_ = vector<string>();
         global_fvs_ = Eigen::MatrixXf();
         shape_fvs_ = vector<Eigen::MatrixXf>();
+        dist_matrix_ = vector<float>();
     }
 
     database_ = database;
@@ -129,6 +131,32 @@ void Database::LoadFVS()
                 shape_fvs_[sd_i](i,sdj) = it2.value().get<float>();
         }
     }
+}
+
+vector<float>& Database::GetDistMatrix()
+{
+    if (dist_matrix_.size() == 0)
+    {
+        size_t n_models = GetFilenames().size();
+
+        // Read in distance matrix
+        ifstream ifs(GetDatabase() + "/dist_matrix.json");
+        nlohmann::json json_dist_matrix;
+        if (ifs.fail())
+        {
+            cout << "{\"error\": \"dist_matrix.json not found!\"}" << endl; 
+            return dist_matrix_;
+        }
+        json_dist_matrix = nlohmann::json::parse(ifs);
+        ifs.close();
+
+        dist_matrix_ = vector<float>((n_models * (n_models-1)) / 2);
+        int i = 0;
+        for (auto it = json_dist_matrix.begin(); it != json_dist_matrix.end(); ++it, i++) 
+            dist_matrix_[i] = *it;
+    }
+
+    return dist_matrix_;
 }
 
 // Read a mesh from file
