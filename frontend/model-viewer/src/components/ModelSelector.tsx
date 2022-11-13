@@ -44,7 +44,7 @@ export default function ModelSelector(props: ModelSelectorProps) {
         const data = new FormData();
         data.append("file", f, f.name);
         toast.promise(
-            fetch("http://localhost:5000/api/query", {
+            fetch("http://127.0.0.1:5000/api/query", {
                 method: "POST",
                 body: data,
                 mode: "cors",

@@ -105,6 +105,8 @@ for key in histogramsP:
         values.append({"x": i*histogramsP[key]["binSize"], "y": histogramsUnp[key]["bins"][i]})
     histogramsUnpCoords[key] = values
 
+print(histogramsPCoords)
+
 # Create histogram CSVs
 # histogramPCSV = ""
 # histogramUnpCSV = ""
