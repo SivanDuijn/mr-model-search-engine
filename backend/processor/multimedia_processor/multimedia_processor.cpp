@@ -61,6 +61,9 @@ int main(int argc, char *argv[])
 	else if (!strcmp(argv[1], "query-database-model"))
 		query_database_model();
 
+	else if (!strcmp(argv[1], "query-database-model-ann"))
+		query_database_model_ann();
+
 	else if (!strcmp(argv[1], "query-model"))
 		if (in != "")
 			query_top_k_models(in, 10);
@@ -193,7 +196,7 @@ void compute_feature_vectors()
 	Database::WriteDistMatrix(dists);
 }
 
-vector<tuple<int,float>> query_database_model(const string in, size_t k)
+vector<tuple<int,float>> query_database_model(const string in, const size_t k)
 {
 	vector<string> filenames = Database::GetFilenames(true);
 	int n_models = filenames.size();
@@ -227,6 +230,51 @@ vector<tuple<int,float>> query_database_model(const string in, size_t k)
 		closest.push_back(std::make_pair(index,q_dists[index]));
 
 	return closest;
+}
+
+vector<tuple<int, float>> query_database_model_ann(const size_t in, const size_t k)
+{
+	printf_debug("Querying for %zu closest models using ANN\n", k);
+	// Get the feature vectors
+	// TODO move to compute_feature_vectors
+	const auto global_fvs = Database::GetGlobalFVS();
+	const auto shape_fvs  = Database::GetShapeFVS();
+	const size_t fvs_count = global_fvs.rows(),
+				 global_fvs_size = global_fvs.cols(),
+				 shape_fvs_size = shape_fvs.size(),
+				 shape_fvs_bins = shape_fvs[0].cols(),
+				 fvs_size = global_fvs_size + shape_fvs_size * shape_fvs_bins;
+	printf_debug("Vector count: %zu\nVector size: %zu+%zu*%zu=%zu\n", fvs_count, global_fvs_size, shape_fvs_size, shape_fvs_bins, fvs_size);
+
+	// Create and populate the Annoy instance
+	AnnoyIndex index(fvs_size);
+	Eigen::RowVectorXf fv(fvs_size);
+	printf_debug("Compiling Annoy index\n");
+	for (size_t i = 0; i < fvs_count; i++)
+	{
+		// Compile the feature vector
+		fv.setZero();
+		for (int jd = 0, ji = 0; jd < shape_fvs_size; jd++, ji += shape_fvs_bins)
+			fv.segment(ji, shape_fvs_bins) << shape_fvs[jd].row(i);
+		fv.tail(global_fvs_size) << global_fvs.row(i);
+
+		// Add it to the index
+		index.add_item(i, (float*)(&fv));
+	}
+
+	// Build and save the tree
+	printf_debug("Building ANN tree\n");
+	index.build(2 * fvs_size);
+	printf_debug("Saving tree\n");
+	//index.save("");
+
+	// Get the k closest neighbours
+	std::vector<size_t> closest;
+	std::vector<float> dist;
+	index.get_nns_by_item(in, k, fvs_count, &closest, &dist);
+
+	vector<tuple<int, float>> ret;
+	return ret;
 }
 
 void compute_closest_models()

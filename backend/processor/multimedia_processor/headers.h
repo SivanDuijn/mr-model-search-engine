@@ -17,6 +17,7 @@
 #include "../lib/nlohmann-json/json.hpp"
 #include "../lib/libgdiam/gdiam.hpp"
 #include <annoylib.h>
+#include <kissrandom.h>
 
 // Must be a power of 2!
 #define VERTEX_COUNT 2048   // 2^11
@@ -24,6 +25,8 @@
 
 #define EPSILON 1e-5
 
+typedef Annoy::AnnoyIndex<size_t, float, Annoy::Angular, Annoy::Kiss32Random, Annoy::AnnoyIndexSingleThreadedBuildPolicy>
+                                              AnnoyIndex;
 typedef Eigen::Vector3f                       Vertex;
 typedef Eigen::Matrix<float, 3, VERTEX_COUNT> VertexMat;
 typedef Eigen::Map<VertexMat>                 VertexMap;
