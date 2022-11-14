@@ -42,6 +42,7 @@ public:
     static std::string GetClass(const std::string);
     // The global descriptors in a matrix where each row is model
     static Eigen::MatrixXf& GetGlobalFVS();
+    static AnnoyIndex GetAnnoyIndex();
     // The shape descriptors, for each descriptor a matrix where each row represents a model 
     static std::vector<Eigen::MatrixXf>& GetShapeFVS();
     static std::vector<float>& GetDistMatrix();
@@ -52,7 +53,6 @@ public:
     static pmp::SurfaceMesh ReadMeshFromDatabase(const std::string file);
     // Write a mesh to a database
     static void WriteMesh(pmp::SurfaceMesh &mesh, const std::string file);
-
     static void WriteFVS(
             Eigen::VectorXf global_mean,
             Eigen::VectorXf global_sd,
@@ -61,6 +61,7 @@ public:
             std::vector<Eigen::MatrixXf> shape_fvs,
             Eigen::MatrixXf global_fvs
         );
+    static void WriteAnnoyIndex(AnnoyIndex& index);
     static void WriteDistMatrix(std::vector<float>& dist_matrix);
 
     // Write normalization stats to a database

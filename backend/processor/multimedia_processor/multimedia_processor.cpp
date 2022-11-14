@@ -266,7 +266,7 @@ vector<tuple<int, float>> query_database_model_ann(const size_t in, const size_t
 	printf_debug("Building ANN tree\n");
 	index.build(2 * fvs_size);
 	printf_debug("Saving tree\n");
-	//index.save("");
+	Database::WriteAnnoyIndex(index);
 
 	// Get the k closest neighbours
 	std::vector<size_t> closest;
