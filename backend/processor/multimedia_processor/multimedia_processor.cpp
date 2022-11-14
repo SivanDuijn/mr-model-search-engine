@@ -140,6 +140,7 @@ void extract(const string in)
 
 void compute_feature_vectors()
 {
+	printf_debug("Computing feature vectors over database %s\n", Database::GetDatabaseDir().c_str());
 	vector<string> filenames = Database::GetFilenames(true);
 	int n_models = filenames.size();
 
@@ -147,53 +148,81 @@ void compute_feature_vectors()
 	vector<Eigen::MatrixXf> shape_fvs = Database::GetShapeFVS();
 
 	// Standardize global descriptors using the standard deviation
+	printf_debug("Standardizing global descriptors\n");
 	Eigen::Matrix<float, 1, 8> global_mean = global_fvs.colwise().mean();
 	Eigen::Matrix<float, 1, 8> global_sd = ((global_fvs.rowwise() - global_mean).array().square().colwise().sum() / (n_models - 1)).sqrt();
-	auto standardized_global_fvs = (global_fvs.rowwise() - global_mean).array().rowwise() / global_sd.array();
-
-	cout << global_mean << endl;
-	cout << global_sd << endl;
+	auto global_fvs_standardized = (global_fvs.rowwise() - global_mean).array().rowwise() / global_sd.array();
+	cout << "mean: " << global_mean << endl;
+	cout << "sd: " << global_sd << endl;
 
 	// Calculate mean and SD of shape descriptor distance
 	// shape descriptor distances, row for each shape descriptor
+	printf_debug("Standardizing shape descriptors\n");
 	Eigen::MatrixXf shape_dists(shape_fvs.size(), (n_models*(n_models - 1)) / 2);
 	for (size_t sd_i = 0, n_fvs = shape_fvs.size(); sd_i < n_fvs; sd_i++) 
 		for (int i = 0, d_i = 0; i < n_models; i++) 
 			for (int j = i + 1; j < n_models; j++, d_i++)
-			{
 				// sd_i is the shape descriptor index, A3 D1 D2 ...
 				// i j loop through all the models but i != j and j > i, so we don't have duplicate distances
 				// d_i is the distance index, just a counter for the distances
-
-				// Earth Movers Distance
 				shape_dists(sd_i, d_i) = utils::EarthMoversDistance(shape_fvs[sd_i].row(i), shape_fvs[sd_i].row(j));
-			}
-	
 	auto shape_dists_mean = shape_dists.rowwise().mean();
 	auto shape_dists_sd = ((shape_dists.colwise() - shape_dists_mean).array().square().rowwise().sum() / (shape_dists.cols() - 1)).sqrt();
-	// auto standardized_shape_dists = (shape_dists.colwise() - shape_dists_mean).array().colwise() / shape_dists_sd.array();
-	auto standardized_shape_dists = shape_dists.array().colwise() / shape_dists_sd.array();
-	cout << shape_dists_mean.transpose() << endl;
-	cout << shape_dists_sd.transpose() << endl;
+	auto shape_dists_standardized = shape_dists.array().colwise() / shape_dists_sd.array();
+	cout << "mean: " << shape_dists_mean.transpose() << endl;
+	cout << "sd " << shape_dists_sd.transpose() << endl;
 
 	// Write feature vectors to database as json
-	Database::WriteFVS(global_mean, global_sd, shape_dists_mean, shape_dists_sd, shape_fvs, standardized_global_fvs);
+	Database::WriteFVS(global_mean, global_sd, shape_dists_mean, shape_dists_sd, shape_fvs, global_fvs_standardized);
 
 	// Calculate distance matrix
+	/*
+	printf_debug("Calculating distance matrix\n");
 	vector<float> dists((n_models*(n_models - 1)) / 2);
 	for (int i = 0, d_i = 0; i < n_models; i++) 
 	{
-		printf("%i of %i\n", i, n_models);
+		printf_debug("%i of %i\n", i, n_models);
 		for (int j = i + 1; j < n_models; j++, d_i++)
 		{
-			float global_dist_2 = (standardized_global_fvs.row(i) - standardized_global_fvs.row(j)).array().square().sum();
-			float shape_dist_2 = standardized_shape_dists.col(d_i).array().square().sum();
+			float global_dist_2 = (global_fvs_standardized.row(i) - global_fvs_standardized.row(j)).array().square().sum();
+			float shape_dist_2 = shape_dists_standardized.col(d_i).array().square().sum();
 			dists[d_i] = sqrtf(global_dist_2 + shape_dist_2);
 		}
 	}
 	
 	// Write distance matrix to database as json
 	Database::WriteDistMatrix(dists);
+	*/
+
+	// ANN Index
+	printf_debug("Compiling Annoy index\n");
+	const size_t fvs_count = global_fvs.rows(),
+				 global_fvs_size = global_fvs.cols(),
+				 shape_fvs_size = shape_fvs.size(),
+				 shape_fvs_bins = shape_fvs[0].cols(),
+				 fvs_size = global_fvs_size + shape_fvs_size * shape_fvs_bins;
+	printf_debug("Vector count: %zu\nVector size: %zu+%zu*%zu=%zu\n", fvs_count, global_fvs_size, shape_fvs_size, shape_fvs_bins, fvs_size);
+
+	// Create and populate the Annoy instance
+	AnnoyIndex index(fvs_size);
+	Eigen::RowVectorXf fv(fvs_size);
+	for (size_t i = 0; i < fvs_count; i++)
+	{
+		// Compile the feature vector
+		fv.setZero();
+		for (int jd = 0, ji = 0; jd < shape_fvs_size; jd++, ji += shape_fvs_bins)
+			fv.segment(ji, shape_fvs_bins) << shape_fvs[jd].row(i);
+		fv.tail(global_fvs_size) << global_fvs.row(i);
+
+		// Add it to the index
+		index.add_item(i, (float*)(&fv));
+	}
+
+	// Build and save the tree
+	printf_debug("Building ANN tree\n");
+	index.build(2 * fvs_size);
+	printf_debug("Saving tree\n");
+	Database::WriteAnnoyIndex(index);
 }
 
 vector<tuple<int,float>> query_database_model(const string in, const size_t k)
@@ -235,44 +264,14 @@ vector<tuple<int,float>> query_database_model(const string in, const size_t k)
 vector<tuple<int, float>> query_database_model_ann(const size_t in, const size_t k)
 {
 	printf_debug("Querying for %zu closest models using ANN\n", k);
-	// Get the feature vectors
-	// TODO move to compute_feature_vectors
-	const auto global_fvs = Database::GetGlobalFVS();
-	const auto shape_fvs  = Database::GetShapeFVS();
-	const size_t fvs_count = global_fvs.rows(),
-				 global_fvs_size = global_fvs.cols(),
-				 shape_fvs_size = shape_fvs.size(),
-				 shape_fvs_bins = shape_fvs[0].cols(),
-				 fvs_size = global_fvs_size + shape_fvs_size * shape_fvs_bins;
-	printf_debug("Vector count: %zu\nVector size: %zu+%zu*%zu=%zu\n", fvs_count, global_fvs_size, shape_fvs_size, shape_fvs_bins, fvs_size);
-
-	// Create and populate the Annoy instance
-	AnnoyIndex index(fvs_size);
-	Eigen::RowVectorXf fv(fvs_size);
-	printf_debug("Compiling Annoy index\n");
-	for (size_t i = 0; i < fvs_count; i++)
-	{
-		// Compile the feature vector
-		fv.setZero();
-		for (int jd = 0, ji = 0; jd < shape_fvs_size; jd++, ji += shape_fvs_bins)
-			fv.segment(ji, shape_fvs_bins) << shape_fvs[jd].row(i);
-		fv.tail(global_fvs_size) << global_fvs.row(i);
-
-		// Add it to the index
-		index.add_item(i, (float*)(&fv));
-	}
-
-	// Build and save the tree
-	printf_debug("Building ANN tree\n");
-	index.build(2 * fvs_size);
-	printf_debug("Saving tree\n");
-	Database::WriteAnnoyIndex(index);
+	AnnoyIndex index = Database::GetAnnoyIndex();
 
 	// Get the k closest neighbours
 	std::vector<size_t> closest;
 	std::vector<float> dist;
-	index.get_nns_by_item(in, k, fvs_count, &closest, &dist);
+	index.get_nns_by_item(in, k, index.get_f(), &closest, &dist);
 
+	// TODO pack results
 	vector<tuple<int, float>> ret;
 	return ret;
 }
