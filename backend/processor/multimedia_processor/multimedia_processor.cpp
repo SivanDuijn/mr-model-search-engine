@@ -211,11 +211,17 @@ void compute_feature_vectors()
 		// Compile the feature vector
 		fv.setZero();
 		for (int jd = 0, ji = 0; jd < shape_fvs_size; jd++, ji += shape_fvs_bins)
+		{
+			cout << fv << '\n' << endl;
 			fv.segment(ji, shape_fvs_bins) << shape_fvs[jd].row(i);
+		}
+		cout << fv << '\n' << endl;
 		fv.tail(global_fvs_size) << global_fvs.row(i);
 
 		// Add it to the index
 		index.add_item(i, (float*)(&fv));
+		index.get_item(i, (float*)(&fv));
+		cout << "Final:\n" << fv << '\n' << endl;
 	}
 
 	// Build and save the tree
@@ -269,10 +275,17 @@ vector<tuple<int, float>> query_database_model_ann(const size_t in, const size_t
 	// Get the k closest neighbours
 	std::vector<size_t> closest;
 	std::vector<float> dist;
-	index.get_nns_by_item(in, k, index.get_f(), &closest, &dist);
-
-	// TODO pack results
+	printf_debug("count: %zu, size: %zu\n", index.get_n_items(), index.get_f());
+	index.get_nns_by_item(in, k, index.get_n_items(), &closest, &dist);
+	
+	// Pack the information
 	vector<tuple<int, float>> ret;
+	for(int i = 0; i < k; i++)
+	{
+		ret.push_back(tuple<int, float>(closest[i], dist[i]));
+		printf_debug("%zu: %f, ", closest[i], dist[i]);
+	}
+	printf_debug("\n");
 	return ret;
 }
 

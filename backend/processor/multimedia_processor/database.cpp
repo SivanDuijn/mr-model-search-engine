@@ -7,7 +7,7 @@ nlohmann::json Database::classes_ = nlohmann::json();
 Eigen::MatrixXf Database::global_fvs_ = Eigen::MatrixXf();
 vector<Eigen::MatrixXf> Database::shape_fvs_ = vector<Eigen::MatrixXf>();
 vector<float> Database::dist_matrix_ = vector<float>();
-AnnoyIndex annoy_index_(0);
+AnnoyIndex* annoy_index_ = new AnnoyIndex(0);
 
 void Database::SetDatabaseDir(const std::string database) 
 {   
@@ -86,10 +86,20 @@ vector<Eigen::MatrixXf>& Database::GetShapeFVS()
 
 AnnoyIndex Database::GetAnnoyIndex()
 {
-    if (annoy_index_.get_f() == 0)
-        annoy_index_.load((GetDatabaseDir() + "/index.ann").c_str());
+    if (annoy_index_->get_n_items() == 0)
+    {
+        auto global_fvs = GetGlobalFVS();
+        auto shape_fvs = GetShapeFVS();
+		auto global_fvs_size = global_fvs.cols();
+		auto shape_fvs_size = shape_fvs.size();
+		auto shape_fvs_bins = shape_fvs[0].cols();
+		auto fvs_size = global_fvs_size + shape_fvs_size * shape_fvs_bins;
+        annoy_index_->~AnnoyIndex();
+        annoy_index_ = new AnnoyIndex(fvs_size);
+        annoy_index_->load((GetDatabaseDir() + "/index.ann").c_str());
+    }
 
-    return annoy_index_;
+    return *annoy_index_;
 }
 
 // Load both the global and shape feature vectors at once, so we only have to read the json once!
