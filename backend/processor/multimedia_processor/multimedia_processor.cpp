@@ -205,23 +205,28 @@ void compute_feature_vectors()
 
 	// Create and populate the Annoy instance
 	AnnoyIndex index(fvs_size);
-	Eigen::RowVectorXf fv(fvs_size);
+	float* fv = (float*) malloc(fvs_size*sizeof(float));
 	for (size_t i = 0; i < fvs_count; i++)
 	{
 		// Compile the feature vector
-		fv.setZero();
-		for (int jd = 0, ji = 0; jd < shape_fvs_size; jd++, ji += shape_fvs_bins)
-		{
-			cout << fv << '\n' << endl;
-			fv.segment(ji, shape_fvs_bins) << shape_fvs[jd].row(i);
-		}
-		cout << fv << '\n' << endl;
-		fv.tail(global_fvs_size) << global_fvs.row(i);
+		memcpy(fv, global_fvs.row(i).data(), global_fvs_size*sizeof(float));
+		for (int desc = 0, indx = global_fvs_size; desc < shape_fvs_size; desc++, indx += shape_fvs_bins)
+			memcpy(fv + indx, shape_fvs[desc].row(i).data(), shape_fvs_bins*sizeof(float));
 
 		// Add it to the index
-		index.add_item(i, (float*)(&fv));
-		index.get_item(i, (float*)(&fv));
-		cout << "Final:\n" << fv << '\n' << endl;
+		index.add_item(i, fv);
+
+		// DEBUG
+		/*
+		float* vec = (float*) malloc(fvs_size*sizeof(float));
+		index.get_item(i, vec);
+		cout << "FV:\n";
+		for (int k = 0; k < fvs_size; k++) cout << fv[k] << ' ';
+		cout << '\n' << endl;
+		cout << "Final:\n";
+		for (int k = 0; k < fvs_size; k++) cout << vec[k] << ' ';
+		cout << '\n' << endl;
+		*/
 	}
 
 	// Build and save the tree
