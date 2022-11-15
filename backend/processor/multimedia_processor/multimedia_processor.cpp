@@ -49,9 +49,6 @@ int main(int argc, char *argv[])
 	else if (!strcmp(argv[1], "extract"))
 		extract();
 
-	else if (!strcmp(argv[1], "compute-all-closest"))
-		compute_closest_models();
-
 	else if (!strcmp(argv[1], "evaluate"))
 		evaluate();
 
@@ -64,6 +61,9 @@ int main(int argc, char *argv[])
 		else 
 			cout << "{\"error\": \"Wrong arguments!\"}";
 
+	else if (!strcmp(argv[1], "compute-all-closest"))
+		compute_closest_models();
+		
 	else printf("Unknown argument");
 
 	return 0;
@@ -201,11 +201,7 @@ void compute_closest_models()
 	nlohmann::json json_closest;
 	for (string file : filenames)
 	{
-		size_t pos = file.find('.');
-		string name = file.substr(0, pos);
-		string ext = file.substr(pos + 1);
-
-		auto closest = query_database_model(name + "_processed." + ext, 11);
+		auto closest = query_database_model(utils::to_processed(file), 11);
 	
 		closest.erase(closest.begin());
 		vector<tuple<string,float>> cv;
@@ -254,38 +250,31 @@ void query_top_k_models(const string file, const int k)
 	q_shape_fv.push_back(sd.D3.bins);
 	q_shape_fv.push_back(sd.D4.bins);
 
-	// Get global mean and global SD
-	ifstream ifs = ifstream(Database::GetDatabaseDir() + "/feature_vectors.json");
-	if (ifs.fail()) {
-		cout << "{\"error\":\"Something went wrong when loading the feature vectors!\"}" << endl;
-		return;
-	}
-	nlohmann::json json_feature_vectors = nlohmann::json::parse(ifs);
-	Eigen::VectorXf global_mean = utils::json_array_to_vector(json_feature_vectors["global_mean"]);
-	Eigen::VectorXf global_sd = utils::json_array_to_vector(json_feature_vectors["global_sd"]);
+
+	Eigen::MatrixXf global_fvs = Database::GetGlobalFVS();
+	vector<Eigen::MatrixXf> shape_fvs = Database::GetShapeFVS();
+
+	Eigen::VectorXf global_mean = Database::GetGlobalMean();
+	Eigen::VectorXf global_sd = Database::GetGlobalSD();
 	q_global_fv = (q_global_fv - global_mean).array() / global_sd.array();
 
-	Eigen::VectorXf dists_sd = utils::json_array_to_vector(json_feature_vectors["shape_dists_sd"]);
+	Eigen::VectorXf shape_dists_sd = Database::GetShapeDistsSD();
 
 	// Go through all models and calculate all distances
-	auto processed_filenames = Database::GetFilenames(true);
 	vector<float> dists;
-	for (string file : processed_filenames)
+	for (size_t i = 0, n_models = global_fvs.rows(); i < n_models; i++)
 	{
-		Eigen::VectorXf m_global_fv = utils::json_array_to_vector(json_feature_vectors["models"][file]["global"]);
-
 		// Go through all shape descriptors
-		size_t i = 0;
 		float shape_dist_2 = 0;
-		for (auto it = json_feature_vectors["models"][file]["shape"].begin(); it != json_feature_vectors["models"][file]["shape"].end(); ++it, i++)
+		for (size_t d_i = 0, n_descriptors = shape_fvs.size(); d_i < n_descriptors; d_i++)
 		{
-			Eigen::VectorXf m_shape_fv = utils::json_array_to_vector(it.value());
+			Eigen::VectorXf m_shape_fv = shape_fvs[d_i].row(i);
 			float emd = utils::EarthMoversDistance(q_shape_fv[i], m_shape_fv);
-			emd /= dists_sd(i);
+			emd /= shape_dists_sd(i);
 			shape_dist_2 += emd*emd;
 		}
 
-		float global_dist_2 = (q_global_fv - m_global_fv).array().square().sum();
+		float global_dist_2 = (q_global_fv - global_fvs.row(i).transpose()).array().square().sum();
 		dists.push_back(sqrtf(global_dist_2 + shape_dist_2));
 	}
 

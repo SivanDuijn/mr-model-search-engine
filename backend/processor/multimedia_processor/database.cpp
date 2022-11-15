@@ -119,53 +119,61 @@ void Database::LoadFVS()
 {
     vector<string> filenames = GetFilenames(true);
     int n_models = filenames.size();
-    ifstream ifs(GetDatabaseDir() + "/feature_descriptors.json");
-    nlohmann::json json_ds = nlohmann::json::parse(ifs);
-
-    // global_mean = utils::json_array_to_vector(json_feature_vectors["global_mean"]);
-	// Eigen::VectorXf global_sd = utils::json_array_to_vector(json_feature_vectors["global_sd"]);
-
-    // Load the global feature vectors
-    global_fvs_ = Eigen::MatrixXf(n_models, 8);
-
-    for (int i = 0; i < n_models; i++)
+    ifstream ifs(GetDatabaseDir() + "/feature_vectors.json");
+    if (ifs.fail())
     {
-        auto ds = json_ds[filenames[i]];
-        global_fvs_.row(i) = Eigen::Matrix<float, 8, 1>(
-            ds["area"].get<float>(),
-            ds["AABBVolume"].get<float>(),
-            ds["volume"].get<float>(),
-            ds["compactness"].get<float>(),
-            ds["eccentricity"].get<float>(),
-            ds["diameter"].get<float>(),
-            ds["sphericity"].get<float>(),
-            ds["rectangularity"].get<float>()
-        );
+        cout << "{\"error\": \"feature_vectors.json not found!\"}" << endl; 
+        return;
     }
+    nlohmann::json json_fvs = nlohmann::json::parse(ifs);
 
-    // Load shape feature fectors
-    vector<string> shape_descriptor_names{ "A3", "D1", "D2", "D3", "D4" };
-    // Use the first model in the json to determine the binsize for each shape descriptor
-    vector<size_t> shape_descriptor_bincount;
-    auto firstModel = json_ds.begin().value();
-    for (string sd : shape_descriptor_names)
-        shape_descriptor_bincount.push_back(firstModel[sd].size());
+    // Load in means and SDs
+    global_mean_ = utils::json_array_to_vector(json_fvs["global_mean"]);
+	global_sd_ = utils::json_array_to_vector(json_fvs["global_sd"]);
+	shape_dists_mean_ = utils::json_array_to_vector(json_fvs["shape_dists_mean"]);
+	shape_dists_sd_ = utils::json_array_to_vector(json_fvs["shape_dists_sd"]);
+
+    // Rows represent the models
+    global_fvs_ = Eigen::MatrixXf(n_models, 8);
+    size_t n_shape_descriptors = 5;
     // Create a matrix for each shape descriptor where the rows represent the models
     shape_fvs_ = vector<Eigen::MatrixXf>();
-    for (size_t i = 0; i < shape_descriptor_names.size(); i++)
-        shape_fvs_.push_back(Eigen::MatrixXf(n_models, shape_descriptor_bincount[i]));
+    // Use the first model in the json to determine the binsize for each shape descriptor
+    for (size_t d_i = 0; d_i < n_shape_descriptors; d_i++)
+        shape_fvs_.push_back(Eigen::MatrixXf(n_models, json_fvs["models"].begin().value()["shape"][d_i].size()));
 
     for (int i = 0; i < n_models; i++)
     {
-        auto descriptors = json_ds[filenames[i]];
-        for (size_t sd_i = 0; sd_i < shape_descriptor_names.size(); sd_i++) 
-        {
-            auto descriptor = descriptors[shape_descriptor_names[sd_i]];
-            size_t sdj = 0;
-            for (auto it2 = descriptor.begin(); it2 != descriptor.end(); ++it2, sdj++)
-                shape_fvs_[sd_i](i,sdj) = it2.value().get<float>();
-        }
+        auto file_fvs = json_fvs["models"][filenames[i]];
+        global_fvs_.row(i) = utils::json_array_to_vector(file_fvs["global"]);
+
+        for (size_t d_i = 0; d_i < n_shape_descriptors; d_i++) 
+            shape_fvs_[d_i].row(i) = utils::json_array_to_vector(file_fvs["shape"][d_i]);
     }
+
+    // // Load shape feature fectors
+    // vector<string> shape_descriptor_names{ "A3", "D1", "D2", "D3", "D4" };
+    // // Use the first model in the json to determine the binsize for each shape descriptor
+    // vector<size_t> shape_descriptor_bincount;
+    // auto firstModel = json_ds.begin().value();
+    // for (string sd : shape_descriptor_names)
+    //     shape_descriptor_bincount.push_back(firstModel[sd].size());
+    // // Create a matrix for each shape descriptor where the rows represent the models
+    // shape_fvs_ = vector<Eigen::MatrixXf>();
+    // for (size_t i = 0; i < shape_descriptor_names.size(); i++)
+    //     shape_fvs_.push_back(Eigen::MatrixXf(n_models, shape_descriptor_bincount[i]));
+
+    // for (int i = 0; i < n_models; i++)
+    // {
+    //     auto descriptors = json_ds[filenames[i]];
+    //     for (size_t sd_i = 0; sd_i < shape_descriptor_names.size(); sd_i++) 
+    //     {
+    //         auto descriptor = descriptors[shape_descriptor_names[sd_i]];
+    //         size_t sdj = 0;
+    //         for (auto it2 = descriptor.begin(); it2 != descriptor.end(); ++it2, sdj++)
+    //             shape_fvs_[sd_i](i,sdj) = it2.value().get<float>();
+    //     }
+    // }
 }
 
 vector<float>& Database::GetDistMatrix()
