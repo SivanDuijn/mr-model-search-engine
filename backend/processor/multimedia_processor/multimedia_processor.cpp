@@ -176,7 +176,6 @@ void compute_feature_vectors()
 	Database::WriteFVS(global_mean, global_sd, shape_dists_mean, shape_dists_sd, shape_fvs, global_fvs_standardized);
 
 	// Calculate distance matrix
-	/*
 	printf_debug("Calculating distance matrix\n");
 	vector<float> dists((n_models*(n_models - 1)) / 2);
 	for (int i = 0, d_i = 0; i < n_models; i++) 
@@ -192,7 +191,6 @@ void compute_feature_vectors()
 	
 	// Write distance matrix to database as json
 	Database::WriteDistMatrix(dists);
-	*/
 
 	// ANN Index
 	printf_debug("Compiling Annoy index\n");
