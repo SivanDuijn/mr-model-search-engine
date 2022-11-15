@@ -83,9 +83,7 @@ void debug()
 void preprocess_all()
 {
 	vector<string> filenames = Database::GetFilenames();
-	// Process every file in the database
 	for (string file : filenames)
-		 // Process all the unprocessed models
 		preprocess(file, utils::to_processed(file));
 }
 
@@ -95,6 +93,7 @@ void preprocess(const string in, const string out)
 	pmp::SurfaceMesh mesh = Database::ReadMeshFromDatabase(in);
 
 	// Preprocess the mesh
+	printf_debug("Preprocessing mesh for\"%s\" from %s", in.c_str(), Database::GetDatabaseDir().c_str());
 	Database::NormalizationStatistics beforeStats;
 	Database::NormalizationStatistics afterStats;
 	preprocessor::resample(mesh, beforeStats, afterStats);
@@ -105,8 +104,6 @@ void preprocess(const string in, const string out)
 
 	// Write the normalization stats to json
 	Database::WriteStats(in, out, beforeStats, afterStats);
-
-	printf("Preprocessed mesh \"%s\" from %s successfully, output: %s\n", in.c_str(), Database::GetDatabaseDir().c_str(), out.c_str());
 }
 
 void extract_all()
@@ -114,6 +111,7 @@ void extract_all()
 	vector<string> filenames = Database::GetFilenames(true);
 
 	// Extract features
+	printf_debug("Extracting descriptors for all meshes in %s\n", Database::GetDatabaseDir().c_str());
 	vector<descriptors::GlobalDescriptors> gds;
 	vector<descriptors::ShapeDescriptors> sds;
 	printf_debug("Getting global descriptors\n");
@@ -199,7 +197,7 @@ void compute_feature_vectors()
 				 shape_fvs_size = shape_fvs.size(),
 				 shape_fvs_bins = shape_fvs[0].cols(),
 				 fvs_size = global_fvs_size + shape_fvs_size * shape_fvs_bins;
-	printf_debug("Vector count: %zu\nVector size: %zu+%zu*%zu=%zu\n", fvs_count, global_fvs_size, shape_fvs_size, shape_fvs_bins, fvs_size);
+	//printf_debug("Vector count: %zu\nVector size: %zu+%zu*%zu=%zu\n", fvs_count, global_fvs_size, shape_fvs_size, shape_fvs_bins, fvs_size);
 
 	// Create and populate the Annoy instance
 	AnnoyIndex index(fvs_size);
@@ -210,21 +208,7 @@ void compute_feature_vectors()
 		memcpy(fv, global_fvs.row(i).data(), global_fvs_size*sizeof(float));
 		for (int desc = 0, indx = global_fvs_size; desc < shape_fvs_size; desc++, indx += shape_fvs_bins)
 			memcpy(fv + indx, shape_fvs[desc].row(i).data(), shape_fvs_bins*sizeof(float));
-
-		// Add it to the index
 		index.add_item(i, fv);
-
-		// DEBUG
-		/*
-		float* vec = (float*) malloc(fvs_size*sizeof(float));
-		index.get_item(i, vec);
-		cout << "FV:\n";
-		for (int k = 0; k < fvs_size; k++) cout << fv[k] << ' ';
-		cout << '\n' << endl;
-		cout << "Final:\n";
-		for (int k = 0; k < fvs_size; k++) cout << vec[k] << ' ';
-		cout << '\n' << endl;
-		*/
 	}
 
 	// Build and save the tree
