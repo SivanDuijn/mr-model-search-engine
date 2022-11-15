@@ -128,4 +128,31 @@ namespace descriptors
             descriptors.push_back(get_global_descriptors(mesh));
         }
     }
+
+    void standardize(const std::vector<GlobalDescriptors>& descriptors, Eigen::MatrixXf& standardized_fvs, Eigen::VectorXf& mean, Eigen::VectorXf& sd)
+    {
+        size_t n_models = descriptors.size();
+
+        Eigen::MatrixXf global_fvs = Eigen::MatrixXf(n_models, 8);
+
+        for (int i = 0; i < n_models; i++)
+        {
+            GlobalDescriptors gd = descriptors[i];
+            global_fvs.row(i) = Eigen::Matrix<float, 8, 1>(
+                gd.surfaceArea,
+                gd.AABBVolume,
+                gd.volume,
+                gd.compactness,
+                gd.eccentricity,
+                gd.diameter,
+                gd.sphericity,
+                gd.rectangularity
+            );
+        }
+
+        // Standardize global descriptors using the standard deviation
+        mean = global_fvs.colwise().mean();
+        sd = ((global_fvs.rowwise() - mean.transpose()).array().square().colwise().sum() / (n_models - 1)).sqrt();
+        standardized_fvs = (global_fvs.rowwise() - mean.transpose()).array().rowwise() / sd.transpose().array();
+    }
 }

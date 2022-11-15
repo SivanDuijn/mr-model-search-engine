@@ -203,4 +203,33 @@ namespace descriptors
             });
         }
     }
+
+    void standardize_dists(const vector<descriptors::ShapeDescriptors>& descriptors, Eigen::MatrixXf& standardized_dists, Eigen::VectorXf& dists_mean, Eigen::VectorXf& dists_sd)
+    {
+        size_t n_models = descriptors.size();
+        size_t n_descriptors = 5;
+
+        // Calculate mean and SD of shape descriptor distance
+        // shape descriptor distances, row for each shape descriptor
+        Eigen::MatrixXf dists(n_descriptors, (n_models*(n_models - 1)) / 2);
+        for (int i = 0, d_i = 0; i < n_models; i++) 
+            for (int j = i + 1; j < n_models; j++, d_i++)
+            {
+                // i j loop through all the models but i != j and j > i, so we don't have duplicate distances
+                // d_i is the distance index, just a counter for the distances
+
+                // Earth Movers Distance
+                dists(0, d_i) = utils::EarthMoversDistance(descriptors[i].A3.bins, descriptors[j].A3.bins);
+                dists(1, d_i) = utils::EarthMoversDistance(descriptors[i].D1.bins, descriptors[j].D1.bins);
+                dists(2, d_i) = utils::EarthMoversDistance(descriptors[i].D2.bins, descriptors[j].D2.bins);
+                dists(3, d_i) = utils::EarthMoversDistance(descriptors[i].D3.bins, descriptors[j].D3.bins);
+                dists(4, d_i) = utils::EarthMoversDistance(descriptors[i].D4.bins, descriptors[j].D4.bins);
+            }
+        
+        dists_mean = dists.rowwise().mean();
+        dists_sd = ((dists.colwise() - dists_mean).array().square().rowwise().sum() / (dists.cols() - 1)).sqrt();
+
+        // auto standardized_shape_dists = (shape_dists.colwise() - shape_dists_mean).array().colwise() / shape_dists_sd.array();
+        standardized_dists = dists.array().colwise() / dists_sd.array();
+    }
 }

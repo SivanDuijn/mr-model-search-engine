@@ -31,4 +31,6 @@ namespace descriptors
     ShapeDescriptors get_shape_descriptors(pmp::SurfaceMesh &mesh, int nBins = 10);
     // Gets the normalized histogram, where min max is used over the all the files
     void get_shape_descriptors(std::vector<std::string>& filenames, std::vector<ShapeDescriptors> &descriptors, int nBins = 10);
+
+    void standardize_dists(const std::vector<ShapeDescriptors> &descriptors, Eigen::MatrixXf& standardized_dists, Eigen::VectorXf& dists_mean, Eigen::VectorXf& dists_sd);
 }

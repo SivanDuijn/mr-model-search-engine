@@ -22,6 +22,8 @@ namespace descriptors
     float diameter(pmp::SurfaceMesh &mesh);
     float eccentricity(pmp::SurfaceMesh &mesh); // ratio of largest to smallest eigenvalues of covariance matrix
 
-    GlobalDescriptors get_global_descriptors(pmp::SurfaceMesh &mesh);
-    void get_global_descriptors(std::vector<std::string>& filenames, std::vector<GlobalDescriptors> &descriptors);
+    GlobalDescriptors get_global_descriptors(pmp::SurfaceMesh& mesh);
+    void get_global_descriptors(std::vector<std::string>& filenames, std::vector<GlobalDescriptors>& descriptors);
+    
+    void standardize(const std::vector<GlobalDescriptors>& descriptors, Eigen::MatrixXf& global_fvs, Eigen::VectorXf& mean, Eigen::VectorXf& sd);
 }

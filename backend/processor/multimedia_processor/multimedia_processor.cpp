@@ -49,9 +49,6 @@ int main(int argc, char *argv[])
 	else if (!strcmp(argv[1], "extract"))
 		extract();
 
-	else if (!strcmp(argv[1], "compute-fvs") || !strcmp(argv[1], "compute-feature-vectors"))
-		compute_feature_vectors();
-
 	else if (!strcmp(argv[1], "compute-all-closest"))
 		compute_closest_models();
 
@@ -118,7 +115,33 @@ void extract_all()
 	printf_debug("Getting shape descriptors\n");
 	descriptors::get_shape_descriptors(filenames, sds);
 
-	Database::WriteDescriptors(filenames, gds, sds);
+	// Standardize global descriptors
+	Eigen::MatrixXf standardized_global_fvs;
+	Eigen::VectorXf global_mean;
+	Eigen::VectorXf global_sd;
+	descriptors::standardize(gds, standardized_global_fvs, global_mean, global_sd);
+
+	// Standardize shape descriptor distances
+	Eigen::MatrixXf standardized_shape_dists;
+	Eigen::VectorXf shape_dists_mean;
+	Eigen::VectorXf shape_dists_sd;
+	descriptors::standardize_dists(sds, standardized_shape_dists, shape_dists_mean, shape_dists_sd);
+
+	// Write feature vectors to database as json
+	Database::WriteFVS(standardized_global_fvs, sds, global_mean, global_sd, shape_dists_mean, shape_dists_sd);
+
+	// Calculate distance matrix
+	size_t n_models = filenames.size();
+	vector<float> dists((n_models*(n_models - 1)) / 2);
+	for (int i = 0, d_i = 0; i < n_models; i++) 
+		for (int j = i + 1; j < n_models; j++, d_i++)
+		{
+			float global_dist_2 = (standardized_global_fvs.row(i) - standardized_global_fvs.row(j)).array().square().sum();
+			float shape_dist_2 = standardized_shape_dists.col(d_i).array().square().sum();
+			dists[d_i] = sqrtf(global_dist_2 + shape_dist_2);
+		}
+
+	Database::WriteDistMatrix(dists);
 }
 
 void extract(const string in)
@@ -133,64 +156,6 @@ void extract(const string in)
 	descriptors::get_shape_descriptors(mesh);
 
 	// TODO write?
-}
-
-void compute_feature_vectors()
-{
-	vector<string> filenames = Database::GetFilenames(true);
-	int n_models = filenames.size();
-
-	Eigen::MatrixXf global_fvs = Database::GetGlobalFVS();
-	vector<Eigen::MatrixXf> shape_fvs = Database::GetShapeFVS();
-
-	// Standardize global descriptors using the standard deviation
-	Eigen::Matrix<float, 1, 8> global_mean = global_fvs.colwise().mean();
-	Eigen::Matrix<float, 1, 8> global_sd = ((global_fvs.rowwise() - global_mean).array().square().colwise().sum() / (n_models - 1)).sqrt();
-	auto standardized_global_fvs = (global_fvs.rowwise() - global_mean).array().rowwise() / global_sd.array();
-
-	cout << global_mean << endl;
-	cout << global_sd << endl;
-
-	// Calculate mean and SD of shape descriptor distance
-	// shape descriptor distances, row for each shape descriptor
-	Eigen::MatrixXf shape_dists(shape_fvs.size(), (n_models*(n_models - 1)) / 2);
-	for (size_t sd_i = 0, n_fvs = shape_fvs.size(); sd_i < n_fvs; sd_i++) 
-		for (int i = 0, d_i = 0; i < n_models; i++) 
-			for (int j = i + 1; j < n_models; j++, d_i++)
-			{
-				// sd_i is the shape descriptor index, A3 D1 D2 ...
-				// i j loop through all the models but i != j and j > i, so we don't have duplicate distances
-				// d_i is the distance index, just a counter for the distances
-
-				// Earth Movers Distance
-				shape_dists(sd_i, d_i) = utils::EarthMoversDistance(shape_fvs[sd_i].row(i), shape_fvs[sd_i].row(j));
-			}
-	
-	auto shape_dists_mean = shape_dists.rowwise().mean();
-	auto shape_dists_sd = ((shape_dists.colwise() - shape_dists_mean).array().square().rowwise().sum() / (shape_dists.cols() - 1)).sqrt();
-	// auto standardized_shape_dists = (shape_dists.colwise() - shape_dists_mean).array().colwise() / shape_dists_sd.array();
-	auto standardized_shape_dists = shape_dists.array().colwise() / shape_dists_sd.array();
-	cout << shape_dists_mean.transpose() << endl;
-	cout << shape_dists_sd.transpose() << endl;
-
-	// Write feature vectors to database as json
-	Database::WriteFVS(global_mean, global_sd, shape_dists_mean, shape_dists_sd, shape_fvs, standardized_global_fvs);
-
-	// Calculate distance matrix
-	vector<float> dists((n_models*(n_models - 1)) / 2);
-	for (int i = 0, d_i = 0; i < n_models; i++) 
-	{
-		printf("%i of %i\n", i, n_models);
-		for (int j = i + 1; j < n_models; j++, d_i++)
-		{
-			float global_dist_2 = (standardized_global_fvs.row(i) - standardized_global_fvs.row(j)).array().square().sum();
-			float shape_dist_2 = standardized_shape_dists.col(d_i).array().square().sum();
-			dists[d_i] = sqrtf(global_dist_2 + shape_dist_2);
-		}
-	}
-	
-	// Write distance matrix to database as json
-	Database::WriteDistMatrix(dists);
 }
 
 vector<tuple<int,float>> query_database_model(const string in, size_t k)

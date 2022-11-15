@@ -11,7 +11,6 @@ void preprocess(const string in = "69.off", const string out = "69_processed.off
 void preprocess_all();
 void extract(const string in = "69_processed.off");
 void extract_all();
-void compute_feature_vectors();
 vector<tuple<int,float>>  query_database_model(const string in = "125_processed.off", const size_t k = 10);
 void compute_closest_models();
 void query_top_k_models(const string file, int k);

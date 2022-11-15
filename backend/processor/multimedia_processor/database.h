@@ -10,6 +10,8 @@ protected:
     static std::vector<std::string> filenames_;
     static std::vector<std::string> p_filenames_;
     static nlohmann::json classes_;
+    static Eigen::VectorXf global_mean_, global_sd_;
+    static Eigen::VectorXf shape_dists_mean_, shape_dists_sd_;
     static Eigen::MatrixXf global_fvs_;
     static std::vector<Eigen::MatrixXf> shape_fvs_;
     static std::vector<float> dist_matrix_;
@@ -40,6 +42,10 @@ public:
     static std::string GetDatabaseDir();
     static std::vector<std::string>& GetFilenames(bool processed = false);
     static std::string GetClass(const std::string);
+    static Eigen::VectorXf& GetGlobalMean();
+    static Eigen::VectorXf& GetGlobalSD();
+    static Eigen::VectorXf& GetShapeDistsMean();
+    static Eigen::VectorXf& GetShapeDistsSD();
     // The global descriptors in a matrix where each row is model
     static Eigen::MatrixXf& GetGlobalFVS();
     // The shape descriptors, for each descriptor a matrix where each row represents a model 
@@ -54,18 +60,17 @@ public:
     static void WriteMesh(pmp::SurfaceMesh &mesh, const std::string file);
 
     static void WriteFVS(
+            Eigen::MatrixXf global_fvs,
+            std::vector<descriptors::ShapeDescriptors> sds,
             Eigen::VectorXf global_mean,
             Eigen::VectorXf global_sd,
             Eigen::VectorXf shape_dists_mean,
-            Eigen::VectorXf shape_dists_sd,
-            std::vector<Eigen::MatrixXf> shape_fvs,
-            Eigen::MatrixXf global_fvs
+            Eigen::VectorXf shape_dists_sd
         );
     static void WriteDistMatrix(std::vector<float>& dist_matrix);
 
     // Write normalization stats to a database
     static void WriteStats(std::string in, std::string out, const NormalizationStatistics &beforeStats, const NormalizationStatistics &afterStats);
-    static void WriteDescriptors(std::vector<std::string> filenames, std::vector<descriptors::GlobalDescriptors> gds, std::vector<descriptors::ShapeDescriptors> sds);
     static void WriteConfusionMatrix(const std::map<std::string, std::map<std::string, int>> confusion);
 
     static nlohmann::json StatsToJSON(const NormalizationStatistics &stats);

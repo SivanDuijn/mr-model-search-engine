@@ -4,6 +4,10 @@ string Database::database_ = "";
 vector<string> Database::filenames_ = vector<string>();
 vector<string> Database::p_filenames_ = vector<string>();
 nlohmann::json Database::classes_ = nlohmann::json(); 
+Eigen::VectorXf Database::global_mean_ = Eigen::VectorXf();
+Eigen::VectorXf Database::global_sd_ = Eigen::VectorXf();
+Eigen::VectorXf Database::shape_dists_mean_ = Eigen::VectorXf();
+Eigen::VectorXf Database::shape_dists_sd_ = Eigen::VectorXf();
 Eigen::MatrixXf Database::global_fvs_ = Eigen::MatrixXf();
 vector<Eigen::MatrixXf> Database::shape_fvs_ = vector<Eigen::MatrixXf>();
 vector<float> Database::dist_matrix_ = vector<float>();
@@ -16,6 +20,10 @@ void Database::SetDatabaseDir(const std::string database)
         filenames_ = vector<string>();
         p_filenames_ = vector<string>();
         classes_ = nlohmann::json();
+        global_mean_ = Eigen::VectorXf();
+        global_sd_ = Eigen::VectorXf();
+        shape_dists_mean_ = Eigen::VectorXf();
+        shape_dists_sd_ = Eigen::VectorXf();
         global_fvs_ = Eigen::MatrixXf();
         shape_fvs_ = vector<Eigen::MatrixXf>();
         dist_matrix_ = vector<float>();
@@ -65,12 +73,36 @@ string Database::GetClass(const std::string file)
     return classes_[file];
 }
 
+Eigen::VectorXf& Database::GetGlobalMean()
+{
+    if (global_mean_.size() == 0)
+        LoadFVS();
+    return global_mean_;
+}
+Eigen::VectorXf& Database::GetGlobalSD()
+{
+    if (global_sd_.size() == 0)
+        LoadFVS();
+    return global_sd_;
+}
+Eigen::VectorXf& Database::GetShapeDistsMean()
+{
+    if (shape_dists_mean_.size() == 0)
+        LoadFVS();
+    return shape_dists_mean_;
+}
+Eigen::VectorXf& Database::GetShapeDistsSD()
+{
+    if (shape_dists_sd_.size() == 0)
+        LoadFVS();
+    return shape_dists_sd_;
+}
+
 // The global descriptors in a matrix where each row is model
 Eigen::MatrixXf& Database::GetGlobalFVS()
 {
     if (global_fvs_.rows() == 0)
         LoadFVS();
-
     return global_fvs_;
 }
 
@@ -79,7 +111,6 @@ vector<Eigen::MatrixXf>& Database::GetShapeFVS()
 {
     if (shape_fvs_.size() == 0)
         LoadFVS();
-
     return shape_fvs_;
 }
 
@@ -90,6 +121,9 @@ void Database::LoadFVS()
     int n_models = filenames.size();
     ifstream ifs(GetDatabaseDir() + "/feature_descriptors.json");
     nlohmann::json json_ds = nlohmann::json::parse(ifs);
+
+    // global_mean = utils::json_array_to_vector(json_feature_vectors["global_mean"]);
+	// Eigen::VectorXf global_sd = utils::json_array_to_vector(json_feature_vectors["global_sd"]);
 
     // Load the global feature vectors
     global_fvs_ = Eigen::MatrixXf(n_models, 8);
@@ -183,12 +217,12 @@ void Database::WriteMesh(pmp::SurfaceMesh &mesh, const string file)
 }
 
 void Database::WriteFVS(
+        Eigen::MatrixXf global_fvs,
+        std::vector<descriptors::ShapeDescriptors> shape_fvs,
         Eigen::VectorXf global_mean,
         Eigen::VectorXf global_sd,
         Eigen::VectorXf shape_dists_mean,
-        Eigen::VectorXf shape_dists_sd,
-        std::vector<Eigen::MatrixXf> shape_fvs,
-        Eigen::MatrixXf global_fvs
+        Eigen::VectorXf shape_dists_sd
     )
 {
     vector<string> filenames = GetFilenames(true);
@@ -200,12 +234,16 @@ void Database::WriteFVS(
 	nlohmann::json json_models;
 	for (int i = 0; i < n_models; i++)
 	{
-		vector<Eigen::ArrayXf> s;
-		for (auto a : shape_fvs)
-			s.push_back(a.row(i).array());
 		json_models[filenames[i]] = {
 			{"global", global_fvs.row(i).array()},
-			{"shape", s}
+			{"shape", {
+             		shape_fvs[i].A3.bins.array(),
+                    shape_fvs[i].D1.bins.array(),
+                    shape_fvs[i].D2.bins.array(),
+                    shape_fvs[i].D3.bins.array(),
+                    shape_fvs[i].D4.bins.array()
+                }
+            }
 		};
 	}
 	json_fvs["global_mean"] = global_mean.array();
@@ -238,20 +276,6 @@ void Database::WriteStats(string in, string out, const NormalizationStatistics &
     normStats[out] = StatsToJSON(afterStats);
     ofstream ofs(database + "/normalization_stats.json");
     ofs << setw(4) << normStats << endl;
-}
-
-void Database::WriteDescriptors(vector<string> filenames, vector<descriptors::GlobalDescriptors> gds, vector<descriptors::ShapeDescriptors> sds)
-{
-    string database = GetDatabaseDir();
-    ifstream ifs(database + "/feature_descriptors.json");
-    nlohmann::json jsonDescriptors;
-    if (!ifs.fail())
-        jsonDescriptors = nlohmann::json::parse(ifs);
-    for (size_t i = 0, nFiles = filenames.size(); i < nFiles; i++)
-        jsonDescriptors[filenames[i]] = DescriptorsToJSON(gds[i], sds[i]);
-    ofstream ofs(database + "/feature_descriptors.json");
-    ofs << setw(4) << jsonDescriptors << endl; // TODO: removing setw(4) might improve filesize
-    ofs.close();
 }
 
 void Database::WriteConfusionMatrix(const map<string, map<string, int>> confusion)
