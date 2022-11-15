@@ -49,11 +49,17 @@ int main(int argc, char *argv[])
 	else if (!strcmp(argv[1], "extract"))
 		extract();
 
+	else if (!strcmp(argv[1], "compute-ANN"))
+		compute_ann();
+
 	else if (!strcmp(argv[1], "evaluate"))
 		evaluate();
 
 	else if (!strcmp(argv[1], "query-database-model"))
 		query_database_model();
+
+	else if (!strcmp(argv[1], "query-database-model-ann"))
+		query_database_model_ann();
 
 	else if (!strcmp(argv[1], "query-model"))
 		if (in != "")
@@ -77,9 +83,7 @@ void debug()
 void preprocess_all()
 {
 	vector<string> filenames = Database::GetFilenames();
-	// Process every file in the database
 	for (string file : filenames)
-		 // Process all the unprocessed models
 		preprocess(file, utils::to_processed(file));
 }
 
@@ -89,6 +93,7 @@ void preprocess(const string in, const string out)
 	pmp::SurfaceMesh mesh = Database::ReadMeshFromDatabase(in);
 
 	// Preprocess the mesh
+	printf_debug("Preprocessing mesh for\"%s\" from %s", in.c_str(), Database::GetDatabaseDir().c_str());
 	Database::NormalizationStatistics beforeStats;
 	Database::NormalizationStatistics afterStats;
 	preprocessor::resample(mesh, beforeStats, afterStats);
@@ -99,8 +104,6 @@ void preprocess(const string in, const string out)
 
 	// Write the normalization stats to json
 	Database::WriteStats(in, out, beforeStats, afterStats);
-
-	printf("Preprocessed mesh \"%s\" from %s successfully, output: %s\n", in.c_str(), Database::GetDatabaseDir().c_str(), out.c_str());
 }
 
 void extract_all()
@@ -108,6 +111,7 @@ void extract_all()
 	vector<string> filenames = Database::GetFilenames(true);
 
 	// Extract features
+	printf_debug("Extracting descriptors for all meshes in %s\n", Database::GetDatabaseDir().c_str());
 	vector<descriptors::GlobalDescriptors> gds;
 	vector<descriptors::ShapeDescriptors> sds;
 	printf_debug("Getting global descriptors\n");
@@ -131,6 +135,7 @@ void extract_all()
 	Database::WriteFVS(standardized_global_fvs, sds, global_mean, global_sd, shape_dists_mean, shape_dists_sd);
 
 	// Calculate distance matrix
+	// TODO: put in separate function, but requires recalculating shape distances
 	size_t n_models = filenames.size();
 	vector<float> dists((n_models*(n_models - 1)) / 2);
 	for (int i = 0, d_i = 0; i < n_models; i++) 
@@ -158,40 +163,87 @@ void extract(const string in)
 	// TODO write?
 }
 
-vector<tuple<int,float>> query_database_model(const string in, size_t k)
+void compute_ann()
 {
-	vector<string> filenames = Database::GetFilenames(true);
-	int n_models = filenames.size();
+	Eigen::MatrixXf global_fvs = Database::GetGlobalFVS();
+	vector<Eigen::MatrixXf> shape_fvs = Database::GetShapeFVS();
 
-	vector<float> dists = Database::GetDistMatrix();
+	// ANN Index
+	printf_debug("Compiling Annoy index\n");
+	const size_t fvs_count = global_fvs.rows(),
+				 global_fvs_size = global_fvs.cols(),
+				 shape_fvs_size = shape_fvs.size(),
+				 shape_fvs_bins = shape_fvs[0].cols(),
+				 fvs_size = global_fvs_size + shape_fvs_size * shape_fvs_bins;
+	//printf_debug("Vector count: %zu\nVector size: %zu+%zu*%zu=%zu\n", fvs_count, global_fvs_size, shape_fvs_size, shape_fvs_bins, fvs_size);
 
-	// Give top n models for model x
-	// get index of model
-	int m_i = 0;
-	for (; m_i < n_models; m_i++)
-		if (filenames[m_i] == in)
-			break;
-
-	vector<float> q_dists(n_models); 
-
-	int d_i = m_i - 1;
-	int i = 0;
-	for (int j = n_models - 2; i < m_i; d_i += j, j--, i++) {
-		q_dists[i] = dists[d_i]; 
+	// Create and populate the Annoy instance
+	AnnoyIndex index(fvs_size);
+	float* fv = (float*) malloc(fvs_size*sizeof(float));
+	for (size_t i = 0; i < fvs_count; i++)
+	{
+		// Compile the feature vector
+		memcpy(fv, global_fvs.row(i).data(), global_fvs_size*sizeof(float));
+		for (int desc = 0, indx = global_fvs_size; desc < shape_fvs_size; desc++, indx += shape_fvs_bins)
+			memcpy(fv + indx, shape_fvs[desc].row(i).data(), shape_fvs_bins*sizeof(float));
+		index.add_item(i, fv);
 	}
 
-	d_i++;
-	i++;	
+	// Build and save the tree
+	printf_debug("Building ANN tree\n");
+	index.build(2 * fvs_size);
+	printf_debug("Saving tree\n");
+	Database::WriteAnnoyIndex(index);
+}
+
+vector<tuple<int,float>> query_database_model(const string in, const size_t k)
+{
+	printf_debug("Querying for %zu closest models to %s\n", k, in.c_str());
+	const vector<float> dists = Database::GetDistMatrix();
+	const size_t m_i = Database::GetModelIndex(in);
+	const size_t n_models = Database::GetDatabaseSize();
+	vector<float> q_dists(n_models); 
+
+	// Get the k closest neighbours
+	int d_i = m_i - 1, i = 0;
+	for (int j = n_models - 2; i < m_i; d_i += j, j--, i++)
+		q_dists[i] = dists[d_i]; 
+	d_i++, i++;	
 	for (; i < n_models; i++, d_i++)
 		q_dists[i] = dists[d_i];
-
 	auto indices = n_smallest_indices(q_dists.begin(), q_dists.end(), k);
 
-	vector<tuple<int,float>> closest;
+	// Pack the information
+	vector<tuple<int, float>> ret;
 	for (auto index : indices)
-		closest.push_back(std::make_pair(index,q_dists[index]));
+	{
+		ret.push_back(std::make_pair(index, q_dists[index]));
+		printf_debug("%zu: %f, ", index, q_dists[index]);
+	}
+	printf_debug("\n");
+	return ret;
+}
 
-	return closest;
+vector<tuple<int, float>> query_database_model_ann(const string in, const size_t k)
+{
+	printf_debug("Querying for %zu closest models to %s using ANN\n", k, in.c_str());
+	const AnnoyIndex index = Database::GetAnnoyIndex();
+	const size_t m_i = Database::GetModelIndex(in);
+
+	// Get the k closest neighbours
+	std::vector<size_t> closest;
+	std::vector<float> dist;
+	index.get_nns_by_item(m_i, k, index.get_n_items(), &closest, &dist);
+	
+	// Pack the information
+	vector<tuple<int, float>> ret;
+	for(int i = 0; i < k; i++)
+	{
+		ret.push_back(std::make_pair(closest[i], dist[i]));
+		printf_debug("%zu: %f, ", closest[i], dist[i]);
+	}
+	printf_debug("\n");
+	return ret;
 }
 
 void compute_closest_models()

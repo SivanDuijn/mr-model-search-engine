@@ -11,6 +11,7 @@ Eigen::VectorXf Database::shape_dists_sd_ = Eigen::VectorXf();
 Eigen::MatrixXf Database::global_fvs_ = Eigen::MatrixXf();
 vector<Eigen::MatrixXf> Database::shape_fvs_ = vector<Eigen::MatrixXf>();
 vector<float> Database::dist_matrix_ = vector<float>();
+AnnoyIndex* annoy_index_ = new AnnoyIndex(0);
 
 void Database::SetDatabaseDir(const std::string database) 
 {   
@@ -34,8 +35,13 @@ void Database::SetDatabaseDir(const std::string database)
 string Database::GetDatabaseDir()
 {
     if (database_ == "")
-        cout << "WARNING: Database not set! Use Database::SetDatabaseDir({your_database_location})" << endl;
+        cerr << "WARNING: Database not set! Use Database::SetDatabaseDir({your_database_location})" << endl;
     return database_;
+}
+
+size_t Database::GetDatabaseSize()
+{
+    return Database::GetFilenames().size();
 }
 
 vector<string>& Database::GetFilenames(bool processed)
@@ -98,6 +104,16 @@ Eigen::VectorXf& Database::GetShapeDistsSD()
     return shape_dists_sd_;
 }
 
+size_t Database::GetModelIndex(const std::string file)
+{
+	vector<string> filenames = Database::GetFilenames(true);
+	for (size_t m_i = 0, n_models = filenames.size(); m_i < n_models; m_i++)
+		if (filenames[m_i] == file)
+			return m_i;
+    cerr << "Requested model not in database!" << endl;
+    return -1;
+}
+
 // The global descriptors in a matrix where each row is model
 Eigen::MatrixXf& Database::GetGlobalFVS()
 {
@@ -112,6 +128,24 @@ vector<Eigen::MatrixXf>& Database::GetShapeFVS()
     if (shape_fvs_.size() == 0)
         LoadFVS();
     return shape_fvs_;
+}
+
+AnnoyIndex Database::GetAnnoyIndex()
+{
+    if (annoy_index_->get_n_items() == 0)
+    {
+        auto global_fvs = GetGlobalFVS();
+        auto shape_fvs = GetShapeFVS();
+		auto global_fvs_size = global_fvs.cols();
+		auto shape_fvs_size = shape_fvs.size();
+		auto shape_fvs_bins = shape_fvs[0].cols();
+		auto fvs_size = global_fvs_size + shape_fvs_size * shape_fvs_bins;
+        annoy_index_->~AnnoyIndex();
+        annoy_index_ = new AnnoyIndex(fvs_size);
+        annoy_index_->load((GetDatabaseDir() + "/index.ann").c_str());
+    }
+
+    return *annoy_index_;
 }
 
 // Load both the global and shape feature vectors at once, so we only have to read the json once!
@@ -262,6 +296,11 @@ void Database::WriteFVS(
 	ofstream ofs(GetDatabaseDir() + "/feature_vectors.json");
 	ofs << setw(4) << json_fvs << endl;
 	ofs.close();
+}
+
+void Database::WriteAnnoyIndex(AnnoyIndex& index)
+{
+    index.save((GetDatabaseDir() + "/index.ann").c_str());
 }
 
 void Database::WriteDistMatrix(vector<float>& dist_matrix)
