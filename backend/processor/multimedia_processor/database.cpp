@@ -27,8 +27,13 @@ void Database::SetDatabaseDir(const std::string database)
 string Database::GetDatabaseDir()
 {
     if (database_ == "")
-        cout << "WARNING: Database not set! Use Database::SetDatabaseDir({your_database_location})" << endl;
+        cerr << "WARNING: Database not set! Use Database::SetDatabaseDir({your_database_location})" << endl;
     return database_;
+}
+
+size_t Database::GetDatabaseSize()
+{
+    return Database::GetFilenames().size();
 }
 
 vector<string>& Database::GetFilenames(bool processed)
@@ -64,6 +69,16 @@ string Database::GetClass(const std::string file)
     }
         
     return classes_[file];
+}
+
+size_t Database::GetModelIndex(const std::string file)
+{
+	vector<string> filenames = Database::GetFilenames(true);
+	for (size_t m_i = 0, n_models = filenames.size(); m_i < n_models; m_i++)
+		if (filenames[m_i] == file)
+			return m_i;
+    cerr << "Requested model not in database!" << endl;
+    return -1;
 }
 
 // The global descriptors in a matrix where each row is model

@@ -38,8 +38,10 @@ public:
 
     static void SetDatabaseDir(const std::string database);
     static std::string GetDatabaseDir();
+    static size_t GetDatabaseSize();
     static std::vector<std::string>& GetFilenames(bool processed = false);
     static std::string GetClass(const std::string);
+    static size_t GetModelIndex(const std::string file);
     // The global descriptors in a matrix where each row is model
     static Eigen::MatrixXf& GetGlobalFVS();
     static AnnoyIndex GetAnnoyIndex();

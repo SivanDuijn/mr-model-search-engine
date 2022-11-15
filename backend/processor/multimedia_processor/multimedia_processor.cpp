@@ -237,30 +237,18 @@ void compute_feature_vectors()
 vector<tuple<int,float>> query_database_model(const string in, const size_t k)
 {
 	printf_debug("Querying for %zu closest models to %s\n", k, in.c_str());
-	vector<string> filenames = Database::GetFilenames(true);
-	int n_models = filenames.size();
-
-	vector<float> dists = Database::GetDistMatrix();
-
-	// Give top n models for model x
-	// get index of model
-	int m_i = 0;
-	for (; m_i < n_models; m_i++)
-		if (filenames[m_i] == in)
-			break;
-
+	const vector<float> dists = Database::GetDistMatrix();
+	const size_t m_i = Database::GetModelIndex(in);
+	const size_t n_models = Database::GetDatabaseSize();
 	vector<float> q_dists(n_models); 
 
-	int d_i = m_i - 1;
-	int i = 0;
+	// Get the k closest neighbours
+	int d_i = m_i - 1, i = 0;
 	for (int j = n_models - 2; i < m_i; d_i += j, j--, i++)
 		q_dists[i] = dists[d_i]; 
-
-	d_i++;
-	i++;	
+	d_i++, i++;	
 	for (; i < n_models; i++, d_i++)
 		q_dists[i] = dists[d_i];
-
 	auto indices = n_smallest_indices(q_dists.begin(), q_dists.end(), k);
 
 	// Pack the information
@@ -274,15 +262,16 @@ vector<tuple<int,float>> query_database_model(const string in, const size_t k)
 	return ret;
 }
 
-vector<tuple<int, float>> query_database_model_ann(const size_t in, const size_t k)
+vector<tuple<int, float>> query_database_model_ann(const string in, const size_t k)
 {
-	printf_debug("Querying for %zu closest models to %zu using ANN\n", k, in);
-	AnnoyIndex index = Database::GetAnnoyIndex();
+	printf_debug("Querying for %zu closest models to %s using ANN\n", k, in.c_str());
+	const AnnoyIndex index = Database::GetAnnoyIndex();
+	const size_t m_i = Database::GetModelIndex(in);
 
 	// Get the k closest neighbours
 	std::vector<size_t> closest;
 	std::vector<float> dist;
-	index.get_nns_by_item(in, k, index.get_n_items(), &closest, &dist);
+	index.get_nns_by_item(m_i, k, index.get_n_items(), &closest, &dist);
 	
 	// Pack the information
 	vector<tuple<int, float>> ret;
