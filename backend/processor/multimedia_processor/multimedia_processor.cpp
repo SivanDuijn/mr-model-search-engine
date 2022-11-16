@@ -259,7 +259,7 @@ void compute_closest_models()
 	nlohmann::json json_closest;
 	for (string file : filenames)
 	{
-		auto closest = query_database_model_ann(utils::to_processed(file), 11);
+		auto closest = query_database_model(utils::to_processed(file), 11);
 	
 		closest.erase(closest.begin());
 		vector<tuple<string,float>> cv;

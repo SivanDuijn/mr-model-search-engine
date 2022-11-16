@@ -40,9 +40,6 @@ namespace distance
         return sqrtf(g + total_s);
     }
 
-
-    /// --- CHANGE THESE TO SWITCH TRY DIFFERENT DISTANCE FUNCTIONS ---
-
     float global_vf_distance(const Eigen::VectorXf& a, const Eigen::VectorXf b)
     {
         return euclidian_distance(a,b);
@@ -52,7 +49,6 @@ namespace distance
     {
         return earth_movers_distance(a, b);
     }
-    // --------------------
 
     float shape_vfs_distance(const vector<Eigen::VectorXf>& a, const vector<Eigen::VectorXf>& b, const Eigen::VectorXf& dists_sd)
     {
