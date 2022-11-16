@@ -64,6 +64,7 @@ std::vector<size_t> n_smallest_indices(Iterator it, Iterator end, size_t n) {
 }
 
 #include "utils.h"
+#include "distance.h"
 #include "descriptors_global.h"
 #include "descriptors_shape.h"
 #include "database.h"

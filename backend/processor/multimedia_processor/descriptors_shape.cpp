@@ -218,12 +218,12 @@ namespace descriptors
                 // i j loop through all the models but i != j and j > i, so we don't have duplicate distances
                 // d_i is the distance index, just a counter for the distances
 
-                // Earth Movers Distance
-                dists(0, d_i) = utils::EarthMoversDistance(descriptors[i].A3.bins, descriptors[j].A3.bins);
-                dists(1, d_i) = utils::EarthMoversDistance(descriptors[i].D1.bins, descriptors[j].D1.bins);
-                dists(2, d_i) = utils::EarthMoversDistance(descriptors[i].D2.bins, descriptors[j].D2.bins);
-                dists(3, d_i) = utils::EarthMoversDistance(descriptors[i].D3.bins, descriptors[j].D3.bins);
-                dists(4, d_i) = utils::EarthMoversDistance(descriptors[i].D4.bins, descriptors[j].D4.bins);
+                // calculate
+                dists(0, d_i) = distance::shape_vf_distance(descriptors[i].A3.bins, descriptors[j].A3.bins);
+                dists(1, d_i) = distance::shape_vf_distance(descriptors[i].D1.bins, descriptors[j].D1.bins);
+                dists(2, d_i) = distance::shape_vf_distance(descriptors[i].D2.bins, descriptors[j].D2.bins);
+                dists(3, d_i) = distance::shape_vf_distance(descriptors[i].D3.bins, descriptors[j].D3.bins);
+                dists(4, d_i) = distance::shape_vf_distance(descriptors[i].D4.bins, descriptors[j].D4.bins);
             }
         
         dists_mean = dists.rowwise().mean();

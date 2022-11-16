@@ -141,9 +141,10 @@ void extract_all()
 	for (int i = 0, d_i = 0; i < n_models; i++) 
 		for (int j = i + 1; j < n_models; j++, d_i++)
 		{
-			float global_dist_2 = (standardized_global_fvs.row(i) - standardized_global_fvs.row(j)).array().square().sum();
-			float shape_dist_2 = standardized_shape_dists.col(d_i).array().square().sum();
-			dists[d_i] = sqrtf(global_dist_2 + shape_dist_2);
+			float global_dist = distance::global_vf_distance(standardized_global_fvs.row(i), standardized_global_fvs.row(j));
+			// float shape_dist = standardized_shape_dists.col(d_i).array().sum();
+			float shape_dist = standardized_shape_dists.col(d_i).array().square().sum();
+			dists[d_i] = distance::combine_global_shape_distance(global_dist, shape_dist, standardized_shape_dists.rows());
 		}
 
 	Database::WriteDistMatrix(dists);
@@ -274,7 +275,7 @@ void query_top_k_models(const string file, const int k)
 
 	// Preprocess the mesh
 	Database::NormalizationStatistics beforeStats;
-	Database::NormalizationStatistics afterStats; 
+	Database::NormalizationStatistics afterStats;
 	preprocessor::resample(mesh, beforeStats, afterStats);
 	preprocessor::normalize(mesh, beforeStats, afterStats);
 
@@ -282,9 +283,6 @@ void query_top_k_models(const string file, const int k)
 	descriptors::GlobalDescriptors gd = descriptors::get_global_descriptors(mesh);
 	descriptors::ShapeDescriptors sd = descriptors::get_shape_descriptors(mesh, 10);
 
-	// Create a matrix for each shape descriptor where the rows represent the models
-	vector<Eigen::Vector<float, 10>> q_shape_fv;
-	// Create global descriptors matrix
 	Eigen::Vector<float, 8> q_global_fv(
 		gd.surfaceArea,
 		gd.AABBVolume,
@@ -296,6 +294,7 @@ void query_top_k_models(const string file, const int k)
 		gd.rectangularity
 	);
 
+	vector<Eigen::VectorXf> q_shape_fv;
 	q_shape_fv.push_back(sd.A3.bins);
 	q_shape_fv.push_back(sd.D1.bins);
 	q_shape_fv.push_back(sd.D2.bins);
@@ -316,18 +315,26 @@ void query_top_k_models(const string file, const int k)
 	vector<float> dists;
 	for (size_t i = 0, n_models = global_fvs.rows(); i < n_models; i++)
 	{
-		// Go through all shape descriptors
-		float shape_dist_2 = 0;
-		for (size_t d_i = 0, n_descriptors = shape_fvs.size(); d_i < n_descriptors; d_i++)
-		{
-			Eigen::VectorXf m_shape_fv = shape_fvs[d_i].row(i);
-			float emd = utils::EarthMoversDistance(q_shape_fv[i], m_shape_fv);
-			emd /= shape_dists_sd(i);
-			shape_dist_2 += emd*emd;
-		}
+		vector<Eigen::VectorXf> m_shape_fv(5);
+		for (auto shape_d : shape_fvs)
+			m_shape_fv.push_back(shape_d.row(i));
 
-		float global_dist_2 = (q_global_fv - global_fvs.row(i).transpose()).array().square().sum();
-		dists.push_back(sqrtf(global_dist_2 + shape_dist_2));
+		float dist = distance::distance(q_global_fv, global_fvs.row(i), q_shape_fv, m_shape_fv, shape_dists_sd);
+
+		dists.push_back(dist);
+
+		// // Go through all shape descriptors
+		// float shape_dist_2 = 0;
+		// for (size_t d_i = 0, n_descriptors = shape_fvs.size(); d_i < n_descriptors; d_i++)
+		// {
+		// 	Eigen::VectorXf m_shape_fv = shape_fvs[d_i].row(i);
+		// 	float emd = utils::EarthMoversDistance(q_shape_fv[i], m_shape_fv);
+		// 	emd /= shape_dists_sd(i);
+		// 	shape_dist_2 += emd*emd;
+		// }
+
+		// float global_dist_2 = (q_global_fv - global_fvs.row(i).transpose()).array().square().sum();
+		// dists.push_back(sqrtf(global_dist_2 + shape_dist_2));
 	}
 
 	auto indices = n_smallest_indices(dists.begin(), dists.end(), k);

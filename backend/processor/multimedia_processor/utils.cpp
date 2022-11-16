@@ -14,16 +14,6 @@ namespace utils
     	return seed;
     }
 
-    float EarthMoversDistance(Eigen::VectorXf a, Eigen::VectorXf b) 
-    {
-        auto diff = (a - b).array();
-        Eigen::ArrayXf cumulative_sum(a.size(), 1);
-
-        partial_sum(diff.begin(), diff.end(), cumulative_sum.begin(), plus<float>());
-        float emd = cumulative_sum.abs().sum();
-        return emd;
-    }
-
     Eigen::VectorXf json_array_to_vector(nlohmann::json json_array)
     {
         Eigen::VectorXf v(json_array.size());
