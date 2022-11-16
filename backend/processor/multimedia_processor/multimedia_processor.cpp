@@ -58,7 +58,8 @@ int main(int argc, char *argv[])
 	else if (!strcmp(argv[1], "query-database-model"))
 		if (in != "")
 			query_database_model(in);
-		query_database_model();
+		else
+			query_database_model();
 
 	else if (!strcmp(argv[1], "query-database-model-ann"))
 		query_database_model_ann();
@@ -324,19 +325,6 @@ void query_top_k_models(const string file, const int k)
 		float dist = distance::distance(q_global_fv, global_fvs.row(i), q_shape_fv, m_shape_fv, shape_dists_sd);
 
 		dists.push_back(dist);
-
-		// // Go through all shape descriptors
-		// float shape_dist_2 = 0;
-		// for (size_t d_i = 0, n_descriptors = shape_fvs.size(); d_i < n_descriptors; d_i++)
-		// {
-		// 	Eigen::VectorXf m_shape_fv = shape_fvs[d_i].row(i);
-		// 	float emd = utils::EarthMoversDistance(q_shape_fv[i], m_shape_fv);
-		// 	emd /= shape_dists_sd(i);
-		// 	shape_dist_2 += emd*emd;
-		// }
-
-		// float global_dist_2 = (q_global_fv - global_fvs.row(i).transpose()).array().square().sum();
-		// dists.push_back(sqrtf(global_dist_2 + shape_dist_2));
 	}
 
 	auto indices = n_smallest_indices(dists.begin(), dists.end(), k);
