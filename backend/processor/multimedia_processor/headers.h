@@ -25,6 +25,8 @@
 
 #define EPSILON 1e-5
 
+#define N_GLOBAL_FEATURES 4
+
 typedef Annoy::AnnoyIndex<size_t, float, Annoy::Angular, Annoy::Kiss32Random, Annoy::AnnoyIndexSingleThreadedBuildPolicy>
                                               AnnoyIndex;
 typedef Eigen::Vector3f                       Vertex;

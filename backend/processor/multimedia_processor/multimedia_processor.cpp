@@ -56,6 +56,8 @@ int main(int argc, char *argv[])
 		evaluate();
 
 	else if (!strcmp(argv[1], "query-database-model"))
+		if (in != "")
+			query_database_model(in);
 		query_database_model();
 
 	else if (!strcmp(argv[1], "query-database-model-ann"))
@@ -142,8 +144,8 @@ void extract_all()
 		for (int j = i + 1; j < n_models; j++, d_i++)
 		{
 			float global_dist = distance::global_vf_distance(standardized_global_fvs.row(i), standardized_global_fvs.row(j));
-			// float shape_dist = standardized_shape_dists.col(d_i).array().sum();
-			float shape_dist = standardized_shape_dists.col(d_i).array().square().sum();
+			float shape_dist = standardized_shape_dists.col(d_i).array().sum();
+			// float shape_dist = standardized_shape_dists.col(d_i).array().square().sum();
 			dists[d_i] = distance::combine_global_shape_distance(global_dist, shape_dist, standardized_shape_dists.rows());
 		}
 
@@ -283,11 +285,11 @@ void query_top_k_models(const string file, const int k)
 	descriptors::GlobalDescriptors gd = descriptors::get_global_descriptors(mesh);
 	descriptors::ShapeDescriptors sd = descriptors::get_shape_descriptors(mesh, 10);
 
-	Eigen::Vector<float, 8> q_global_fv(
-		gd.surfaceArea,
-		gd.AABBVolume,
-		gd.volume,
-		gd.compactness,
+	Eigen::Vector<float, N_GLOBAL_FEATURES> q_global_fv(
+		// gd.surfaceArea,
+		// gd.AABBVolume,
+		// gd.volume,
+		// gd.compactness,
 		gd.eccentricity,
 		gd.diameter,
 		gd.sphericity,

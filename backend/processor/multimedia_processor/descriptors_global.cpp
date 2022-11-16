@@ -133,16 +133,16 @@ namespace descriptors
     {
         size_t n_models = descriptors.size();
 
-        Eigen::MatrixXf global_fvs = Eigen::MatrixXf(n_models, 8);
+        Eigen::MatrixXf global_fvs = Eigen::MatrixXf(n_models, N_GLOBAL_FEATURES);
 
         for (int i = 0; i < n_models; i++)
         {
             GlobalDescriptors gd = descriptors[i];
-            global_fvs.row(i) = Eigen::Matrix<float, 8, 1>(
-                gd.surfaceArea,
-                gd.AABBVolume,
-                gd.volume,
-                gd.compactness,
+            global_fvs.row(i) = Eigen::Matrix<float, N_GLOBAL_FEATURES, 1>(
+                // gd.surfaceArea,
+                // gd.AABBVolume,
+                // gd.volume,
+                // gd.compactness,
                 gd.eccentricity,
                 gd.diameter,
                 gd.sphericity,

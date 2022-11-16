@@ -1,5 +1,8 @@
 ## Frontend for the Multimedia Retrieval assignment
 
+Build with NextJS, more info about running and deploying here 
+[https://nextjs.org/docs](https://nextjs.org/docs)
+
 # Getting Started
 
 First, run the development server:
