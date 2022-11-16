@@ -11,7 +11,8 @@ Eigen::VectorXf Database::shape_dists_sd_ = Eigen::VectorXf();
 Eigen::MatrixXf Database::global_fvs_ = Eigen::MatrixXf();
 vector<Eigen::MatrixXf> Database::shape_fvs_ = vector<Eigen::MatrixXf>();
 vector<float> Database::dist_matrix_ = vector<float>();
-AnnoyIndex* annoy_index_ = new AnnoyIndex(0);
+// AnnoyIndex annoy_index_ = new AnnoyIndex(0);
+AnnoyIndex* Database::annoy_index_ = new AnnoyIndex(0);
 
 void Database::SetDatabaseDir(const std::string database) 
 {   
@@ -28,6 +29,7 @@ void Database::SetDatabaseDir(const std::string database)
         global_fvs_ = Eigen::MatrixXf();
         shape_fvs_ = vector<Eigen::MatrixXf>();
         dist_matrix_ = vector<float>();
+        annoy_index_ = new AnnoyIndex(0);
     }
 
     database_ = database;
@@ -143,6 +145,7 @@ AnnoyIndex Database::GetAnnoyIndex()
         annoy_index_->~AnnoyIndex();
         annoy_index_ = new AnnoyIndex(fvs_size);
         annoy_index_->load((GetDatabaseDir() + "/index.ann").c_str());
+        cout << "loading annoy with feature vector size of " << fvs_size << endl;
     }
 
     return *annoy_index_;

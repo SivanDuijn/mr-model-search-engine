@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
 	else if (!strcmp(argv[1], "extract"))
 		extract();
 
-	else if (!strcmp(argv[1], "compute-ANN"))
+	else if (!strcmp(argv[1], "compute-ann"))
 		compute_ann();
 
 	else if (!strcmp(argv[1], "evaluate"))
@@ -234,11 +234,13 @@ vector<tuple<int, float>> query_database_model_ann(const string in, const size_t
 	const AnnoyIndex index = Database::GetAnnoyIndex();
 	const size_t m_i = Database::GetModelIndex(in);
 
+	cout << in << " " << m_i << endl;
 	// Get the k closest neighbours
 	std::vector<size_t> closest;
 	std::vector<float> dist;
 	index.get_nns_by_item(m_i, k, index.get_n_items(), &closest, &dist);
 	
+	cout << " hoi" << endl;
 	// Pack the information
 	vector<tuple<int, float>> ret;
 	for(int i = 0; i < k; i++)
@@ -257,7 +259,7 @@ void compute_closest_models()
 	nlohmann::json json_closest;
 	for (string file : filenames)
 	{
-		auto closest = query_database_model(utils::to_processed(file), 11);
+		auto closest = query_database_model_ann(utils::to_processed(file), 11);
 	
 		closest.erase(closest.begin());
 		vector<tuple<string,float>> cv;
@@ -287,10 +289,10 @@ void query_top_k_models(const string file, const int k)
 	descriptors::ShapeDescriptors sd = descriptors::get_shape_descriptors(mesh, 10);
 
 	Eigen::Vector<float, N_GLOBAL_FEATURES> q_global_fv(
-		// gd.surfaceArea,
-		// gd.AABBVolume,
-		// gd.volume,
-		// gd.compactness,
+		gd.surfaceArea,
+		gd.AABBVolume,
+		gd.volume,
+		gd.compactness,
 		gd.eccentricity,
 		gd.diameter,
 		gd.sphericity,

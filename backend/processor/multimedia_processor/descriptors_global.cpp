@@ -139,10 +139,10 @@ namespace descriptors
         {
             GlobalDescriptors gd = descriptors[i];
             global_fvs.row(i) = Eigen::Matrix<float, N_GLOBAL_FEATURES, 1>(
-                // gd.surfaceArea,
-                // gd.AABBVolume,
-                // gd.volume,
-                // gd.compactness,
+                gd.surfaceArea,
+                gd.AABBVolume,
+                gd.volume,
+                gd.compactness,
                 gd.eccentricity,
                 gd.diameter,
                 gd.sphericity,

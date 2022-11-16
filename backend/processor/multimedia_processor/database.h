@@ -15,6 +15,7 @@ protected:
     static Eigen::MatrixXf global_fvs_;
     static std::vector<Eigen::MatrixXf> shape_fvs_;
     static std::vector<float> dist_matrix_;
+    static AnnoyIndex* annoy_index_;
 
     // Load both the global and shape feature vectors at once, so we only have to read the json once! 
     static void LoadFVS();
