@@ -76,6 +76,8 @@ public:
     static void WriteAnnoyIndex(AnnoyIndex& index);
     static void WriteDistMatrix(std::vector<float>& dist_matrix);
 
+    static void WriteDescriptors(std::vector<descriptors::GlobalDescriptors>& gds, std::vector<descriptors::ShapeDescriptors>& sds);
+
     // Write normalization stats to a database
     static void WriteStats(std::string in, std::string out, const NormalizationStatistics &beforeStats, const NormalizationStatistics &afterStats);
     static void WriteConfusionMatrix(const std::map<std::string, std::map<std::string, int>> confusion);

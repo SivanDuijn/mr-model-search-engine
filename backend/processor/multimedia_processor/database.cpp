@@ -290,6 +290,18 @@ void Database::WriteDistMatrix(vector<float>& dist_matrix)
 	ofs.close();
 }
 
+void Database::WriteDescriptors(vector<descriptors::GlobalDescriptors>& gds, vector<descriptors::ShapeDescriptors>& sds)
+{
+    vector<string> filenames = Database::GetFilenames(true);
+    string database = GetDatabaseDir();
+    nlohmann::json json_descriptors;
+    for (size_t i = 0, nFiles = filenames.size(); i < nFiles; i++)
+        json_descriptors[filenames[i]] = Database::DescriptorsToJSON(gds[i], sds[i]);
+    ofstream ofs(database + "/feature_descriptors.json");
+    ofs << setw(4) << json_descriptors << endl;
+    ofs.close();
+}
+
 void Database::WriteStats(string in, string out, const NormalizationStatistics &beforeStats, const NormalizationStatistics &afterStats)
 {
     string database = GetDatabaseDir();

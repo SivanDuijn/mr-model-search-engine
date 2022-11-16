@@ -17,7 +17,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         body: req.body,
         mode: "cors",
     }).then((r) => r.json());
-    console.log(data);
+    // console.log(data);
 
     res.json(data);
 }

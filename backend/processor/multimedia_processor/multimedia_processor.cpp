@@ -122,6 +122,8 @@ void extract_all()
 	printf_debug("Getting shape descriptors\n");
 	descriptors::get_shape_descriptors(filenames, sds);
 
+	Database::WriteDescriptors(gds, sds);
+
 	// Standardize global descriptors
 	Eigen::MatrixXf standardized_global_fvs;
 	Eigen::VectorXf global_mean;
