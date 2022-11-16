@@ -54,7 +54,7 @@ public:
 
     // The global descriptors in a matrix where each row is model
     static Eigen::MatrixXf& GetGlobalFVS();
-    static AnnoyIndex GetAnnoyIndex();
+    static AnnoyIndex* GetAnnoyIndex();
     // The shape descriptors, for each descriptor a matrix where each row represents a model 
     static std::vector<Eigen::MatrixXf>& GetShapeFVS();
     static std::vector<float>& GetDistMatrix();

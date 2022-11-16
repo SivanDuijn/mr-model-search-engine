@@ -233,16 +233,14 @@ vector<tuple<int,float>> query_database_model(const string in, const size_t k)
 vector<tuple<int, float>> query_database_model_ann(const string in, const size_t k)
 {
 	printf_debug("Querying for %zu closest models to %s using ANN\n", k, in.c_str());
-	const AnnoyIndex index = Database::GetAnnoyIndex();
+	const AnnoyIndex* index = Database::GetAnnoyIndex();
 	const size_t m_i = Database::GetModelIndex(in);
 
-	cout << in << " " << m_i << endl;
 	// Get the k closest neighbours
 	std::vector<size_t> closest;
 	std::vector<float> dist;
-	index.get_nns_by_item(m_i, k, index.get_n_items(), &closest, &dist);
+	index->get_nns_by_item(m_i, k, index->get_n_items(), &closest, &dist);
 	
-	cout << " hoi" << endl;
 	// Pack the information
 	vector<tuple<int, float>> ret;
 	for(int i = 0; i < k; i++)
@@ -256,6 +254,7 @@ vector<tuple<int, float>> query_database_model_ann(const string in, const size_t
 
 void compute_closest_models()
 {
+	printf_debug("Computing closest models for all models in database\n");
 	auto filenames = Database::GetFilenames();
 
 	nlohmann::json json_closest;

@@ -132,7 +132,7 @@ vector<Eigen::MatrixXf>& Database::GetShapeFVS()
     return shape_fvs_;
 }
 
-AnnoyIndex Database::GetAnnoyIndex()
+AnnoyIndex* Database::GetAnnoyIndex()
 {
     if (annoy_index_->get_n_items() == 0)
     {
@@ -145,10 +145,9 @@ AnnoyIndex Database::GetAnnoyIndex()
         annoy_index_->~AnnoyIndex();
         annoy_index_ = new AnnoyIndex(fvs_size);
         annoy_index_->load((GetDatabaseDir() + "/index.ann").c_str());
-        cout << "loading annoy with feature vector size of " << fvs_size << endl;
     }
 
-    return *annoy_index_;
+    return annoy_index_;
 }
 
 // Load both the global and shape feature vectors at once, so we only have to read the json once!

@@ -32,6 +32,7 @@ namespace distance
         
         // average by the number of distances, the shape distance is actually 5 distances summed up
         float total = combine_global_shape_distance(g, s, s_a.size());
+        return total;
     }
 
     float combine_global_shape_distance(float g, float total_s, size_t n_shape_descriptors)
