@@ -1,0 +1,24 @@
+{
+    "1.off": {
+        "aabbSize": 1.9613993167877197,
+        "angleX": 0.004071115981787443,
+        "angleY": 1.601244330406189,
+        "angleZ": 1.540356159210205,
+        "nFaces": 9408,
+        "nVertices": 4706,
+        "position": 0.055889151990413666,
+        "totalAngle": 3.1456716060638428,
+        "totalFlip": -1
+    },
+    "1_processed.off": {
+        "aabbSize": 1.0564523935317993,
+        "angleX": 3.141592502593994,
+        "angleY": 0.0,
+        "angleZ": 1.2136952420860325e-07,
+        "nFaces": 4092,
+        "nVertices": 2048,
+        "position": 1.3416627098195022e-07,
+        "totalAngle": 3.1415927410125732,
+        "totalFlip": 3
+    }
+}
