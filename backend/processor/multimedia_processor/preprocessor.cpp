@@ -56,8 +56,28 @@ namespace preprocessor
         {
             printf_debug("Decimating mesh");
             pmp::Decimation dec = pmp::Decimation(mesh);
+            Vertex bounding_box = mesh.bounds().max() - mesh.bounds().min();
+            // Set the decimation constraints
+            float rtio = 3.0f;
+            // The maximum edge length is equal to the average dim of the bounding box
+            // divided by the vertex count, scaled by a factor of 128
+            float elen = 128.0f * bounding_box.sum() / (3 * VERTEX_COUNT);
+            // The maximum Hausdorff distance is equal to the min dim of the bounding box
+            // divided by the vertex count, scaled by a factor of 128
+            float haus = 128.0f * bounding_box.minCoeff() / VERTEX_COUNT;
+            dec.initialize(rtio,  // Max aspect ratio (long/short edge)
+                           elen,  // Max edge length
+                           0u,    // Max valence (neighbouring verts)
+                           0.0f,  // Max normal deviation
+                           haus); // Max Hausdorff error
             dec.decimate(VERTEX_COUNT);
-            printf_debug(" to %zu vertices\n", mesh.n_vertices());
+            printf_debug(" to %zu vertices (elen: %f, haus: %f)\n", mesh.n_vertices(), elen, haus);
+            if(mesh.n_vertices() != VERTEX_COUNT)
+            {
+                dec.initialize();
+                dec.decimate(VERTEX_COUNT);
+                printf_debug("Applied relaxed decimation to reach %i\n", mesh.n_vertices());
+            }
         }
         else
         {
