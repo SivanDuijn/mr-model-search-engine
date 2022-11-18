@@ -49,6 +49,12 @@ int main(int argc, char *argv[])
 	else if (!strcmp(argv[1], "extract"))
 		extract();
 
+	else if (!strcmp(argv[1], "compute-dist-matrix"))
+		compute_dist_matrix();
+
+	else if (!strcmp(argv[1], "compute-closest-models"))
+		compute_closest_models();
+
 	else if (!strcmp(argv[1], "compute-ann"))
 		compute_ann();
 
@@ -70,10 +76,11 @@ int main(int argc, char *argv[])
 		else 
 			cout << "{\"error\": \"Wrong arguments!\"}";
 
-	else if (!strcmp(argv[1], "compute-all-closest"))
-		compute_closest_models();
-		
-	else printf("Unknown argument");
+	else 
+	{
+		printf("Unknown argument");
+		return 1;
+	}
 
 	return 0;
 }
@@ -138,21 +145,6 @@ void extract_all()
 
 	// Write feature vectors to database as json
 	Database::WriteFVS(standardized_global_fvs, sds, global_mean, global_sd, shape_dists_mean, shape_dists_sd);
-
-	// Calculate distance matrix
-	// TODO: put in separate function, but requires recalculating shape distances
-	size_t n_models = filenames.size();
-	vector<float> dists((n_models*(n_models - 1)) / 2);
-	for (int i = 0, d_i = 0; i < n_models; i++) 
-		for (int j = i + 1; j < n_models; j++, d_i++)
-		{
-			float global_dist = distance::global_vf_distance(standardized_global_fvs.row(i), standardized_global_fvs.row(j));
-			float shape_dist = standardized_shape_dists.col(d_i).array().sum();
-			// float shape_dist = standardized_shape_dists.col(d_i).array().square().sum();
-			dists[d_i] = distance::combine_global_shape_distance(global_dist, shape_dist, standardized_shape_dists.rows());
-		}
-
-	Database::WriteDistMatrix(dists);
 }
 
 void extract(const string in)
@@ -167,6 +159,39 @@ void extract(const string in)
 	descriptors::get_shape_descriptors(mesh);
 
 	// TODO write?
+}
+
+void compute_dist_matrix()
+{
+	size_t n_models = Database::GetDatabaseSize();
+	Eigen::MatrixXf global_fvs = Database::GetGlobalFVS();
+	vector<Eigen::MatrixXf> shape_fvs = Database::GetShapeFVS();
+	size_t n_descriptors = shape_fvs.size();
+	Eigen::VectorXf shape_dists_sd = Database::GetShapeDistsSD();
+
+	vector<vector<Eigen::VectorXf>> shape_fvs_per_model(n_models);
+	for (int i = 0, desc_i = 0; i < n_models; i++) 
+	{
+		vector<Eigen::VectorXf> m_shape_fv(5);
+		for (size_t desc_i = 0; desc_i < n_descriptors; desc_i++)
+			m_shape_fv[desc_i] = shape_fvs[desc_i].row(i);
+		shape_fvs_per_model[i] = m_shape_fv;
+	}
+
+	vector<float> dists((n_models*(n_models - 1)) / 2);
+	for (int i = 0, d_i = 0; i < n_models; i++) 
+		for (int j = i + 1; j < n_models; j++, d_i++)
+		{
+			dists[d_i] = distance::distance(
+				global_fvs.row(i), 
+				global_fvs.row(j),
+				shape_fvs_per_model[i],
+				shape_fvs_per_model[j],
+				shape_dists_sd
+			);
+		}
+
+	Database::WriteDistMatrix(dists);
 }
 
 void compute_ann()
@@ -217,6 +242,7 @@ vector<tuple<int,float>> query_database_model(const string in, const size_t k)
 	d_i++, i++;	
 	for (; i < n_models; i++, d_i++)
 		q_dists[i] = dists[d_i];
+
 	auto indices = n_smallest_indices(q_dists.begin(), q_dists.end(), k);
 
 	// Pack the information
@@ -260,13 +286,14 @@ void compute_closest_models()
 	nlohmann::json json_closest;
 	for (string file : filenames)
 	{
-		auto closest = query_database_model(utils::to_processed(file), 11);
+		std::vector<std::tuple<int, float>> closest = query_database_model(utils::to_processed(file), 11);
 	
 		closest.erase(closest.begin());
 		vector<tuple<string,float>> cv;
-		for (auto c : closest)
+		for (auto c : closest) 
 			cv.push_back(make_pair(filenames[get<0>(c)], get<1>(c)));
 		json_closest[file] = cv;
+
 	}
 
 	ofstream ofs = ofstream(Database::GetDatabaseDir() + "/closest_models.json");
@@ -307,9 +334,9 @@ void query_top_k_models(const string file, const int k)
 	q_shape_fv.push_back(sd.D3.bins);
 	q_shape_fv.push_back(sd.D4.bins);
 
-
 	Eigen::MatrixXf global_fvs = Database::GetGlobalFVS();
 	vector<Eigen::MatrixXf> shape_fvs = Database::GetShapeFVS();
+	size_t n_descriptors = shape_fvs.size(); // should be the same as q_shape_fv.size()
 
 	Eigen::VectorXf global_mean = Database::GetGlobalMean();
 	Eigen::VectorXf global_sd = Database::GetGlobalSD();
@@ -322,9 +349,9 @@ void query_top_k_models(const string file, const int k)
 	for (size_t i = 0, n_models = global_fvs.rows(); i < n_models; i++)
 	{
 		vector<Eigen::VectorXf> m_shape_fv(5);
-		for (auto shape_d : shape_fvs)
-			m_shape_fv.push_back(shape_d.row(i));
-
+		for (size_t d_i = 0; d_i < n_descriptors; d_i++)
+			m_shape_fv[d_i] = shape_fvs[d_i].row(i);
+		
 		float dist = distance::distance(q_global_fv, global_fvs.row(i), q_shape_fv, m_shape_fv, shape_dists_sd);
 
 		dists.push_back(dist);

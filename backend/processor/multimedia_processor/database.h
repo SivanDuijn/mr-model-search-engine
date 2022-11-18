@@ -50,14 +50,14 @@ public:
     static Eigen::VectorXf& GetShapeDistsMean();
     static Eigen::VectorXf& GetShapeDistsSD();
 
-    static size_t GetModelIndex(const std::string file);
-
     // The global descriptors in a matrix where each row is model
     static Eigen::MatrixXf& GetGlobalFVS();
-    static AnnoyIndex* GetAnnoyIndex();
     // The shape descriptors, for each descriptor a matrix where each row represents a model 
     static std::vector<Eigen::MatrixXf>& GetShapeFVS();
     static std::vector<float>& GetDistMatrix();
+
+    static size_t GetModelIndex(const std::string file);
+    static AnnoyIndex* GetAnnoyIndex();
 
     // Read a mesh from file
     static pmp::SurfaceMesh ReadMesh(const std::string file);

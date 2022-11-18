@@ -4,13 +4,18 @@ namespace distance
 {
     // PRIVATE ACTUAL DISTANCE FUNCTIONS
     namespace {
-        float euclidian_distance(const Eigen::VectorXf& a,const  Eigen::VectorXf b)
+        float cosine_distance(const Eigen::VectorXf& a, const Eigen::VectorXf& b)
         {
-            // return sqrtf((a - b).array().square().sum());
-            return (a - b).array().square().sum();
+            return abs(a.dot(b) / (a.norm() * b.norm()));
         }
 
-        float earth_movers_distance(const Eigen::VectorXf& a,const  Eigen::VectorXf& b)
+        float euclidian_distance(const Eigen::VectorXf& a,const Eigen::VectorXf& b)
+        {
+            return sqrtf((a - b).array().square().sum());
+            // return (a - b).array().square().sum();
+        }
+
+        float earth_movers_distance(const Eigen::VectorXf& a,const Eigen::VectorXf& b)
         {
             Eigen::ArrayXf diff = (a - b).array();
             Eigen::ArrayXf cumulative_sum(a.size(), 1);
@@ -31,19 +36,19 @@ namespace distance
         float s = shape_vfs_distance(s_a, s_b, s_dists_sd);
         
         // average by the number of distances, the shape distance is actually 5 distances summed up
-        float total = combine_global_shape_distance(g, s, s_a.size());
-        return total;
-    }
+        float total = (g*3 + s) / (3 + s_a.size());
+        // float total = sqrtf(g + s);
 
-    float combine_global_shape_distance(float g, float total_s, size_t n_shape_descriptors)
-    {
-        // return (g + total_s) / (1 + n_shape_descriptors);
-        return sqrtf(g + total_s);
+        return total;
     }
 
     float global_vf_distance(const Eigen::VectorXf& a, const Eigen::VectorXf b)
     {
-        return euclidian_distance(a,b);
+        // Eigen::ArrayXf weights {{3, 1, 1, 2}};
+        Eigen::ArrayXf weights {{1, 1, 1, 1, 1, 1, 1, 1}};
+
+        return euclidian_distance(a.array() * weights, b.array() * weights);
+        // return cosine_distance(a.array() * weights, b.array() * weights);
     }
 
     float shape_vf_distance(const Eigen::VectorXf& a, const Eigen::VectorXf& b)
@@ -53,9 +58,11 @@ namespace distance
 
     float shape_vfs_distance(const vector<Eigen::VectorXf>& a, const vector<Eigen::VectorXf>& b, const Eigen::VectorXf& dists_sd)
     {
+        Eigen::ArrayXf weights {{2, 1, 1, 1, 1}};
+
         float total = 0;
         for (size_t i = 0, n_descriptors = a.size(); i < n_descriptors; i++)
-            total += shape_vf_distance(a[i], b[i]) / dists_sd(i);
+            total += (shape_vf_distance(a[i], b[i]) / dists_sd(i)) * weights(i);
         return total;
     }
 }

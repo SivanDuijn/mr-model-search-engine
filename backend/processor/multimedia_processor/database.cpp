@@ -170,7 +170,7 @@ void Database::LoadFVS()
 	shape_dists_sd_ = utils::json_array_to_vector(json_fvs["shape_dists_sd"]);
 
     // Rows represent the models
-    global_fvs_ = Eigen::MatrixXf(n_models, 8);
+    global_fvs_ = Eigen::MatrixXf(n_models, N_GLOBAL_FEATURES);
     size_t n_shape_descriptors = 5;
     // Create a matrix for each shape descriptor where the rows represent the models
     shape_fvs_ = vector<Eigen::MatrixXf>();

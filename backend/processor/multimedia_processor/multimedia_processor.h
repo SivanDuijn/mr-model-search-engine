@@ -18,3 +18,4 @@ vector<tuple<int,float>> query_database_model_ann(const string in = "125_process
 void compute_closest_models();
 void query_top_k_models(const string file, int k);
 void evaluate(const size_t k = 10);
+void compute_dist_matrix();
