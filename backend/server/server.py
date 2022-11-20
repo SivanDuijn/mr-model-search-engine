@@ -42,9 +42,9 @@ def query():
 
         # query the database
         result = multimedia_processor.query_top_k_models(model_path)
-        print(f"Result:\n{result}")
-
         os.remove(model_path)
+
+        # print(f"Result:\n{result}")
 
         return result, 200, {"Content-Type": "application/json"}
 

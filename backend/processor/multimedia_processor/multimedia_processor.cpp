@@ -78,7 +78,23 @@ int main(int argc, char *argv[])
 
 	else 
 	{
-		printf("Unknown argument");
+		printf("Unknown argument...\n\n"
+		"multimedia_processor [COMMAND] [DATABASE_DIR] [IN_MODEL] [OUT_MODEL]\n\n"
+		"[COMMAND] can be one of the following:\n"
+		" - preprocess                 remeshes and normalizes a given model\n"
+		" - preprocess-all             preprocesses all the models in the database\n"
+		" - extract                    calculates features for a given model\n"
+		" - extract-all                extracts features for all models in the database\n"
+		" - compute-dist-matrix        precomputes distances between all models in the database\n"
+		" - compute-ann                computes the approximate nearest neighbor index\n"
+		" - query-database-model       quick query of a model that is already in the database\n"
+		" - query-database-model-ann   quick query of a model in datababase using ANN\n"
+		" - query-model                queries a model outside the database\n"
+		" - compute-closest-models     precomputes top 10 closest models for each model in the database\n\n"
+		"[DATABASE_DIR] specifies the database directory,\n"
+		"default: ../../frontend/model-viewer/public/PSBDatabase\n\n"
+		"[IN_MODEL]  (optional) input model file name to process\n"
+		"[OUT_MODEL] (optional) output filename\n");
 		return 1;
 	}
 
@@ -369,8 +385,10 @@ void query_top_k_models(const string file, const int k)
 	output_json["stats"] = Database::StatsToJSON(afterStats);
 	output_json["descriptors"] = Database::DescriptorsToJSON(gd, sd);
 	output_json["processed_model"] = utils::mesh_to_off_string(mesh);
-
-	cout << setw(4) << output_json << endl;
+	cout << file + "_result.json" << endl;
+	ofstream ofs(file + "_result.json");
+    ofs << output_json << endl;
+    ofs.close();
 }
 
 void evaluate(const size_t k)

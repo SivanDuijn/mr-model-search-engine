@@ -41,8 +41,9 @@ namespace descriptors
     Histogram rolling_bin(pmp::SurfaceMesh &mesh,
                           Eigen::VectorXf (*desc)(pmp::SurfaceMesh&),
                           size_t samplecount,
-                          size_t bincount, float min, float binsize)
+                          size_t bincount, float min, float binsize, const string name = "")
     {
+        printf_debug("Calculating %s...", name.c_str());
         // Initialize the bins
         Eigen::VectorXf bins(bincount);
         bins.setZero();
@@ -59,6 +60,7 @@ namespace descriptors
         // Normalize the histogram
         bins /= samplecount;
 
+        printf_debug("  done\n");
         return Histogram{ bins, min, binsize };
     }
     
@@ -66,7 +68,7 @@ namespace descriptors
     // Angle between edges of random vertices
     Eigen::VectorXf A3(pmp::SurfaceMesh &mesh)
     {
-        printf_debug("Calculating A3...");
+        // printf_debug("Calculating A3...");
         // Get the vertices as an Eigen map
         VertexMap map = VertexProperties::GetVertexMap(mesh);
 
@@ -75,7 +77,7 @@ namespace descriptors
         VertexMat nedge2 = (VertexProperties::RandomVertices(map) - map).colwise().normalized();
         Eigen::VectorXf angle = nedge1.cwiseProduct(nedge2).colwise().sum().array().acos();
 
-        printf_debug("           done\n");
+        // printf_debug("           done\n");
         return angle;
     }
 
@@ -83,7 +85,7 @@ namespace descriptors
     // Distance from random vertices to barycenter
     Eigen::VectorXf D1(pmp::SurfaceMesh &mesh)
     {
-        printf_debug("Calculating D1...");
+        // printf_debug("Calculating D1...");
         // Get the vertices as an Eigen map
         VertexMap map = VertexProperties::GetVertexMap(mesh);
 
@@ -91,7 +93,7 @@ namespace descriptors
         Vertex bcenter = (Vertex)pmp::centroid(mesh);
         Eigen::VectorXf dist = (map.colwise() - bcenter).colwise().norm();
 
-        printf_debug("           done\n");
+        // printf_debug("           done\n");
         return dist;
     }
 
@@ -99,7 +101,7 @@ namespace descriptors
     // Distance from random vertices to each other
     Eigen::VectorXf D2(pmp::SurfaceMesh &mesh)
     {
-        printf_debug("Calculating D2...");
+        // printf_debug("Calculating D2...");
         // Get the vertices as an Eigen map
         VertexMap map = VertexProperties::GetVertexMap(mesh);
 
@@ -107,7 +109,7 @@ namespace descriptors
         VertexMat vert = VertexProperties::RandomVertices(map);
         Eigen::VectorXf dist = (map - vert).colwise().norm();
 
-        printf_debug("           done\n");
+        // printf_debug("           done\n");
         return dist;
     }
 
@@ -115,7 +117,7 @@ namespace descriptors
     // Surface area of triangle from random vertices
     Eigen::VectorXf D3(pmp::SurfaceMesh &mesh)
     {
-        printf_debug("Calculating D3...");
+        // printf_debug("Calculating D3...");
         // Get the vertices as an Eigen map
         VertexMap map = VertexProperties::GetVertexMap(mesh);
 
@@ -133,7 +135,7 @@ namespace descriptors
         Eigen::VectorXf area = norm.colwise().norm() / 2;
 
         // Use square root to normalize
-        printf_debug("           done\n");
+        // printf_debug("           done\n");
         return area.cwiseSqrt();
     }
 
@@ -141,7 +143,7 @@ namespace descriptors
     // Volume of tetrahedron from random vertices
     Eigen::VectorXf D4(pmp::SurfaceMesh &mesh)
     {
-        printf_debug("Calculating D4...");
+        // printf_debug("Calculating D4...");
         // Get the vertices as an Eigen map
         VertexMap map = VertexProperties::GetVertexMap(mesh);
 
@@ -160,7 +162,7 @@ namespace descriptors
         Eigen::VectorXf volume = vert1.cwiseProduct(div).colwise().sum() / 6;
 
         // Use cube root to normalize
-        printf_debug("           done\n");
+        // printf_debug("           done\n");
         return volume.unaryExpr([](float v) -> float { return cbrtf(v); });
     }
 
@@ -175,11 +177,11 @@ namespace descriptors
 
         return ShapeDescriptors
         {
-            bin(A3(mesh), nBins, 0, A3Binsize),
-            bin(D1(mesh), nBins, 0, D1Binsize),
-            bin(D2(mesh), nBins, 0, D2Binsize),
-            bin(D3(mesh), nBins, 0, D3Binsize),
-            bin(D4(mesh), nBins, 0, D4Binsize)
+            rolling_bin(mesh, A3, SAMPLE_COUNT, nBins, 0, A3Binsize, "A3"),
+            rolling_bin(mesh, D1, SAMPLE_COUNT, nBins, 0, D1Binsize, "D1"),
+            rolling_bin(mesh, D2, SAMPLE_COUNT, nBins, 0, D2Binsize, "D2"),
+            rolling_bin(mesh, D3, SAMPLE_COUNT, nBins, 0, D3Binsize, "D3"),
+            rolling_bin(mesh, D4, SAMPLE_COUNT, nBins, 0, D4Binsize, "D4"),
         };
     }
 
@@ -195,11 +197,11 @@ namespace descriptors
         {
             pmp::SurfaceMesh mesh = Database::ReadMeshFromDatabase(file);
             descriptors.push_back({
-                rolling_bin(mesh, A3, SAMPLE_COUNT, nBins, 0, A3Binsize),
-                rolling_bin(mesh, D1, SAMPLE_COUNT, nBins, 0, D1Binsize),
-                rolling_bin(mesh, D2, SAMPLE_COUNT, nBins, 0, D2Binsize),
-                rolling_bin(mesh, D3, SAMPLE_COUNT, nBins, 0, D3Binsize),
-                rolling_bin(mesh, D4, SAMPLE_COUNT, nBins, 0, D4Binsize),
+                rolling_bin(mesh, A3, SAMPLE_COUNT, nBins, 0, A3Binsize, "A3"),
+                rolling_bin(mesh, D1, SAMPLE_COUNT, nBins, 0, D1Binsize, "D1"),
+                rolling_bin(mesh, D2, SAMPLE_COUNT, nBins, 0, D2Binsize, "D2"),
+                rolling_bin(mesh, D3, SAMPLE_COUNT, nBins, 0, D3Binsize, "D3"),
+                rolling_bin(mesh, D4, SAMPLE_COUNT, nBins, 0, D4Binsize, "D4"),
             });
         }
     }

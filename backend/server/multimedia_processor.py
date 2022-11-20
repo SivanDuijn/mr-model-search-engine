@@ -1,5 +1,7 @@
 import subprocess
-from os import getcwd
+import os
+import json
+import sys
 
 def _call(args: list):
     """
@@ -13,7 +15,7 @@ def _call(args: list):
     for arg in args:
         s += arg + " ";
     print(s)
-    popen = subprocess.Popen(args, cwd=getcwd(), stdout=subprocess.PIPE, encoding="utf_8")
+    popen = subprocess.Popen(args, cwd=os.getcwd(), stdout=subprocess.PIPE, encoding="utf_8")
     # popen.wait()
     result = popen.communicate()[0]
     return result 
@@ -28,4 +30,15 @@ def extract(filename: str):
     return _call(["extract", "query_upload", filename])
 
 def query_top_k_models(filename: str):
-    return _call(["query-model", "../../frontend/model-viewer/public/PSBDatabase", filename])
+    database_dir = "../../frontend/model-viewer/public/PSBDatabase/"
+    logs = _call(["query-model", database_dir, filename])
+    print(logs)
+    try:
+        result_path = f"{filename}_result.json"
+        result_f = open(result_path)
+        result = json.load(result_f)
+        os.remove(result_path)
+        return result
+    except:
+        return "{\"error\": \"Couldn't load result! File does not exist!\"}"
+
