@@ -6,7 +6,7 @@ COPY /frontend/model-viewer/public/PSBDatabase /app/frontend/model-viewer/public
 RUN apt-get update && apt-get install -y pip python3 python3.8-venv git clang make cmake nano
 
 WORKDIR /app
-RUN git pull --recurse-submodules && git submodule update --init --recursive
+RUN git submodule update --init --recursive
 
 WORKDIR /app/backend/processor
 RUN cmake -S . -B out && cmake --build out
