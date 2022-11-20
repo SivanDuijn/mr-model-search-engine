@@ -2,7 +2,12 @@
     Monorepo for the<br>Utrecht University Multimedia Retrieval assignment
 </h1>
 
-## Monorepo split up the following:
+Clone with the `--recursive` flag: <br>
+`git clone --recursive git@github.com:SivanDuijn/mr-model-search-engine.git`
+
+Alternatively run `git submodule update --init --recursive` after cloning.
+
+## Monorepo split up the following
 
     .
     ├── backend
