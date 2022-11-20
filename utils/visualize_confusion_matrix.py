@@ -4,7 +4,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import sys
 
-f = open("../frontend/model-viewer/public/PSBDatabase/confusion_matrix.json")
+f = open("../frontend/model-viewer/public/PSBDatabase/confusion_matrix_ann.json")
 confusion = json.load(f)
 # confusion["matrix"] = map(lambda l : map(lambda x : x / 200, l), confusion["matrix"])
 

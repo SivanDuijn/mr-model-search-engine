@@ -449,13 +449,6 @@ void evaluate(const size_t k)
 	for (auto iter = quality_class.begin(), end = quality_class.end(); iter != end; iter++)
 		printf_debug("%s=%f, ", iter->first.c_str(), iter->second);
 	cout << "total performance: " << to_string(quality_total) << endl;
-	printf_debug("Confusion:\n");
-	for (auto iter1 = confusion.begin(), end1 = confusion.end(); iter1 != end1; iter1++)
-	{
-		printf_debug("%s: ", iter1->first.c_str());
-		for (auto iter2 = iter1->second.begin(), end2 = iter1->second.end(); iter2 != end2; iter2++)
-			printf_debug("%s=%i, ", iter2->first.c_str(), iter2->second);
-		printf_debug("\n");
-	}
+	
 	Database::WriteConfusionMatrix(confusion);
 }

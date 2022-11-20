@@ -37,7 +37,6 @@ namespace distance
         
         // average by the number of distances, the shape distance is actually 5 distances summed up
         float total = (g*3 + s) / (3 + s_a.size());
-        // float total = sqrtf(g + s);
 
         return total;
     }
