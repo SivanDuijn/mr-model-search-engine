@@ -46,6 +46,7 @@ namespace distance
     {
         // Eigen::ArrayXf weights {{3, 1, 1, 2}};
         Eigen::ArrayXf weights {{1, 1, 1, 1, 1, 1, 1, 1}};
+        weights = weights / weights.sum() * N_GLOBAL_FEATURES;
 
         return euclidian_distance(a.array() * weights, b.array() * weights);
         // return cosine_distance(a.array() * weights, b.array() * weights);
@@ -58,7 +59,8 @@ namespace distance
 
     float shape_vfs_distance(const vector<Eigen::VectorXf>& a, const vector<Eigen::VectorXf>& b, const Eigen::VectorXf& dists_sd)
     {
-        Eigen::ArrayXf weights {{2, 1, 1, 1, 1}};
+        Eigen::ArrayXf weights {{2, 4, 1, 1, 1}};
+        weights = weights / weights.sum() * 5;
 
         float total = 0;
         for (size_t i = 0, n_descriptors = a.size(); i < n_descriptors; i++)
