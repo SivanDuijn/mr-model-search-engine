@@ -1,6 +1,6 @@
 [submodule "backend/processor/submodules/pmp-library"]
 	path = backend/processor/submodules/pmp-library
-	url = https://github.com/pmp-library/pmp-library.git
+	url = https://github.com/SivanDuijn/pmp-library.git
 [submodule "backend/processor/submodules/annoy"]
 	path = backend/processor/submodules/annoy
 	url = https://github.com/spotify/annoy.git

@@ -1,7 +1,7 @@
 from flask import Flask, request
 from flask_cors import CORS, cross_origin
 from uuid import uuid4
-from os import getcwd
+import os
 import multimedia_processor
 import file_validation
 
@@ -37,12 +37,14 @@ def query():
         filename = uuid4().hex
         extension = file.filename.split('.')[-1].lower()
         print(f"User uploaded file {file.filename}, saving as {filename}.{extension}")
-        model_path = f"{getcwd()}/{app.config['UPLOAD_FOLDER']}/{filename}.{extension}"
+        model_path = f"{os.getcwd()}/{app.config['UPLOAD_FOLDER']}/{filename}.{extension}"
         file.save(model_path)
 
         # query the database
         result = multimedia_processor.query_top_k_models(model_path)
         print(f"Result:\n{result}")
+
+        os.remove(model_path)
 
         return result, 200, {"Content-Type": "application/json"}
 
