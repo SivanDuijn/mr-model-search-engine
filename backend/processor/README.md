@@ -17,6 +17,8 @@ cmake -S . -B out
 cmake --build out
 ```
 
+After building, the executable is copied to the server (`backend/server/processors`), this way the server can easily call the processor.
+
 ### Running
 
 ```bash
