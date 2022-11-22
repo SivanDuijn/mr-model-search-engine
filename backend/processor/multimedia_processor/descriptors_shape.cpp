@@ -163,7 +163,7 @@ namespace descriptors
 
         // Use cube root to normalize
         // printf_debug("           done\n");
-        return volume.unaryExpr([](float v) -> float { return cbrtf(v); });
+        return volume.unaryExpr([](float v) -> float { return cbrtf(abs(v)); });
     }
 
     // Gets the non normalized histogram shape descriptors for one mesh
